@@ -1,0 +1,59 @@
+import 'package:auto_size_text/auto_size_text.dart';
+import 'package:benji_seeker/constants/MyColors.dart';
+import 'package:benji_seeker/custom_texts/MontserratText.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+
+class ItemOrder extends StatelessWidget {
+  final MediaQueryData mediaQueryData;
+  final String text;
+  final String image;
+  final String id;
+  final Function onClick;
+
+  ItemOrder(this.mediaQueryData, this.text, this.image, this.id, this.onClick);
+
+  @override
+  Widget build(BuildContext context) {
+    MediaQueryData mediaQueryData = MediaQuery.of(context);
+    return InkWell(
+      onTap: () => onClick(context, id, text),
+      child: Padding(
+        padding: const EdgeInsets.all(2.0),
+        child: Card(
+          margin: EdgeInsets.only(bottom: 15.0),
+          elevation: 4.0,
+          child: Container(
+            padding: EdgeInsets.all(10.0),
+            child: Row(
+              children: <Widget>[
+                Container(
+                  width: mediaQueryData.size.width * 0.13,
+                  height: mediaQueryData.size.width * 0.1,
+                  child: SvgPicture.network(
+                    image,
+                    color: iconColor,
+                    fit: BoxFit.contain,
+                  ),
+                  margin: EdgeInsets.all(5.0),
+                ),
+                MontserratText("$text", 16, separatorColor, FontWeight.bold, left: 16.0,)
+//                Container(
+//                  margin:
+//                      EdgeInsets.only(left: mediaQueryData.size.width * 0.05),
+//                  child: AutoSizeText(
+//                    text,
+//                    style: TextStyle(
+//                        fontFamily: 'Montserrat',
+//                        fontWeight: FontWeight.bold,
+//                        fontSize: 16.0),
+//                  ),
+//                )
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

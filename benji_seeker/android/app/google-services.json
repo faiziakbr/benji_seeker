@@ -1,0 +1,99 @@
+{
+  "project_info": {
+    "project_number": "1048800621498",
+    "firebase_url": "https://bnji-e2bdd.firebaseio.com",
+    "project_id": "bnji-e2bdd",
+    "storage_bucket": "bnji-e2bdd.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1048800621498:android:f5dc83474b77ea2876e383",
+        "android_client_info": {
+          "package_name": "com.benji.benji_seeker"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1048800621498-dl0b12tsng376cufio6lqrndli05echs.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.benji.benji_seeker",
+            "certificate_hash": "b96bf47caf367f0bf7960edf077424287a6b462c"
+          }
+        },
+        {
+          "client_id": "1048800621498-gapailj96g0cm63fk06oc4luu287jdhd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBHIbEdt15p2HrFESQA-uAjPGrrcP9HrAg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1048800621498-gapailj96g0cm63fk06oc4luu287jdhd.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1048800621498-e0jsi6df5jiai4ciqeo2kk039sb5570o.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.benji.benjiApp"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1048800621498:android:a01097888b2dd05476e383",
+        "android_client_info": {
+          "package_name": "com.bnji.bnji_provider"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1048800621498-bkv8g84f78cvifl1mt8e9vivbmr7pj1o.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.bnji.bnji_provider",
+            "certificate_hash": "b96bf47caf367f0bf7960edf077424287a6b462c"
+          }
+        },
+        {
+          "client_id": "1048800621498-gapailj96g0cm63fk06oc4luu287jdhd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBHIbEdt15p2HrFESQA-uAjPGrrcP9HrAg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1048800621498-gapailj96g0cm63fk06oc4luu287jdhd.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1048800621498-e0jsi6df5jiai4ciqeo2kk039sb5570o.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.benji.benjiApp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
