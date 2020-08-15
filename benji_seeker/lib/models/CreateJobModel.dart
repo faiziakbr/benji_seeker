@@ -12,6 +12,8 @@ class CreateJobModel {
 
   DateTime jobTime = DateTime.now();
   String isRecurringID = "";
+  String recurringText;
+  DateTime endTime;
 
   String emailDateLabel;
 

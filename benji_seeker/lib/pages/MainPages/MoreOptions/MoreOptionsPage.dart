@@ -5,11 +5,13 @@ import 'package:benji_seeker/constants/Urls.dart';
 import 'package:benji_seeker/custom_texts/MontserratText.dart';
 import 'package:benji_seeker/custom_texts/QuicksandText.dart';
 import 'package:benji_seeker/pages/EditProfile/EditProfilePage.dart';
+import 'package:benji_seeker/pages/GetHelp/GetHelpPage.dart';
 import 'package:benji_seeker/pages/TaskHistory/WorkHistoryPage.dart';
 import 'package:benji_seeker/pages/bank/EditBankPage.dart';
 import 'package:benji_seeker/pages/invite/InvitePage.dart';
 import 'package:flutter/material.dart';
 
+import '../../FeedbackPage.dart';
 import 'itemMoreOptions.dart';
 
 class MoreOptionsPage extends StatefulWidget {
@@ -238,8 +240,8 @@ class _MoreOptionsPageState extends State<MoreOptionsPage> {
   }
 
   void goToGetHelpPage() {
-//    Navigator.push(
-//        context, MaterialPageRoute(builder: (context) => GetHelpPage()));
+    Navigator.push(
+        context, MaterialPageRoute(builder: (context) => GetHelpPage()));
   }
 
   void goToMyRatingPage() {
@@ -268,8 +270,8 @@ class _MoreOptionsPageState extends State<MoreOptionsPage> {
   }
 
   void _goToFeedbackPage() {
-//    Navigator.push(
-//        context, MaterialPageRoute(builder: (context) => FeedbackPage()));
+    Navigator.push(
+        context, MaterialPageRoute(builder: (context) => FeedbackPage()));
   }
 
   void _logout() async {

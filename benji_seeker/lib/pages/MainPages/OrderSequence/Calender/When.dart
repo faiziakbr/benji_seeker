@@ -123,35 +123,25 @@ class _WhenState extends State<When> {
                             : "Set start time."),
                   ),
                   GestureDetector(
-                    onTap: () {
-                      Navigator.push(
+                    onTap: () async {
+                      var result = await Navigator.push(
                           context,
                           MaterialPageRoute(
                               builder: (context) =>
                                   RecurringOptionsPage(_createJobModel)));
-//                      setState(() {
-//                        print("TIME: ${widget.createJobModel.jobTime.month}");
-//                        setState(() {
-//                          _showDatePickerSheet = true;
-//                          _type = "recurring";
-//                        });
-//                      });
+                      if(result != null && result){
+                        setState(() {
+                          _setRecurringComplete = true;
+                        });
+                      }
                     },
                     child: _customCard(
                         mediaQueryData,
                         context,
                         "assets/recursive_icon.png",
                         "RECURRING",
-                        "Is this recurring?"),
+                        (_setRecurringComplete && widget.createJobModel.endTime != null) ? "${widget.createJobModel.recurringText}\nEnd Data: ${DateFormat.yMd().format(widget.createJobModel.endTime)}" :"Is this recurring?"),
                   ),
-                  _showEndTime
-                      ? _customCard(
-                          mediaQueryData,
-                          context,
-                          "assets/recursive_icon.png",
-                          "END TIME",
-                          "Set end time")
-                      : Container(),
                   Container(
                       width: mediaQueryData.size.width * 0.9,
                       height: 50,

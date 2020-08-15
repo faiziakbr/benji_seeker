@@ -19,6 +19,7 @@ import 'package:camera/camera.dart';
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../BotNav.dart';
 import 'AddLocationPage.dart';
@@ -89,7 +90,11 @@ class _EnterJobDetailPageState extends State<EnterJobDetailPage> {
                               ),
                             ),
                             IconButton(
-                              onPressed: () => Navigator.pop(context),
+                              onPressed: () {
+                                while (Navigator.canPop(context))
+                                  Navigator.pop(context);
+                                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => BotNavPage()));
+                              },
                               icon: Icon(
                                 Icons.close,
                                 color: Colors.white,
@@ -116,7 +121,7 @@ class _EnterJobDetailPageState extends State<EnterJobDetailPage> {
                         _whenToComplete,
                         "When?",
                         "Tell us when you want your lawn mowed",
-                        "${widget.createJobModel.jobTime}",
+                        "${DateFormat.yMd().add_jm().format(widget.createJobModel.jobTime)} ${widget.createJobModel.endTime != null ? "Repeats ${widget.createJobModel.recurringText}" : ""}",
                         "SET DATE & TIME",
                         _btnClick),
                     _item(
@@ -164,29 +169,43 @@ class _EnterJobDetailPageState extends State<EnterJobDetailPage> {
   }
 
   void _btnSubmit() async {
+    MyLoadingDialog(context, "Posting job...");
 
-    MyLoadingDialog(context,"Posting job...");
-
-    FormData formData = FormData.fromMap({
-      "sub_category_id": _createJobModel.categoryId,
-      "task_id": _createJobModel.taskId,
-      "time": _createJobModel.jobTime,
-      "latitude": _createJobModel.latitude,
-      "longitude": _createJobModel.longitude,
-      "full_address": _createJobModel.address,
-      "description": _controller.text.toString(),
-      "email_date_label": _createJobModel.emailDateLabel,
-      "place_id": _createJobModel.placeId
-    });
+    FormData formData;
+    if (widget.createJobModel.endTime != null) {
+      formData = FormData.fromMap({
+        "sub_category_id": _createJobModel.categoryId,
+        "task_id": _createJobModel.taskId,
+        "time": _createJobModel.jobTime,
+        "latitude": _createJobModel.latitude,
+        "longitude": _createJobModel.longitude,
+        "full_address": _createJobModel.address,
+        "description": _controller.text.toString(),
+        "email_date_label": _createJobModel.emailDateLabel,
+        "recurring": widget.createJobModel.isRecurringID,
+        "end_date": widget.createJobModel.endTime,
+        "place_id": _createJobModel.placeId
+      });
+    } else {
+      formData = FormData.fromMap({
+        "sub_category_id": _createJobModel.categoryId,
+        "task_id": _createJobModel.taskId,
+        "time": _createJobModel.jobTime,
+        "latitude": _createJobModel.latitude,
+        "longitude": _createJobModel.longitude,
+        "full_address": _createJobModel.address,
+        "description": _controller.text.toString(),
+        "email_date_label": _createJobModel.emailDateLabel,
+        "place_id": _createJobModel.placeId
+      });
+    }
 
     var list = formData.files;
 
     _images.forEach((element) {
-      list.add(
-        MapEntry("pictures", MultipartFile.fromFileSync(element.absolute.path))
-      );
+      list.add(MapEntry(
+          "pictures", MultipartFile.fromFileSync(element.absolute.path)));
     });
-
 
     _dioHelper
         .postFormRequest(BASE_URL + URL_CREATE_JOB,
@@ -195,25 +214,25 @@ class _EnterJobDetailPageState extends State<EnterJobDetailPage> {
       Navigator.pop(context);
       print("UPCOMING JOBS: ${value.data}");
       JustStatusModel justStatusModel =
-      justStatusResponseFromJson(json.encode(value.data));
+          justStatusResponseFromJson(json.encode(value.data));
 
       if (justStatusModel.status) {
         MyToast("Job created successfully", context, position: 1);
-        while(Navigator.canPop(context)){
+        while (Navigator.canPop(context)) {
           Navigator.pop(context);
         }
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => BotNavPage()));
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (context) => BotNavPage()));
       } else {
         MyToast("${justStatusModel.errors[0]}", context, position: 1);
       }
-
     }).catchError((error) {
       Navigator.pop(context);
       try {
         var err = error as DioError;
         if (err.type == DioErrorType.RESPONSE) {
           JustStatusModel justModel =
-          justStatusResponseFromJson(json.encode(err.response.data));
+              justStatusResponseFromJson(json.encode(err.response.data));
           MyToast("${justModel.errors[0]}", context, position: 1);
         } else {
           MyToast("${err.message}", context, position: 1);
@@ -242,7 +261,6 @@ class _EnterJobDetailPageState extends State<EnterJobDetailPage> {
     if (index == 3) {
       _getImages();
     }
-
   }
 
   void _showPlacePicker() async {
@@ -366,12 +384,11 @@ class _EnterJobDetailPageState extends State<EnterJobDetailPage> {
                               margin: EdgeInsets.only(
                                   top: mediaQueryData.size.height * 0.005),
                               child: MontserratText(
-                                  itemDone ? "$completedText" : "$description",
-                                  16,
-                                  itemActive
-                                      ? lightTextColor
-                                      : disableTextColor,
-                                  FontWeight.w400),
+                                itemDone ? "$completedText" : "$description",
+                                16,
+                                itemActive ? lightTextColor : disableTextColor,
+                                FontWeight.w400,
+                              ),
                             ),
                   !itemDone && itemActive && index != 4
                       ? Container(

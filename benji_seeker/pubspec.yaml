@@ -110,6 +110,7 @@ flutter:
     - assets/calender_icon_2.png
     - assets/green_location_icon.png
     - assets/edit_icon.png
+    - assets/start_job.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

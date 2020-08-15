@@ -35,6 +35,8 @@ const String URL_UPDATE_PROFILE = "user/edit/about-me";
 const String URL_UPDATE_PHONE_NUMBER = "user/edit/about-me/phone";
 const String URL_ADD_TIP = "job/add-tip";
 const String URL_REVIEW = "job/rate-provider";
+const String URL_HELP = "get-help/seeker";
+const String URL_FEEDBACK = "submit-feedback";
 
 
 String URL_SUB_CATRGORY_DETAIL(String subCategoryID){
