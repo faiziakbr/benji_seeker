@@ -9,6 +9,7 @@ import 'package:benji_seeker/constants/Urls.dart';
 import 'package:benji_seeker/models/LoginModel.dart';
 import 'package:benji_seeker/models/UserModel.dart';
 import 'package:benji_seeker/models/VerifyTokenModel.dart';
+import 'package:benji_seeker/pages/AuthPages/ForgotPasswordPage.dart';
 import 'package:benji_seeker/pages/BotNav.dart';
 import 'package:benji_seeker/pages/MainPages/DashboardPage.dart';
 import 'package:benji_seeker/utils/DioHelper.dart';
@@ -106,10 +107,10 @@ class _PasswordPageState extends State<PasswordPage> {
               ),
               GestureDetector(
                 onTap: () {
-//                  Navigator.push(
-//                      context,
-//                      MaterialPageRoute(
-//                          builder: (context) => ForgotPasswordPage()));
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => ForgotPasswordPage()));
                 },
                 child: MontserratText(
                   "I forgot my password",

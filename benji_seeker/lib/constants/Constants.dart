@@ -10,7 +10,7 @@ const String LAST_NAME = "last_name";
 const String EMAIL = "email";
 const String PHONE = "phone";
 const String IMAGE_URL = "image_url";
-//const String BRIEF_INFO = "bried_info";
+const String BRIEF_INFO = "brief_info";
 //const String ADDRESS = "address";
 
 const String BADGE = "badge";

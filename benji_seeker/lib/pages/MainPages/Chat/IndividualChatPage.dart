@@ -5,6 +5,7 @@ import 'package:benji_seeker/constants/MyColors.dart';
 import 'package:benji_seeker/constants/Urls.dart';
 import 'package:benji_seeker/custom_texts/MontserratText.dart';
 import 'package:benji_seeker/custom_texts/QuicksandText.dart';
+import 'package:benji_seeker/pages/Chat/ChatPage.dart';
 import 'package:benji_seeker/utils/DioHelper.dart';
 import 'package:dio/dio.dart';
 import "package:flutter/material.dart";
@@ -58,7 +59,7 @@ class IndividualChatPageState extends State<IndividualChatPage> {
       var err = error as DioError;
       if (err.type == DioErrorType.RESPONSE) {
         var errorResponse =
-        _responseFromChatJson(json.encode(err.response.data));
+            _responseFromChatJson(json.encode(err.response.data));
         MyToast("${errorResponse.errors[0]}", context);
       } else
         MyToast("${err.message}", context);
@@ -67,9 +68,9 @@ class IndividualChatPageState extends State<IndividualChatPage> {
         _isError = true;
       });
     }).whenComplete(() {
-        setState(() {
-          _isLoading = false;
-        });
+      setState(() {
+        _isLoading = false;
+      });
     });
   }
 
@@ -87,21 +88,21 @@ class IndividualChatPageState extends State<IndividualChatPage> {
               right: mediaQueryData.size.width * 0.02),
           child: _isLoading && !_isError
               ? Center(
-            child: CircularProgressIndicator(),
-          )
+                  child: CircularProgressIndicator(),
+                )
               : _isError
-              ? Center(
-              child: MontserratText("${_chatModel.errors[0]}", 18,
-                  Colors.black.withOpacity(0.4), FontWeight.normal))
-              : _originalList.length <= 0
-              ? Center(
-            child: Opacity(
-              opacity: 0.8,
-              child: MontserratText(
-                  "Nothing to show!",
-                  18,
-                  Colors.black.withOpacity(0.8),
-                  FontWeight.normal),
+                  ? Center(
+                      child: MontserratText("${_chatModel.errors[0]}", 18,
+                          Colors.black.withOpacity(0.4), FontWeight.normal))
+                  : _originalList.length <= 0
+                      ? Center(
+                          child: Opacity(
+                            opacity: 0.8,
+                            child: MontserratText(
+                                "Nothing to show!",
+                                18,
+                                Colors.black.withOpacity(0.8),
+                                FontWeight.normal),
 //              child: Column(
 //                mainAxisAlignment:
 //                MainAxisAlignment.center,
@@ -118,42 +119,41 @@ class IndividualChatPageState extends State<IndividualChatPage> {
 //                      FontWeight.normal)
 //                ],
 //              ),
-            ),
-          )
-              : RefreshIndicator(
-            onRefresh: getMessages,
-            child: ListView.builder(
-              itemCount: _filteredList.length,
-              itemBuilder: (context, index) {
-                Message message = _filteredList[index];
-                return GestureDetector(
-                  onTap: () async {
-//                    var result = await Navigator.push(
-//                        context,
-//                        MaterialPageRoute(
-//                            builder: (context) => ChatPage(
-//                                message.processId, null,
-//                                fromJobPage: true)));
-//                    if (result != null) {
-//                      if (result) {
-//                        getMessages();
-//                        widget.updateChatCount();
-//                      }
-//                    }
-                  },
-                  child: ItemIndividualChat(
-                      message.processId,
-                      message.profilePicture,
-                      message.senderName,
-                      message.title,
-                      message.time,
-                      message.seen,
-                      message.messageBody,
-                      message.createdAt),
-                );
-              },
-            ),
-          ),
+                          ),
+                        )
+                      : RefreshIndicator(
+                          onRefresh: getMessages,
+                          child: ListView.builder(
+                            itemCount: _filteredList.length,
+                            itemBuilder: (context, index) {
+                              Message message = _filteredList[index];
+                              return GestureDetector(
+                                onTap: () async {
+                                  var result = await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => ChatPage(
+                                              message.processId, null, fromJobPage: true, providerName: message.senderName,)));
+                                  if (result != null) {
+                                    if (result) {
+                                      getMessages();
+                                      widget.updateChatCount();
+                                    }
+                                  }
+                                },
+                                child: ItemIndividualChat(
+                                    message.processId,
+                                    message.profilePicture,
+                                    message.senderName,
+                                    message.title,
+                                    message.time,
+                                    message.seen,
+                                    message.messageBody,
+                                    message.createdAt),
+                              );
+                            },
+                          ),
+                        ),
         ),
       ),
     );
@@ -173,19 +173,21 @@ class IndividualChatPageState extends State<IndividualChatPage> {
       automaticallyImplyLeading: false,
       title: QuicksandText("Messages", 22, accentColor, FontWeight.bold),
       centerTitle: false,
-      actions: _originalList.length > 0 ? <Widget>[
-        IconButton(
-          icon: Icon(
-            Icons.search,
-            color: Colors.black,
-          ),
-          onPressed: () {
-            setState(() {
-              _isSearch = true;
-            });
-          },
-        )
-      ] : <Widget>[],
+      actions: _originalList.length > 0
+          ? <Widget>[
+              IconButton(
+                icon: Icon(
+                  Icons.search,
+                  color: Colors.black,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _isSearch = true;
+                  });
+                },
+              )
+            ]
+          : <Widget>[],
     );
   }
 

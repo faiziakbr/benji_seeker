@@ -12,7 +12,7 @@ class ItemMoreOptions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return InkWell(
       onTap: btnClick,
       child: Container(
           margin: const EdgeInsets.only(top: 16.0),

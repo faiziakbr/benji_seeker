@@ -1,5 +1,6 @@
 import 'package:benji_seeker/pages/SplashScreen.dart';
 import 'package:flutter/material.dart';
+import 'package:overlay_support/overlay_support.dart';
 
 import 'constants/MyColors.dart';
 
@@ -36,22 +37,24 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: (){
-        FocusScopeNode currentFocus = FocusScope.of(context);
-        if (!currentFocus.hasPrimaryFocus && currentFocus.focusedChild != null) {
-          FocusManager.instance.primaryFocus.unfocus();
-        }
-      },
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'Benji Seeker',
-        theme: ThemeData(
-          primarySwatch: colorCustom,
-          accentColor: accentColor
-        ),
-        home: SplashScreen(),
+    return OverlaySupport(
+      child: GestureDetector(
+        onTap: (){
+          FocusScopeNode currentFocus = FocusScope.of(context);
+          if (!currentFocus.hasPrimaryFocus && currentFocus.focusedChild != null) {
+            FocusManager.instance.primaryFocus.unfocus();
+          }
+        },
+        child: MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'Benji Seeker',
+          theme: ThemeData(
+            primarySwatch: colorCustom,
+            accentColor: accentColor
+          ),
+          home: SplashScreen(),
 //        home: PhoneNumberPage(),
+        ),
       ),
     );
   }

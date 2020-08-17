@@ -27,6 +27,7 @@ class _RecurringOptionsPageState extends State<RecurringOptionsPage> {
 //    if(widget.recurringOptions != null && widget.recurringOptions.length > 0) {
     _selectedOption = widget.createJobModel.setRecurringOptions[0];
     widget.createJobModel.isRecurringID = _selectedOption.id;
+    widget.createJobModel.recurringDays = _selectedOption.numberOfDays;
     widget.createJobModel.recurringText = _selectedOption.name;
 //    }
     super.initState();
@@ -35,7 +36,7 @@ class _RecurringOptionsPageState extends State<RecurringOptionsPage> {
   @override
   Widget build(BuildContext context) {
     MediaQueryData mediaQueryData = MediaQuery.of(context);
-    DateTime endTime;
+    DateTime endTime = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day).add(Duration(days: 14));
     return Scaffold(
         appBar: AppBar(
           leading: IconButton(
@@ -44,7 +45,9 @@ class _RecurringOptionsPageState extends State<RecurringOptionsPage> {
                 color: Colors.black,
                 size: 20,
               ),
-              onPressed: null),
+              onPressed: (){
+                Navigator.pop(context);
+              }),
           title: MontserratText(
               "Set recurring", 20, Colors.black, FontWeight.w500),
           centerTitle: true,
@@ -118,7 +121,8 @@ class _RecurringOptionsPageState extends State<RecurringOptionsPage> {
               Flexible(
                 child: CupertinoDatePicker(
                   mode: CupertinoDatePickerMode.date,
-                  minimumDate: DateTime.now(),
+                  minimumDate: DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day).add(Duration(days: 14)),
+                  initialDateTime: DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day).add(Duration(days: 14)),
                   onDateTimeChanged: (DateTime value) {
                     endTime = DateTime(value.year, value.month, value.day);
                   },
@@ -143,6 +147,7 @@ class _RecurringOptionsPageState extends State<RecurringOptionsPage> {
     setState(() {
       _selectedOption = recurringOptions;
       widget.createJobModel.isRecurringID = _selectedOption.id;
+      widget.createJobModel.recurringDays = _selectedOption.numberOfDays;
       widget.createJobModel.recurringText = _selectedOption.name;
     });
   }

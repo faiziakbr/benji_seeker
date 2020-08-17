@@ -57,7 +57,10 @@ dependencies:
   firebase_messaging: ^6.0.16
   overlay_support: ^1.0.3
   flutter_launcher_icons: ^0.7.4
-
+  flutter_app_badger: ^1.1.2
+#  websafe_svg: ^1.1.1
+#  flutter_svg_provider: ^0.1.5
+#  svg_path_parser: ^0.1.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -111,6 +114,12 @@ flutter:
     - assets/green_location_icon.png
     - assets/edit_icon.png
     - assets/start_job.png
+    - assets/white_location_icon.png
+    - assets/splash_screen.gif
+    - assets/info_1.png
+    - assets/info_2.png
+    - assets/intro_page.png
+    - assets/lawn_moving.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

@@ -269,25 +269,33 @@ class _EditBankDetailsState extends State<EditBankDetails> {
         .postRequest(BASE_URL + URL_UPDATE_BANK_DETAILS, {"token": {}}, map)
         .then((value) {
       print("GOT DAta: $value");
-      UpdatingBankDetailModel updatingBankDetailModel =
-          _updatingbankDetailModelResponseFromJson(json.encode(value.data));
-
-      if (updatingBankDetailModel.status) {
-        MyToast("Successfully Updated!", context, position: 1);
+      //TODO HAS DANISH TO SEND PROPER RESPONSE
+      if(value == 200){
+                MyToast("Successfully Updated!", context, position: 1);
         Navigator.pop(context);
       } else {
-        MyToast("${updatingBankDetailModel.errors[0]}", context, position: 1);
+        MyToast("Error updating your account details.", context, position: 1);
       }
+//      UpdatingBankDetailModel updatingBankDetailModel =
+//          _updatingbankDetailModelResponseFromJson(json.encode(value.data));
+
+//      if (updatingBankDetailModel.status) {
+//        MyToast("Successfully Updated!", context, position: 1);
+//        Navigator.pop(context);
+//      } else {
+//        MyToast("${updatingBankDetailModel.errors[0]}", context, position: 1);
+//      }
     }).catchError((error) {
       try {
         print("GOT DAta: $error");
-        var err = error as DioError;
-        if (err.type == DioErrorType.RESPONSE) {
-          var errorResponse = _updatingbankDetailModelResponseFromJson(
-              json.encode(err.response.data));
-          MyToast("${errorResponse.errors[0]}", context, position: 1);
-        } else
-          MyToast("${err.message}", context, position: 1);
+        MyToast("Error updating your account details.", context, position: 1);
+//        var err = error as DioError;
+//        if (err.type == DioErrorType.RESPONSE) {
+//          var errorResponse = _updatingbankDetailModelResponseFromJson(
+//              json.encode(err.response.data));
+//          MyToast("${errorResponse.errors[0]}", context, position: 1);
+//        } else
+//          MyToast("${err.message}", context, position: 1);
       } catch (e) {
         MyToast("Error updating your account details.", context, position: 1);
       }

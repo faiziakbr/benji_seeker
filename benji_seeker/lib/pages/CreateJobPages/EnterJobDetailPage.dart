@@ -20,6 +20,7 @@ import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:keyboard_visibility/keyboard_visibility.dart';
 
 import '../BotNav.dart';
 import 'AddLocationPage.dart';
@@ -35,6 +36,7 @@ class EnterJobDetailPage extends StatefulWidget {
 }
 
 class _EnterJobDetailPageState extends State<EnterJobDetailPage> {
+  bool _isKeyboardVisible = false;
   DioHelper _dioHelper;
   bool _showInfo = true;
 
@@ -54,6 +56,13 @@ class _EnterJobDetailPageState extends State<EnterJobDetailPage> {
     _dioHelper = DioHelper.instance;
     _createJobModel = widget.createJobModel;
     _initializeCamera();
+    KeyboardVisibilityNotification().addNewListener(
+      onChange: (bool visible) {
+        setState(() {
+          _isKeyboardVisible = visible;
+        });
+      },
+    );
     super.initState();
   }
 
@@ -155,7 +164,7 @@ class _EnterJobDetailPageState extends State<EnterJobDetailPage> {
                     width: mediaQueryData.size.width * 0.9,
                     margin: EdgeInsets.symmetric(
                         horizontal: mediaQueryData.size.width * 0.05),
-                    child: MyDarkButton("SUBMIT", _btnSubmit)),
+                    child: _isKeyboardVisible ? Container() : MyDarkButton("SUBMIT", _btnSubmit)),
               )
             ],
           ),
@@ -172,7 +181,12 @@ class _EnterJobDetailPageState extends State<EnterJobDetailPage> {
     MyLoadingDialog(context, "Posting job...");
 
     FormData formData;
-    if (widget.createJobModel.endTime != null) {
+    if (widget.createJobModel.recurringDays != null && widget.createJobModel.endTime != null) {
+      if(!widget.createJobModel.jobTime.isBefore(widget.createJobModel.endTime)){
+        MyToast("Job end date can't be before the start", context);
+        Navigator.pop(context);
+        return;
+      }
       formData = FormData.fromMap({
         "sub_category_id": _createJobModel.categoryId,
         "task_id": _createJobModel.taskId,
@@ -182,7 +196,7 @@ class _EnterJobDetailPageState extends State<EnterJobDetailPage> {
         "full_address": _createJobModel.address,
         "description": _controller.text.toString(),
         "email_date_label": _createJobModel.emailDateLabel,
-        "recurring": widget.createJobModel.isRecurringID,
+        "recurring": widget.createJobModel.recurringDays,
         "end_date": widget.createJobModel.endTime,
         "place_id": _createJobModel.placeId
       });
@@ -209,7 +223,7 @@ class _EnterJobDetailPageState extends State<EnterJobDetailPage> {
 
     _dioHelper
         .postFormRequest(BASE_URL + URL_CREATE_JOB,
-            {"token": "", "Content-Type": "multipart/form-data"}, formData)
+            {"token": ""}, formData)
         .then((value) {
       Navigator.pop(context);
       print("UPCOMING JOBS: ${value.data}");

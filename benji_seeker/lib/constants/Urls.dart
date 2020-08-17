@@ -37,6 +37,10 @@ const String URL_ADD_TIP = "job/add-tip";
 const String URL_REVIEW = "job/rate-provider";
 const String URL_HELP = "get-help/seeker";
 const String URL_FEEDBACK = "submit-feedback";
+const String URL_MESSAGE_SEND = "message/send";
+const String URL_DEVICE_TOKEN = "user/update/device-token";
+const String URL_UNREAD_COUNTS = "app/header-info";
+const String URL_FORGOT_PASSWORD = "user/forgot-password";
 
 
 String URL_SUB_CATRGORY_DETAIL(String subCategoryID){
@@ -61,4 +65,8 @@ String URL_COMPLETED_JOB(String id){
 
 String URL_SUMMARY(String id){
   return "job/summary/$id";
+}
+
+String URL_MESSAGES(String processId){
+  return "message/$processId/all";
 }

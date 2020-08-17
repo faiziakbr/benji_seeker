@@ -12,10 +12,16 @@ class CreateJobModel {
 
   DateTime jobTime = DateTime.now();
   String isRecurringID = "";
+  int recurringDays;
   String recurringText;
   DateTime endTime;
 
   String emailDateLabel;
 
-  List<RecurringOptions> setRecurringOptions;
+  List<RecurringOptions> setRecurringOptions = List();
+
+  @override
+  String toString() {
+    return "CatID $categoryId tastId: $taskId estimatedTime $estimatedTime lat $latitude long $longitude address: $address jobTime $jobTime recurrID $isRecurringID endTime $endTime";
+  }
 }

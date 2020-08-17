@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:benji_seeker/My_Widgets/DialogYesNo.dart';
@@ -6,6 +7,8 @@ import 'package:benji_seeker/My_Widgets/MyLightButton.dart';
 import 'package:benji_seeker/My_Widgets/MyLoadingDialog.dart';
 import 'package:benji_seeker/My_Widgets/MyToast.dart';
 import 'package:benji_seeker/My_Widgets/Separator.dart';
+import 'package:benji_seeker/SharedPref/SavedData.dart';
+import 'package:benji_seeker/constants/Constants.dart';
 import 'package:benji_seeker/constants/MyColors.dart';
 import 'package:benji_seeker/constants/Urls.dart';
 import 'package:benji_seeker/custom_texts/MontserratText.dart';
@@ -16,6 +19,7 @@ import 'package:benji_seeker/models/JobDetailModel.dart';
 import 'package:benji_seeker/models/JustStatusModel.dart';
 import 'package:benji_seeker/models/ProviderDetail.dart';
 import 'package:benji_seeker/models/UpcomingJobModel.dart';
+import 'package:benji_seeker/pages/Chat/ChatPage.dart';
 import 'package:benji_seeker/pages/MainPages/OrderSequence/Calender/When.dart';
 import 'package:benji_seeker/pages/PaymentSequence/SummaryPage.dart';
 import 'package:benji_seeker/pages/ServiceProviders/itemServiceProvider.dart';
@@ -24,6 +28,7 @@ import 'package:carousel_pro/carousel_pro.dart';
 import 'package:dio/dio.dart';
 import 'package:expandable_bottom_sheet/expandable_bottom_sheet.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
 import '../BotNav.dart';
@@ -39,6 +44,7 @@ class JobDetailPage extends StatefulWidget {
 
 class _JobDetailPageState extends State<JobDetailPage> {
   DioHelper _dioHelper;
+  var platform = MethodChannel('samples.flutter.dev/battery');
   bool _isLoading = true;
   bool _isError = false;
 
@@ -55,21 +61,93 @@ class _JobDetailPageState extends State<JobDetailPage> {
   CompletedJobModel _completedJobModel;
 
   Detail _jobDetail;
+  JobDetailModel _jobDetailModel;
 
   GlobalKey<ExpandableBottomSheetState> key = new GlobalKey();
   int _contentAmount = 0;
   ExpansionStatus _expansionStatus = ExpansionStatus.contracted;
 
-//  List<NetworkImage> networkImages = [
-//    NetworkImage(
-//        "https://www.gettyimages.com/gi-resources/images/500px/983794168.jpg")
-//  ];
-
   @override
   void initState() {
     _dioHelper = DioHelper.instance;
     _fetchData(widget.jobId);
+
+    _connectSocket();
+    _isSocketConnected();
+
     super.initState();
+  }
+
+  void _reconnectSocket() {
+    Timer(const Duration(seconds: 2), () {
+      _connectSocket();
+      _isSocketConnected();
+    });
+  }
+
+  Future<void> _connectSocket() async {
+    try {
+      await platform.invokeMethod('connectSocket');
+    } on PlatformException catch (e) {
+      print("Failed to connect ${e.toString()}");
+    }
+  }
+
+  Future<void> _isSocketConnected() async {
+    try {
+      await platform.invokeMethod('isSocketConnected');
+    } on PlatformException catch (e) {
+      print("Failed ${e.toString()}");
+    }
+  }
+
+  Future<void> _addUserForSocket() async {
+    try {
+      SavedData savedData = new SavedData();
+      String token = await savedData.getValue(TOKEN);
+      await platform.invokeMethod('addUserForSocket', {"token": token});
+    } on PlatformException catch (e) {
+      print("Exception adding user to socket $e");
+    }
+  }
+
+  Future<bool> _checkForJobChange(String processId) async {
+    try {
+      return await platform
+          .invokeMethod("aJobChanged", {"processId": "$processId"});
+    } on PlatformException catch (e) {
+      print("Failed ${e.toString()}");
+      return false;
+    }
+  }
+
+  Future<bool> _checkForJobBidsChange(String processId) async {
+    try {
+      print("A JOB BID CHANGE LISTEN CALL");
+      return await platform
+          .invokeMethod("aJobBidChanged", {"processId": "$processId"});
+    } on PlatformException catch (e) {
+      print("Failed ${e.toString()}");
+      return false;
+    }
+  }
+
+  void _listenJobChanges(String processId) {
+    platform.setMethodCallHandler((call) {
+      if (call.method == "socketConnected") {
+        _addUserForSocket().then((_) {
+          _checkForJobChange(processId);
+          _checkForJobBidsChange(processId);
+        });
+      } else if (call.method == "updateTheJob") {
+        _fetchData(widget.jobId);
+      } else if (call.method == "updateTheJobBid") {
+        _fetchBiddersInfo();
+      } else {
+        print("METHOD CALLED: ${call.method}");
+      }
+      return;
+    });
   }
 
   void _fetchData(String jobId) {
@@ -78,8 +156,9 @@ class _JobDetailPageState extends State<JobDetailPage> {
       print("JOB DETAIL RESPONSE: $value");
       JobDetailModel jobDetailModel =
           jobDetailResponseFromJson(json.encode(value.data));
-
       if (jobDetailModel.status) {
+        _listenJobChanges(jobDetailModel.detail.processId);
+        _jobDetailModel = jobDetailModel;
         _jobDetail = jobDetailModel.detail;
         if (_jobDetail.nextStep == "active") {
           _fetchBiddersInfo();
@@ -89,10 +168,9 @@ class _JobDetailPageState extends State<JobDetailPage> {
           }
         } else if (_jobDetail.nextStep == "summary") {
           _fetchCompletedJobInfo();
-//          _fetchProviderDetail(_jobDetail.providerId);
         }
       } else {
-        MyToast("${jobDetailModel.error[0]}", context, position: 1);
+        MyToast("${jobDetailModel.errors[0]}", context, position: 1);
         setState(() {
           _isError = true;
         });
@@ -104,7 +182,7 @@ class _JobDetailPageState extends State<JobDetailPage> {
         if (err.type == DioErrorType.RESPONSE) {
           JobDetailModel jobDetailModel =
               jobDetailResponseFromJson(json.encode(err.response.data));
-          MyToast("${jobDetailModel.error[0]}", context, position: 1);
+          MyToast("${jobDetailModel.errors[0]}", context, position: 1);
         } else {
           MyToast("${err.message}", context, position: 1);
         }
@@ -217,7 +295,7 @@ class _JobDetailPageState extends State<JobDetailPage> {
         if (err.type == DioErrorType.RESPONSE) {
           JobDetailModel jobDetailModel =
               jobDetailResponseFromJson(json.encode(err.response.data));
-          MyToast("${jobDetailModel.error[0]}", context, position: 1);
+          MyToast("${jobDetailModel.errors[0]}", context, position: 1);
         } else {
           MyToast("${err.message}", context, position: 1);
         }
@@ -652,16 +730,28 @@ class _JobDetailPageState extends State<JobDetailPage> {
 //                  ),
 //                ),
 //              ),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(8.0),
-                          child: Container(
-                            width: 40,
-                            height: 40,
-                            color: Colors.black,
-                            child: Icon(
-                              Icons.message,
-                              color: Colors.white,
-                              size: 20,
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => ChatPage(
+                                          widget.jobId,
+                                          _jobDetailModel,
+                                          providerName: _provider.nickName,
+                                        )));
+                          },
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8.0),
+                            child: Container(
+                              width: 40,
+                              height: 40,
+                              color: Colors.black,
+                              child: Icon(
+                                Icons.message,
+                                color: Colors.white,
+                                size: 20,
+                              ),
                             ),
                           ),
                         ),

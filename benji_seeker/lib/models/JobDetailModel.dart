@@ -8,7 +8,7 @@ JobDetailModel jobDetailResponseFromJson(String jsonString) {
 class JobDetailModel {
   bool status;
   Detail detail;
-  List<dynamic> error = [""];
+  List<dynamic> errors = [""];
 
   JobDetailModel({this.status});
 
@@ -16,7 +16,7 @@ class JobDetailModel {
     status = parsedJson['status'];
     if (parsedJson['job_detail'] != null)
       detail = Detail.fromJson(parsedJson['job_detail']);
-    error = parsedJson['errors'];
+    errors = parsedJson['errors'];
   }
 }
 

@@ -5,8 +5,10 @@ import 'package:benji_seeker/constants/MyColors.dart';
 import 'package:benji_seeker/constants/Urls.dart';
 import 'package:benji_seeker/custom_texts/MontserratText.dart';
 import 'package:benji_seeker/custom_texts/QuicksandText.dart';
+import 'package:benji_seeker/models/CreateJobModel.dart';
 import 'package:benji_seeker/models/UpcomingJobModel.dart';
 import 'package:benji_seeker/pages/JobDetailPage/JobDetailPage.dart';
+import 'package:benji_seeker/pages/MainPages/OrderSequence/OrderPage1.dart';
 import 'package:benji_seeker/utils/DioHelper.dart';
 import 'package:date_util/date_util.dart';
 import 'package:dio/dio.dart';
@@ -128,7 +130,8 @@ class _NewDashboardPageState extends State<NewDashboardPage> {
         backgroundColor: orangeColor,
         child: Icon(Icons.add),
         onPressed: () {
-//          Navigator.push(context, MaterialPageRoute(builder: (context) => AddSkillsPage()));
+          CreateJobModel createJobModel = CreateJobModel();
+          Navigator.push(context, MaterialPageRoute(builder: (context) => OrderPage1(createJobModel)));
         },
       ),
       body: SingleChildScrollView(
@@ -246,7 +249,7 @@ class _NewDashboardPageState extends State<NewDashboardPage> {
   void _fetchUpcomingJobs() {
     _dioHelper
         .getRequest(BASE_URL + URL_UPCOMING_JOBS, {"token": ""}).then((value) {
-      print("UPCOMING JOBS: ${value.data}");
+      print("UPCOMING JOBS: ${value}");
       UpcomingJobsModel upcomingJobModel =
           upcomingJobsModelResponseFromJson(json.encode(value.data));
 

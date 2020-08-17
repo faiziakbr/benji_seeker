@@ -129,7 +129,7 @@ class _PackageSelectionPageState extends State<PackageSelectionPage> {
       packageResponseFromJson(json.encode(value.data));
 
       if (packageModel.status) {
-        widget.createJobModel.setRecurringOptions = packageModel.recurringOptions;
+        widget.createJobModel.setRecurringOptions.addAll(packageModel.recurringOptions);
         _packageList.addAll(packageModel.packages);
         wage = packageModel.wage;
       } else {

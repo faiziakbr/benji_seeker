@@ -6,6 +6,7 @@ import 'package:benji_seeker/custom_texts/MontserratText.dart';
 import 'package:benji_seeker/custom_texts/QuicksandText.dart';
 import 'package:benji_seeker/pages/EditProfile/EditProfilePage.dart';
 import 'package:benji_seeker/pages/GetHelp/GetHelpPage.dart';
+import 'package:benji_seeker/pages/GettingStarted/PhoneNumberPage.dart';
 import 'package:benji_seeker/pages/TaskHistory/WorkHistoryPage.dart';
 import 'package:benji_seeker/pages/bank/EditBankPage.dart';
 import 'package:benji_seeker/pages/invite/InvitePage.dart';
@@ -20,7 +21,6 @@ class MoreOptionsPage extends StatefulWidget {
 }
 
 class _MoreOptionsPageState extends State<MoreOptionsPage> {
-
   String _name;
   String _phone;
   String _image;
@@ -111,7 +111,7 @@ class _MoreOptionsPageState extends State<MoreOptionsPage> {
                                 width: 70,
                                 height: 70,
                                 placeholder:
-                                AssetImage("assets/placeholder.png"),
+                                    AssetImage("assets/placeholder.png"),
                                 image: NetworkImage("$_image"),
                               ),
 //                            child: Image.network(
@@ -197,8 +197,6 @@ class _MoreOptionsPageState extends State<MoreOptionsPage> {
 //                goToBankDetails,
 //              ),
 
-
-
               ItemMoreOptions(null, "LOGOUT", _logout),
               Container(
                 height: 16.0,
@@ -212,9 +210,9 @@ class _MoreOptionsPageState extends State<MoreOptionsPage> {
 
   TextStyle labelTextStyle(
       {FontWeight fontWeight = FontWeight.normal,
-        double textSize = 14,
-        double,
-        letterSpacing = 0.0}) {
+      double textSize = 14,
+      double,
+      letterSpacing = 0.0}) {
     return TextStyle(
         color: lightTextColor,
         fontSize: textSize,
@@ -275,13 +273,13 @@ class _MoreOptionsPageState extends State<MoreOptionsPage> {
   }
 
   void _logout() async {
-//    SavedData savedData = SavedData();
-//    await savedData.logOut();
-//    await savedData.setBoolValue(SHOW_INTRO, false);
-//    while (Navigator.canPop(context)) {
-//      Navigator.pop(context);
-//    }
-//    Navigator.pushReplacement(
-//        context, MaterialPageRoute(builder: (context) => PhoneNumberPage()));
+    SavedData savedData = SavedData();
+    await savedData.logOut();
+    await savedData.setBoolValue(SHOW_INTRO, false);
+    while (Navigator.canPop(context)) {
+      Navigator.pop(context);
+    }
+    Navigator.pushReplacement(
+        context, MaterialPageRoute(builder: (context) => PhoneNumberPage()));
   }
 }

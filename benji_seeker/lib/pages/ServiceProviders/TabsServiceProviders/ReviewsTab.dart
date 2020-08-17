@@ -25,7 +25,7 @@ class _ReviewsTabState extends State<ReviewsTab> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           ListTile(
-            leading: QuicksandText(widget.provider.rating ?? "0.0", 40, Colors.black, FontWeight.bold),
+            leading: QuicksandText(widget.provider.rating != null ? "${widget.provider.rating}" : "0.0", 40, Colors.black, FontWeight.bold),
             title: Row(
               children: <Widget>[
                 RatingBar.readOnly(
@@ -42,7 +42,7 @@ class _ReviewsTabState extends State<ReviewsTab> {
                 ),
               ],
             ),
-            subtitle: MontserratText("${widget.provider.totalRating} ratings, ${widget.provider.totalReviews} reviews", 14,
+            subtitle: MontserratText("${widget.provider.totalRating.toStringAsFixed(0)} rating, ${widget.provider.totalReviews} review", 14,
                 lightTextColor, FontWeight.normal,
                 textAlign: TextAlign.start),
           ),

@@ -16,12 +16,14 @@ class MainActivity: FlutterActivity() {
 
     private val CHANNEL = "samples.flutter.dev/battery"
 
+    val TAG = "MyNativeMethods";
+
     private var socket: Socket? = null
     var channel: MethodChannel? = null
 
-    override fun onCreate(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
-        super.onCreate(savedInstanceState, persistentState)
-        socket = IO.socket("https://app.benjilawn.com/")
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        socket = IO.socket("https://development.benjilawn.com/")
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -31,7 +33,7 @@ class MainActivity: FlutterActivity() {
             when (call.method) {
                 "addUserForSocket" -> {
                     val token = call.argument<String>("token")
-                    Log.e("MYTAG","ADD USer FOR SOCKET: $token")
+                    Log.e(TAG,"ADD USer FOR SOCKET: $token")
                     addUserForSocket(token!!)
                     result.success(true)
                 }
@@ -50,7 +52,7 @@ class MainActivity: FlutterActivity() {
                 }
                 "listenToMessages" -> {
                     val processId = call.argument<String>("processId")
-                    Log.e("MYTAG","GOT THE TOKEN $processId");
+                    Log.e(TAG,"GOT THE TOKEN $processId");
                     listenToMessages(processId!!)
                     result.success(true)
                 }
@@ -76,11 +78,17 @@ class MainActivity: FlutterActivity() {
                     aJobChanged(processId!!)
                     result.success(true)
                 }
+                "aJobBidChanged" -> {
+                    val processId = call.argument<String>("processId")
+                    aJobBidChanged(processId!!)
+                    result.success(true)
+                }
                 "connectSocket" -> {
                     connectSocket()
                     result.success(true);
                 }
                 "closeSocket" -> {
+                    Log.e(TAG,"SOCKET CONNECTION CALLED")
                     closeSocket()
                     result.success(true);
                 }
@@ -92,6 +100,7 @@ class MainActivity: FlutterActivity() {
     }
 
     private fun connectSocket(){
+        Log.e(TAG,"SOCKET CONNECTION")
         if (socket?.connected()!!) {
             closeSocket()
             socket?.connect()
@@ -102,10 +111,10 @@ class MainActivity: FlutterActivity() {
 
     private fun addUserForSocket(token: String) {
         if (socket!!.connected()) {
-            Log.e("MYTAG","TOKEN IN NATIVE: $token")
+            Log.e(TAG,"TOKEN IN NATIVE: $token")
             socket?.emit("add_user", token)
         }else {
-            Log.e("MYTAG","SOCKET IS STILL NOT CONNECTED")
+            Log.e(TAG,"SOCKET IS STILL NOT CONNECTED")
         }
     }
 
@@ -129,7 +138,7 @@ class MainActivity: FlutterActivity() {
     }
 
     private fun emitMessage(processId: String, toUserId: String, fromUserId: String, messageBody: String) {
-        Log.e("MYTAG", "ProcessId: $processId, toUserId: $toUserId, fromUserId: $fromUserId, messageBody: $messageBody");
+        Log.e(TAG, "ProcessId: $processId, toUserId: $toUserId, fromUserId: $fromUserId, messageBody: $messageBody");
 
         val jsonObject = JSONObject()
         jsonObject.put("process_id", processId)
@@ -188,12 +197,23 @@ class MainActivity: FlutterActivity() {
     }
 
     private fun aJobChanged(processId: String){
-        Log.e("MYTAG","NATIVE A JOB CHANGED")
         val event = "JOB_PAGE_$processId"
         socket?.on(event) { args ->
-            Log.e("MYTAG","A JOB IS CHANGED")
+            Log.e(TAG,"A JOB IS CHANGED")
             runOnUiThread {
                 channel?.invokeMethod("updateTheJob", true)
+            }
+        }
+    }
+
+    private fun aJobBidChanged(processId: String){
+        Log.e(TAG, "NATIVE A JOB BID CHANGE SOCKET STATUS: ${socket?.connected()} AND PROCESS ID IS: $processId")
+        val event = "JOB_PAGE_${processId}_BIDS"
+        Log.e(TAG, "EVEN IS: $event")
+        socket?.on(event) { args ->
+            Log.e(TAG,"A JOB BID IS CHANGED")
+            runOnUiThread {
+                channel?.invokeMethod("updateTheJobBid", true)
             }
         }
     }

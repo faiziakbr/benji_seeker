@@ -1,4 +1,4 @@
-import 'package:auto_size_text/auto_size_text.dart';
+
 import 'package:benji_seeker/constants/MyColors.dart';
 import 'package:benji_seeker/custom_texts/MontserratText.dart';
 import 'package:flutter/material.dart';
@@ -37,7 +37,13 @@ class ItemOrder extends StatelessWidget {
                   ),
                   margin: EdgeInsets.all(5.0),
                 ),
-                MontserratText("$text", 16, separatorColor, FontWeight.bold, left: 16.0,)
+                MontserratText(
+                  "$text",
+                  16,
+                  separatorColor,
+                  FontWeight.bold,
+                  left: 16.0,
+                )
 //                Container(
 //                  margin:
 //                      EdgeInsets.only(left: mediaQueryData.size.width * 0.05),
@@ -56,4 +62,29 @@ class ItemOrder extends StatelessWidget {
       ),
     );
   }
+}
+
+class MyPainter extends CustomPainter {
+  final Path path;
+  final Color color;
+  final bool showPath;
+  MyPainter(this.path, this.color, {this.showPath = true});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    var paint = Paint()
+      ..color = color
+      ..strokeWidth = 4.0;
+    canvas.drawPath(path, paint);
+    if (showPath) {
+      var border = Paint()
+        ..color = Colors.black
+        ..strokeWidth = 1.0
+        ..style = PaintingStyle.stroke;
+      canvas.drawPath(path, border);
+    }
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => true;
 }

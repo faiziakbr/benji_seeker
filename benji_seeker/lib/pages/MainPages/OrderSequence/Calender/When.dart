@@ -52,6 +52,7 @@ class _WhenState extends State<When> {
       _setTimeComplete = true;
     } else {
       _createJobModel = widget.createJobModel;
+      _createJobModel.jobTime = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, 5, 0, 0).add(Duration(days: 7));
     }
     super.initState();
   }
@@ -230,7 +231,8 @@ class _WhenState extends State<When> {
             Flexible(
               child: CupertinoDatePicker(
                 mode: CupertinoDatePickerMode.date,
-                minimumDate: DateTime.now(),
+                minimumDate: DateTime.now().add(Duration(days: 7)),
+                initialDateTime: DateTime.now().add(Duration(days: 7)),
                 onDateTimeChanged: (DateTime value) {
                   var time = _createJobModel.jobTime;
                   _createJobModel.jobTime = DateTime(value.year, value.month,
@@ -282,12 +284,13 @@ class _WhenState extends State<When> {
             ),
             Flexible(
               child: CupertinoDatePicker(
-                initialDateTime: DateTime(
-                    DateTime.now().year,
-                    DateTime.now().month,
-                    DateTime.now().day,
-                    DateTime.now().hour,
-                    15),
+//                initialDateTime: DateTime(
+//                    DateTime.now().year,
+//                    DateTime.now().month,
+//                    DateTime.now().day,
+//                    DateTime.now().hour,
+//                    15),
+              initialDateTime: DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, 5, 0, 0).add(Duration(days: 7)),
                 minuteInterval: 15,
                 mode: CupertinoDatePickerMode.time,
                 onDateTimeChanged: (DateTime value) {

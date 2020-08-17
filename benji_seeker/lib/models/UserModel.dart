@@ -14,6 +14,8 @@ class UserModel {
   String profilePicture;
   List<dynamic> errors = [""];
 
+  UserModel({this.status, this.errors});
+
   UserModel.fromJson(Map<String, dynamic> json) {
     status = json['status'];
     firstName = json["user"]['first_name'];

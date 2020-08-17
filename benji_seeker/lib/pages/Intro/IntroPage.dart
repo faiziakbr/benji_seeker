@@ -1,6 +1,9 @@
 import 'package:benji_seeker/My_Widgets/MyDarkButton.dart';
+import 'package:benji_seeker/SharedPref/SavedData.dart';
+import 'package:benji_seeker/constants/Constants.dart';
 import 'package:benji_seeker/constants/MyColors.dart';
 import 'package:benji_seeker/custom_texts/QuicksandText.dart';
+import 'package:benji_seeker/pages/GettingStarted/PhoneNumberPage.dart';
 import 'package:dots_indicator/dots_indicator.dart' as dotIndicator;
 import 'package:flutter/material.dart';
 
@@ -84,7 +87,7 @@ class _IntroPageState extends State<IntroPage> {
                     ),
                     dotIndicator.DotsIndicator(
                       decorator:
-                      dotIndicator.DotsDecorator(activeColor: Colors.black),
+                          dotIndicator.DotsDecorator(activeColor: Colors.black),
                       dotsCount: 3,
                       position: _currentIndex,
                     ),
@@ -95,8 +98,12 @@ class _IntroPageState extends State<IntroPage> {
                   width: mediaQueryData.size.width,
                   height: 50,
                   child: MyDarkButton("GET STARTED", () {
-//                    Navigator.push(context,
-//                        MaterialPageRoute(builder: (context) => BriefPage()));
+                    SavedData savedData = SavedData();
+                    savedData.setBoolValue(SHOW_INTRO, false);
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => PhoneNumberPage()));
                   }))
             ],
           ),
