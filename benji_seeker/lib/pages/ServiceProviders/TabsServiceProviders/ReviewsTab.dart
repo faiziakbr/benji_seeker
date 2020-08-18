@@ -73,7 +73,7 @@ class _ReviewsTabState extends State<ReviewsTab> {
                         "${review.seekerName}",
                         "${DateFormat.yMMMMd().format(DateTime.parse(review.reviewedAt))}",
                         "${review.jobAddress}",
-                        "${review.comment}",
+                        review.comment != null ? "${review.comment}" : "",
                         review.rating.toDouble());
                   }),
             ),

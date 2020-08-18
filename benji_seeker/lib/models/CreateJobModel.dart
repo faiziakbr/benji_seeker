@@ -3,7 +3,7 @@ import 'package:benji_seeker/models/PackageModel.dart';
 class CreateJobModel {
   String categoryId;
   String taskId = "";
-  int estimatedTime = -1;
+  int estimatedTime;
 
   double latitude = 0.0;
   double longitude = 0.0;

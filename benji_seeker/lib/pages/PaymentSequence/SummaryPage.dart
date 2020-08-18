@@ -241,9 +241,9 @@ class _SummaryPageState extends State<SummaryPage> {
                                 ],
                               ),
                               amountDetails(
-                                  "Actual Wage", "\$${_summaryModel.amount}"),
+                                  "Actual Wage", "\$${_summaryModel.amount.toStringAsFixed(2)}"),
                               amountDetails("Payment Processing Fee",
-                                  "\$${_summaryModel.applicationFee}"),
+                                  "\$${_summaryModel.applicationFee.toStringAsFixed(2)}"),
                               Separator(
                                 topMargin: 8.0,
                               ),
@@ -322,7 +322,7 @@ class _SummaryPageState extends State<SummaryPage> {
                                             ],
                                           ),
                                           MontserratText(
-                                              "${_summaryModel.review}",
+                                              _summaryModel.review != null ? "${_summaryModel.review}" : "",
                                               14,
                                               lightTextColor,
                                               FontWeight.normal),

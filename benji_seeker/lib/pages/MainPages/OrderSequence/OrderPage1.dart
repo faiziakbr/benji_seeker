@@ -1,17 +1,14 @@
 import 'dart:convert';
-import 'dart:io';
 
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:benji_seeker/My_Widgets/MyToast.dart';
 import 'package:benji_seeker/My_Widgets/item_order.dart';
-import 'package:benji_seeker/SharedPref/SavedData.dart';
-import 'package:benji_seeker/constants/Constants.dart';
 import 'package:benji_seeker/constants/MyColors.dart';
 import 'package:benji_seeker/constants/Urls.dart';
 import 'package:benji_seeker/custom_texts/MontserratText.dart';
 import 'package:benji_seeker/custom_texts/QuicksandText.dart';
 import 'package:benji_seeker/models/CategoryModel.dart';
 import 'package:benji_seeker/models/CreateJobModel.dart';
+import 'package:benji_seeker/pages/BotNav.dart';
 import 'package:benji_seeker/pages/CreateJobPages/PackageSelection/PackageSelectionPage.dart';
 import 'package:benji_seeker/utils/DioHelper.dart';
 import 'package:dio/dio.dart';
@@ -68,7 +65,10 @@ class _OrderPage1State extends State<OrderPage1> {
                 alignment: Alignment.topRight,
                 child: IconButton(
                   onPressed: () {
-                    Navigator.pop(context);
+                    while(Navigator.canPop(context)){
+                      Navigator.pop(context);
+                    }
+                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => BotNavPage()));
                   },
                   icon: Icon(Icons.close),
                 ),

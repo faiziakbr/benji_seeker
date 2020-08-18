@@ -102,7 +102,10 @@ class _EnterJobDetailPageState extends State<EnterJobDetailPage> {
                               onPressed: () {
                                 while (Navigator.canPop(context))
                                   Navigator.pop(context);
-                                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => BotNavPage()));
+                                Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => BotNavPage()));
                               },
                               icon: Icon(
                                 Icons.close,
@@ -164,7 +167,9 @@ class _EnterJobDetailPageState extends State<EnterJobDetailPage> {
                     width: mediaQueryData.size.width * 0.9,
                     margin: EdgeInsets.symmetric(
                         horizontal: mediaQueryData.size.width * 0.05),
-                    child: _isKeyboardVisible ? Container() : MyDarkButton("SUBMIT", _btnSubmit)),
+                    child: _isKeyboardVisible
+                        ? Container()
+                        : MyDarkButton("SUBMIT", _btnSubmit)),
               )
             ],
           ),
@@ -181,30 +186,38 @@ class _EnterJobDetailPageState extends State<EnterJobDetailPage> {
     MyLoadingDialog(context, "Posting job...");
 
     FormData formData;
-    if (widget.createJobModel.recurringDays != null && widget.createJobModel.endTime != null) {
-      if(!widget.createJobModel.jobTime.isBefore(widget.createJobModel.endTime)){
+    if (widget.createJobModel.recurringDays != null &&
+        widget.createJobModel.endTime != null) {
+      if (!widget.createJobModel.jobTime
+          .isBefore(widget.createJobModel.endTime)) {
         MyToast("Job end date can't be before the start", context);
         Navigator.pop(context);
         return;
       }
       formData = FormData.fromMap({
         "sub_category_id": _createJobModel.categoryId,
-        "task_id": _createJobModel.taskId,
-        "time": _createJobModel.jobTime,
+        _createJobModel.estimatedTime != null ? "estimated_time" : "task_id":
+            _createJobModel.estimatedTime != null
+                ? _createJobModel.estimatedTime
+                : _createJobModel.taskId,
+        "time": _createJobModel.jobTime.toIso8601String(),
         "latitude": _createJobModel.latitude,
         "longitude": _createJobModel.longitude,
         "full_address": _createJobModel.address,
         "description": _controller.text.toString(),
         "email_date_label": _createJobModel.emailDateLabel,
         "recurring": widget.createJobModel.recurringDays,
-        "end_date": widget.createJobModel.endTime,
+        "end_date": widget.createJobModel.endTime.toIso8601String(),
         "place_id": _createJobModel.placeId
       });
     } else {
       formData = FormData.fromMap({
         "sub_category_id": _createJobModel.categoryId,
-        "task_id": _createJobModel.taskId,
-        "time": _createJobModel.jobTime,
+        _createJobModel.estimatedTime != null ? "estimated_time" : "task_id":
+            _createJobModel.estimatedTime != null
+                ? _createJobModel.estimatedTime
+                : _createJobModel.taskId,
+        "time": _createJobModel.jobTime.toIso8601String(),
         "latitude": _createJobModel.latitude,
         "longitude": _createJobModel.longitude,
         "full_address": _createJobModel.address,
@@ -222,8 +235,7 @@ class _EnterJobDetailPageState extends State<EnterJobDetailPage> {
     });
 
     _dioHelper
-        .postFormRequest(BASE_URL + URL_CREATE_JOB,
-            {"token": ""}, formData)
+        .postFormRequest(BASE_URL + URL_CREATE_JOB, {"token": ""}, formData)
         .then((value) {
       Navigator.pop(context);
       print("UPCOMING JOBS: ${value.data}");

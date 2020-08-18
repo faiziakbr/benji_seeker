@@ -35,8 +35,9 @@ import '../BotNav.dart';
 
 class JobDetailPage extends StatefulWidget {
   final String jobId;
+  final String generatedRecurringTime;
 
-  JobDetailPage(this.jobId);
+  JobDetailPage(this.jobId, {this.generatedRecurringTime});
 
   @override
   _JobDetailPageState createState() => _JobDetailPageState();
@@ -398,7 +399,7 @@ class _JobDetailPageState extends State<JobDetailPage> {
   }
 
   Widget _body(MediaQueryData mediaQueryData) {
-    DateTime dateTimee = DateTime.parse(_jobDetail.when);
+    DateTime dateTimee = DateTime.parse(widget.generatedRecurringTime ?? _jobDetail.when);
 
     List<NetworkImage> networkImages = [];
     for (String image in _jobDetail.images) {

@@ -30,7 +30,6 @@ class _NewDashboardPageState extends State<NewDashboardPage> {
   int _daysInMonth = 0;
 
   List<DateTime> events = [];
-  bool _monthView = false;
   var dateTime = DateTime.now();
 
   List<String> _weekdaysName = [
@@ -72,16 +71,16 @@ class _NewDashboardPageState extends State<NewDashboardPage> {
         dateUtil.daysInMonth(_selectedMonth.month, _selectedMonth.year);
     var date = DateTime(_selectedMonth.year, _selectedMonth.month);
     int startDay = 0;
+    events.clear();
     if (!_isLoading) {
       _itemJobModelList.map((e) {
         var localDateTime = DateTime.parse(e.when).toLocal();
-        var dateTime = DateTime(localDateTime.year,
-            localDateTime.month, localDateTime.day);
-//      print("EVENTS: $dateTime");
+        var dateTime = DateTime(
+            localDateTime.year, localDateTime.month, localDateTime.day);
+//        print("EVENTS: $dateTime");
         events.add(dateTime);
       }).toList();
     }
-
     MediaQueryData mediaQueryData = MediaQuery.of(context);
     return Scaffold(
       appBar: AppBar(
@@ -131,117 +130,158 @@ class _NewDashboardPageState extends State<NewDashboardPage> {
         child: Icon(Icons.add),
         onPressed: () {
           CreateJobModel createJobModel = CreateJobModel();
-          Navigator.push(context, MaterialPageRoute(builder: (context) => OrderPage1(createJobModel)));
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => OrderPage1(createJobModel)));
         },
       ),
       body: SingleChildScrollView(
-        child: Column(
-          children: <Widget>[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: _weekdaysName
-                  .map((name) => MontserratText(
-                        "$name",
-                        14,
-                        separatorColor,
-                        FontWeight.w600,
-                        top: 16.0,
-                        bottom: 8.0,
-                      ))
-                  .toList(),
-            ),
-            Container(
-              height: mediaQueryData.size.height * 0.65,
-              child: GridView.builder(
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 7, childAspectRatio: 0.7),
-                  itemCount: _daysInMonth + (date.weekday - 1),
-                  itemBuilder: (context, index) {
-                    if (index < (date.weekday - 1)) {
-                      return Container(
-                        decoration: BoxDecoration(
-                            border: Border.all(
-                                color: Colors.black.withOpacity(0.2),
-                                width: 1)),
-                      );
-                    } else {
-                      startDay++;
-                      bool isToday = false;
+        child: _isLoading
+            ? Container(
+                height: mediaQueryData.size.height * 0.75,
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
+              )
+            : _isError
+                ? Container(
+                    height: mediaQueryData.size.height * 0.75,
+                    child: Center(
+                      child: MontserratText("Error loading jobs.", 18,
+                          Colors.black.withOpacity(0.4), FontWeight.normal),
+                    ),
+                  )
+                : Column(
+                    children: <Widget>[
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: _weekdaysName
+                            .map((name) => MontserratText(
+                                  "$name",
+                                  14,
+                                  separatorColor,
+                                  FontWeight.w600,
+                                  top: 16.0,
+                                  bottom: 8.0,
+                                ))
+                            .toList(),
+                      ),
+                      Container(
+                        height: mediaQueryData.size.height * 0.65,
+                        child: GridView.builder(
+                            gridDelegate:
+                                SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 7, childAspectRatio: 0.7),
+                            itemCount: _daysInMonth + (date.weekday - 1),
+                            itemBuilder: (context, index) {
+                              if (index < (date.weekday - 1)) {
+                                return Container(
+                                  decoration: BoxDecoration(
+                                      border: Border.all(
+                                          color: Colors.black.withOpacity(0.2),
+                                          width: 1)),
+                                );
+                              } else {
+                                startDay++;
+                                bool isToday = false;
 
-                      var boxDay = DateTime(
-                          _selectedMonth.year, _selectedMonth.month, startDay);
+                                var boxDay = DateTime(_selectedMonth.year,
+                                    _selectedMonth.month, startDay);
 
-                      if (boxDay ==
-                          DateTime(DateTime.now().year, DateTime.now().month,
-                              DateTime.now().day)) {
-                        isToday = true;
-                      }
+                                if (boxDay ==
+                                    DateTime(
+                                        DateTime.now().year,
+                                        DateTime.now().month,
+                                        DateTime.now().day)) {
+                                  isToday = true;
+                                }
 
-                      if (events.contains(boxDay)) {
-                        return GestureDetector(
-                          onTap: () {
-                            print("EVENT CLICKED: $boxDay ");
-                            _itemJobModelList.forEach((element) {
-                              DateTime dateTime = DateTime.parse(element.when).toLocal();
-                              if (boxDay ==
-                                  DateTime(dateTime.year, dateTime.month,
-                                      dateTime.day)) {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) =>
-                                            JobDetailPage(element.jobId)));
+                                if (events.contains(boxDay)) {
+                                  return GestureDetector(
+                                    onTap: () {
+                                      print("EVENT CLICKED: $boxDay ");
+                                      _itemJobModelList.forEach((element) {
+                                        DateTime dateTime =
+                                            DateTime.parse(element.when)
+                                                .toLocal();
+                                        if (boxDay ==
+                                            DateTime(dateTime.year,
+                                                dateTime.month, dateTime.day)) {
+                                          Navigator.push(context,
+                                              MaterialPageRoute(
+                                                  builder: (context) {
+                                            if (element.isWhenDeterminedLocally)
+                                              return JobDetailPage(
+                                                  element.jobId,
+                                                  generatedRecurringTime:
+                                                      element.when);
+                                            else {
+                                              return JobDetailPage(
+                                                  element.jobId);
+                                            }
+                                          }));
+                                        }
+                                      });
+                                    },
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                          border: Border.all(
+                                              color:
+                                                  Colors.black.withOpacity(0.2),
+                                              width: 1),
+                                          color: isToday
+                                              ? Colors.green
+                                              : Colors.white),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: <Widget>[
+                                          MontserratText(
+                                            "$startDay",
+                                            16,
+                                            isToday
+                                                ? Colors.white
+                                                : separatorColor,
+                                            FontWeight.bold,
+                                            textAlign: TextAlign.center,
+                                          ),
+                                          Image.asset(
+                                            isToday
+                                                ? "assets/event_white_icon.png"
+                                                : "assets/event_icon.png",
+                                            width: 40,
+                                            fit: BoxFit.contain,
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                } else
+                                  return Container(
+                                    decoration: BoxDecoration(
+                                        border: Border.all(
+                                            color:
+                                                Colors.black.withOpacity(0.2),
+                                            width: 1),
+                                        color: isToday
+                                            ? Colors.green
+                                            : Colors.white),
+                                    child: MontserratText(
+                                      "$startDay",
+                                      16,
+                                      isToday ? Colors.white : separatorColor,
+                                      FontWeight.bold,
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  );
                               }
-                            });
-                          },
-                          child: Container(
-                            decoration: BoxDecoration(
-                                border: Border.all(
-                                    color: Colors.black.withOpacity(0.2),
-                                    width: 1),
-                                color: isToday ? Colors.green : Colors.white),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: <Widget>[
-                                MontserratText(
-                                  "$startDay",
-                                  16,
-                                  isToday ? Colors.white : separatorColor,
-                                  FontWeight.bold,
-                                  textAlign: TextAlign.center,
-                                ),
-                                Image.asset(
-                                  isToday
-                                      ? "assets/event_white_icon.png"
-                                      : "assets/event_icon.png",
-                                  width: 40,
-                                  fit: BoxFit.contain,
-                                )
-                              ],
-                            ),
-                          ),
-                        );
-                      } else
-                        return Container(
-                          decoration: BoxDecoration(
-                              border: Border.all(
-                                  color: Colors.black.withOpacity(0.2),
-                                  width: 1),
-                              color: isToday ? Colors.green : Colors.white),
-                          child: MontserratText(
-                            "$startDay",
-                            16,
-                            isToday ? Colors.white : separatorColor,
-                            FontWeight.bold,
-                            textAlign: TextAlign.center,
-                          ),
-                        );
-                    }
-                  }),
-            ),
-          ],
-        ),
+                            }),
+                      ),
+                    ],
+                  ),
       ),
     );
   }
@@ -249,13 +289,15 @@ class _NewDashboardPageState extends State<NewDashboardPage> {
   void _fetchUpcomingJobs() {
     _dioHelper
         .getRequest(BASE_URL + URL_UPCOMING_JOBS, {"token": ""}).then((value) {
-      print("UPCOMING JOBS: ${value}");
+//      print("UPCOMING JOBS: ${value}");
       UpcomingJobsModel upcomingJobModel =
           upcomingJobsModelResponseFromJson(json.encode(value.data));
 
       if (upcomingJobModel.status) {
-        _itemJobModelList = upcomingJobModel.upcomingJobs;
-        print("LIST DATA: ${_itemJobModelList.length}");
+//          _itemJobModelList.addAll(upcomingJobModel.upcomingJobs);
+//          _itemJobModelList = upcomingJobModel.upcomingJobs;
+//        _addRecursiveEvents(_itemJobModelList);
+        _addRecursiveEvents(upcomingJobModel.upcomingJobs);
       } else {
         setState(() {
           _isError = true;
@@ -282,5 +324,45 @@ class _NewDashboardPageState extends State<NewDashboardPage> {
         _isLoading = false;
       });
     });
+  }
+
+  void _addRecursiveEvents(List<ItemJobModel> _list) {
+    try {
+      for (ItemJobModel item in _list) {
+//        print("JOB ID: ${item.jobId}");
+        if (item.recurrence != null) {
+          ItemJobModel itemJobModel = ItemJobModel(item.title, item.when,
+              item.endDate, item.recurrence, item.jobId, item.skipDates);
+          _itemJobModelList.add(itemJobModel);
+//          print("ADDED 1 ${itemJobModel.toString()}");
+          DateTime incrementedTime = DateTime.parse(item.when);
+          DateTime endTime = DateTime.parse(item.endDate);
+//          print("End TIME: $endTime");
+          while (incrementedTime.isBefore(endTime)) {
+//          temp.add(Duration(days: 7));
+            incrementedTime =
+                incrementedTime.add(Duration(days: item.recurrence));
+//            print("temp TIME 1: $incrementedTime");
+            if (incrementedTime.isBefore(endTime)) {
+              item.when = incrementedTime.toIso8601String();
+//              ItemJobModel itemJobModel = item;
+              ItemJobModel itemJobModel = ItemJobModel(item.title, item.when,
+                  item.endDate, item.recurrence, item.jobId, item.skipDates,
+                  isWhenDeterminedLocally: true);
+//              print("ADDED 2 ${itemJobModel.toString()}");
+              _itemJobModelList.add(itemJobModel);
+            }
+          }
+        } else {
+          ItemJobModel itemJobModel = ItemJobModel(item.title, item.when,
+              item.endDate, item.recurrence, item.jobId, item.skipDates);
+//          print("ADDED 3 ${itemJobModel.toString()}");
+          _itemJobModelList.add(itemJobModel);
+        }
+      }
+      print("TOTAL JOB AFTER RECURR ADDED: ${_itemJobModelList.length}");
+    } catch (e) {
+      print("EXCEPTIOn :$e");
+    }
   }
 }

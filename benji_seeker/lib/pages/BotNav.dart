@@ -48,6 +48,8 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
   void initState() {
     _dioHelper = DioHelper.instance;
     WidgetsBinding.instance.addObserver(this);
+
+//    _getUnReadCount();
     _firebaseCloudMessagingListeners();
 
     SavedData savedData = SavedData();
@@ -331,6 +333,7 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
   void _getUnReadCount() {
     _dioHelper
         .getRequest(BASE_URL + URL_UNREAD_COUNTS, {'token': ''}).then((result) {
+          print("UNREAD COUNT: $result");
       Map<String, dynamic> object = json.decode(json.encode(result.data));
       var status = object['status'];
       if (status) {
@@ -483,9 +486,9 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
   }
 
   _goToLeads() {
-    setState(() {
-      _currentPage = 1;
-    });
+//    setState(() {
+//      _currentPage = 1;
+//    });
   }
 
   _updateChatCount() {
