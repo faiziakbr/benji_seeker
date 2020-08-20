@@ -399,7 +399,8 @@ class _JobDetailPageState extends State<JobDetailPage> {
   }
 
   Widget _body(MediaQueryData mediaQueryData) {
-    DateTime dateTimee = DateTime.parse(widget.generatedRecurringTime ?? _jobDetail.when);
+    DateTime dateTimee =
+        DateTime.parse(widget.generatedRecurringTime ?? _jobDetail.when);
 
     List<NetworkImage> networkImages = [];
     for (String image in _jobDetail.images) {
@@ -449,49 +450,147 @@ class _JobDetailPageState extends State<JobDetailPage> {
               ],
             ),
             Container(
-                margin: EdgeInsets.only(
-                    top: 24.0,
-                    left: mediaQueryData.size.width * 0.05,
-                    right: mediaQueryData.size.width * 0.05),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    QuicksandText(
-                      "${_jobDetail.category}",
-                      22,
-                      accentColor,
-                      FontWeight.bold,
-                      top: 8.0,
-                    ),
-                    MontserratText(
-                      "${_jobDetail.subCategory}",
-                      16,
-                      Colors.black,
-                      FontWeight.bold,
-                      top: 8.0,
-                      bottom: 8.0,
-                    ),
-                    _info(
-                        mediaQueryData,
-                        Icons.calendar_today,
-                        "${DateFormat.yMMMd().add_jm().format(dateTimee.toLocal())}",
-                        null,
-                        isImage: true,
-                        imagePath: "assets/calender_icon_2.png"),
-                    _info(mediaQueryData, Icons.location_on,
-                        "${_jobDetail.where}", null,
-                        isImage: true,
-                        imagePath: "assets/green_location_icon.png"),
-                    _info(mediaQueryData, Icons.menu, null,
-                        "${_jobDetail.description}"),
-                    _jobDetail.isRecurring
-                        ? _recurringTextWidget(mediaQueryData, _jobDetail)
-                        : Container(),
-                  ],
-                ))
+              margin: EdgeInsets.only(
+                  top: 24.0,
+                  left: mediaQueryData.size.width * 0.05,
+                  right: mediaQueryData.size.width * 0.05),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  QuicksandText(
+                    "${_jobDetail.category}",
+                    22,
+                    accentColor,
+                    FontWeight.bold,
+                    top: 8.0,
+                  ),
+                  MontserratText(
+                    "${_jobDetail.subCategory}",
+                    16,
+                    Colors.black,
+                    FontWeight.bold,
+                    top: 8.0,
+                    bottom: 8.0,
+                  ),
+                  _info(
+                      mediaQueryData,
+                      Icons.calendar_today,
+                      "${DateFormat.yMMMd().add_jm().format(dateTimee.toLocal())}",
+                      null,
+                      isImage: true,
+                      imagePath: "assets/calender_icon_2.png"),
+                  _info(mediaQueryData, Icons.location_on,
+                      "${_jobDetail.where}", null,
+                      isImage: true,
+                      imagePath: "assets/green_location_icon.png"),
+                  _info(mediaQueryData, Icons.menu, null,
+                      "${_jobDetail.description}"),
+                  _jobDetail.isRecurring
+                      ? _recurringTextWidget(mediaQueryData, _jobDetail)
+                      : Container(),
+                ],
+              ),
+            ),
+            _buttons(mediaQueryData)
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buttons(MediaQueryData mediaQueryData){
+    if (_jobDetailModel.detail.nextStep == "active" && _jobDetailModel.detail.isRecurring == false)
+      return _cancelAndRescheduleButtons(mediaQueryData);
+     else if (_jobDetailModel.detail.nextStep == "active" || _jobDetailModel.detail.isRecurring){
+      return Column(
+        children: [
+          _cancelAndRescheduleButtons(mediaQueryData),
+          Container(
+            height: 50,
+            width: mediaQueryData.size.width * 0.6,
+            margin: const EdgeInsets.only(top: 16.0, bottom: 16.0),
+            child: MyLightButton(
+              "SKIP THIS WEEK",
+                  () {
+                showDialog(
+                    context: context,
+                    barrierDismissible:
+                    bool.fromEnvironment("dismiss dialog"),
+                    builder: (BuildContext context) {
+                      return DialogYesNo("Skip upcoming job service?",
+                          "Are you sure you want to skip this job.",
+                              () {
+                                DateTime dateTime =
+                                DateTime.parse(widget.generatedRecurringTime ?? _jobDetail.when);
+                                _skipJob(_jobDetailModel.detail.processId, dateTime);
+                          }, () {
+                            Navigator.pop(context);
+                          });
+                    });
+              },
+              textColor: Colors.black,
+              fontWeight: FontWeight.w600,
+              borderColor: Colors.black,
+            ),
+          ),
+        ],
+      );
+    } else {
+       return Container();
+    }
+  }
+
+  Widget _cancelAndRescheduleButtons(MediaQueryData mediaQueryData){
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        Flexible(
+          flex: 1,
+          child: Container(
+            height: 50,
+            width: mediaQueryData.size.width * 0.6,
+            margin: const EdgeInsets.only(left: 16.0),
+            child: MyLightButton(
+              "CANCEL",
+                  () {
+                showDialog(
+                    context: context,
+                    barrierDismissible:
+                    bool.fromEnvironment("dismiss dialog"),
+                    builder: (BuildContext context) {
+                      return DialogYesNo("Cancel this service?",
+                          "Are you sure you want to cancel this service.",
+                              () {
+                            _cancelJob(_jobDetail.processId);
+                          }, () {
+                            Navigator.pop(context);
+                          });
+                    });
+              },
+              textColor: Colors.black,
+              fontWeight: FontWeight.w600,
+              borderColor: Colors.black,
+            ),
+          ),
+        ),
+        Flexible(
+          flex: 1,
+          child: Container(
+            height: 50,
+            width: mediaQueryData.size.width * 0.6,
+            margin:
+            const EdgeInsets.only(left: 8.0, right: 16.0),
+            child: MyDarkButton(
+              "RESCHEDULE",
+                  () {
+                _rescheduleJob();
+              },
+              textSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        )
+      ],
     );
   }
 
@@ -998,6 +1097,45 @@ class _JobDetailPageState extends State<JobDetailPage> {
         MaterialPageRoute(
             builder: (context) =>
                 When(null, rescheduleJob: true, jobDetail: _jobDetail)));
+  }
+
+  void _skipJob(String processId, DateTime date){
+    Navigator.pop(context); //popping DialogYesNo
+    MyLoadingDialog(context, "Skipping job...");
+    DioHelper dioHelper = DioHelper.instance;
+
+    Map<String, dynamic> map = {
+      "process_id": "$processId",
+      "date": date.toIso8601String()
+    };
+    dioHelper.postRequest(BASE_URL + URL_SKIP_JOB, {"token":""}, map).then((value){
+      JustStatusModel justStatusModel =
+      justStatusResponseFromJson(json.encode(value.data));
+      if (justStatusModel.status) {
+        while (Navigator.canPop(context)) {
+          Navigator.pop(context);
+        }
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (context) => BotNavPage()));
+      } else {
+        Navigator.pop(context);
+        MyToast("${justStatusModel.errors[0]}", context);
+      }
+    }).catchError((error){
+      try {
+        Navigator.pop(context);
+        var err = error as DioError;
+        if (err.type == DioErrorType.RESPONSE) {
+          JustStatusModel justModel =
+          justStatusResponseFromJson(json.encode(err.response.data));
+          MyToast("${justModel.errors[0]}", context, position: 1);
+        } else {
+          MyToast("${err.message}", context, position: 1);
+        }
+      } catch (e) {
+        MyToast("Unexpected Error!", context, position: 1);
+      }
+    });
   }
 
   void _cancelJob(String jobId) {

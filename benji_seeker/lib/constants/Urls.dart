@@ -41,6 +41,7 @@ const String URL_MESSAGE_SEND = "message/send";
 const String URL_DEVICE_TOKEN = "user/update/device-token";
 const String URL_UNREAD_COUNTS = "app/header-info";
 const String URL_FORGOT_PASSWORD = "user/forgot-password";
+const String URL_SKIP_JOB = "job/skip";
 
 
 String URL_SUB_CATRGORY_DETAIL(String subCategoryID){

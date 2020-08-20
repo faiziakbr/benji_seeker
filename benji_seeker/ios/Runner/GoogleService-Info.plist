@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>1048800621498-fd8qa0tuf53uakhnov2njck3c8bgmpli.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.1048800621498-fd8qa0tuf53uakhnov2njck3c8bgmpli</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>1048800621498-dl0b12tsng376cufio6lqrndli05echs.apps.googleusercontent.com</string>
+	<key>API_KEY</key>
+	<string>AIzaSyDO9X1GEI8Ra9gpsm95YWN56gewGM7k2Z0</string>
+	<key>GCM_SENDER_ID</key>
+	<string>1048800621498</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.benji.benjiSeeker</string>
+	<key>PROJECT_ID</key>
+	<string>bnji-e2bdd</string>
+	<key>STORAGE_BUCKET</key>
+	<string>bnji-e2bdd.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:1048800621498:ios:149e5fcfc92ce23b76e383</string>
+	<key>DATABASE_URL</key>
+	<string>https://bnji-e2bdd.firebaseio.com</string>
+</dict>
+</plist>

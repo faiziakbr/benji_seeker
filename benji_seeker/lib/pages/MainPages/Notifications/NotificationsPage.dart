@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:benji_seeker/My_Widgets/MyToast.dart';
+import 'package:benji_seeker/SharedPref/SavedData.dart';
+import 'package:benji_seeker/constants/Constants.dart';
 import 'package:benji_seeker/constants/MyColors.dart';
 import 'package:benji_seeker/constants/Urls.dart';
 import 'package:benji_seeker/custom_texts/MontserratText.dart';
@@ -11,6 +13,7 @@ import 'package:benji_seeker/pages/JobDetailPage/JobDetailPage.dart';
 import 'package:benji_seeker/utils/DioHelper.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_app_badger/flutter_app_badger.dart';
 import 'package:flutter_svg/svg.dart';
 
 import 'itemNotification.dart';
@@ -36,17 +39,17 @@ class NotificationsPageState extends State<NotificationsPage> {
   void initState() {
     _dioHelper = DioHelper.instance;
 
-//    FlutterAppBadger.isAppBadgeSupported().then((value) {
-//      if (value) {
-//        FlutterAppBadger.removeBadge();
-//        SavedData savedData = SavedData();
-//        savedData.setIntValue(BADGE, 0);
-//      }
-//    });
+    FlutterAppBadger.isAppBadgeSupported().then((value) {
+      if (value) {
+        FlutterAppBadger.removeBadge();
+        SavedData savedData = SavedData();
+        savedData.setIntValue(BADGE, 0);
+      }
+    });
 
     getNotifications();
-//    WidgetsBinding.instance
-//        .addPostFrameCallback((_) => widget.updateNotificationCount());
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => widget.updateNotificationCount());
     super.initState();
   }
 

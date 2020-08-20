@@ -15,11 +15,15 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
 class NewDashboardPage extends StatefulWidget {
+  final GlobalKey key;
+
+  NewDashboardPage(this.key);
+
   @override
-  _NewDashboardPageState createState() => _NewDashboardPageState();
+  NewDashboardPageState createState() => NewDashboardPageState();
 }
 
-class _NewDashboardPageState extends State<NewDashboardPage> {
+class NewDashboardPageState extends State<NewDashboardPage> {
   bool _isLoading = true;
   bool _isError = false;
   List<ItemJobModel> _itemJobModelList = [];
@@ -60,7 +64,7 @@ class _NewDashboardPageState extends State<NewDashboardPage> {
   @override
   void initState() {
     _dioHelper = DioHelper.instance;
-    _fetchUpcomingJobs();
+    fetchUpcomingJobs();
     super.initState();
   }
 
@@ -286,7 +290,7 @@ class _NewDashboardPageState extends State<NewDashboardPage> {
     );
   }
 
-  void _fetchUpcomingJobs() {
+  void fetchUpcomingJobs() {
     _dioHelper
         .getRequest(BASE_URL + URL_UPCOMING_JOBS, {"token": ""}).then((value) {
 //      print("UPCOMING JOBS: ${value}");

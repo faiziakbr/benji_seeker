@@ -11,6 +11,7 @@ import 'package:benji_seeker/custom_texts/QuicksandText.dart';
 import 'package:benji_seeker/models/CreateJobModel.dart';
 import 'package:benji_seeker/models/JustStatusModel.dart';
 import 'package:benji_seeker/models/NotificationsModel.dart';
+import 'package:benji_seeker/models/UnreadCountModel.dart';
 import 'package:benji_seeker/pages/MainPages/Chat/IndividualChatPage.dart';
 import 'package:benji_seeker/pages/MainPages/MoreOptions/MoreOptionsPage.dart';
 import 'package:benji_seeker/pages/MainPages/NewDashboadPage.dart';
@@ -39,6 +40,7 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
   CreateJobModel _createJobModel;
   GlobalKey<NotificationsPageState> _notificationChildKey = GlobalKey();
   GlobalKey<IndividualChatPageState> _chatChildKey = GlobalKey();
+  GlobalKey<NewDashboardPageState> _newDashboardKey = GlobalKey();
 
   FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
 
@@ -49,7 +51,7 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
     _dioHelper = DioHelper.instance;
     WidgetsBinding.instance.addObserver(this);
 
-//    _getUnReadCount();
+    _getUnReadCount();
     _firebaseCloudMessagingListeners();
 
     SavedData savedData = SavedData();
@@ -91,20 +93,14 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
               slideDismiss: true,
               background: accentColor);
 
-//          String type = iosNotification.type;
-//          if (type.contains("withdraw_bid") || type.contains("make_bid") || type.contains("mark_as_arrived") || type.contains("start_job") || type.contains("transaction_issue") || type.contains("complete_job") || type.contains("expired_job")) {
-//            while (Navigator.canPop(context)) {
-//              Navigator.pop(context);
-//            }
-//            Navigator.pushReplacement(context,
-//                MaterialPageRoute(builder: (context) => JobDetailPage(iosNotification.jobId)));
-//          }
-          if (iosNotification.body.contains("leads")) {
+          String type = iosNotification.type;
+          if (type.contains("withdraw_bid") || type.contains("make_bid") || type.contains("mark_as_arrived") || type.contains("start_job") || type.contains("transaction_issue") || type.contains("complete_job") || type.contains("expired_job")) {
             try {
               _getUnReadCount();
+              _newDashboardKey.currentState.fetchUpcomingJobs();
               _notificationChildKey.currentState.getNotifications();
             } catch (e) {
-              print("ERROR FCM new lead: $e"); //No Need to handle
+              print("Error FCM");
             }
           }
           if (iosNotification.body.contains("received a new message")) {
@@ -113,30 +109,6 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
               _chatChildKey.currentState.getMessages();
             } catch (e) {
               print("ERROR FCM new message: $e"); //No Need to handle
-            }
-          }
-          if (iosNotification.body.contains("accepted your bid")) {
-            try {
-              _getUnReadCount();
-              _notificationChildKey.currentState.getNotifications();
-            } catch (e) {
-              print("ERROR FCM accepted bid: $e"); //No Need to handle
-            }
-          }
-          if (iosNotification.type.contains("rescheduled_job")) {
-            try {
-              _getUnReadCount();
-              _notificationChildKey.currentState.getNotifications();
-            } catch (e) {
-              print("ERROR FCM accepted bid: $e"); //No Need to handle
-            }
-          }
-          if (iosNotification.type.contains("transaction_issue")) {
-            try {
-              _getUnReadCount();
-              _notificationChildKey.currentState.getNotifications();
-            } catch (e) {
-              print("ERROR FCM accepted bid: $e"); //No Need to handle
             }
           }
         } else {
@@ -151,20 +123,14 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
               slideDismiss: true,
               background: accentColor);
 
-//          String type = myNotification.payload.type;
-//          if (type.contains("withdraw_bid") || type.contains("make_bid") || type.contains("mark_as_arrived") || type.contains("start_job") || type.contains("transaction_issue") || type.contains("complete_job") || type.contains("expired_job")) {
-//              while (Navigator.canPop(context)) {
-//                Navigator.pop(context);
-//              }
-//              Navigator.pushReplacement(context,
-//                  MaterialPageRoute(builder: (context) => JobDetailPage(myNotification.payload.jobId)));
-//          }
-          if (myNotification.header.body.contains("leads")) {
+          String type = myNotification.payload.type;
+          if (type.contains("withdraw_bid") || type.contains("make_bid") || type.contains("mark_as_arrived") || type.contains("start_job") || type.contains("transaction_issue") || type.contains("complete_job") || type.contains("expired_job")) {
             try {
               _getUnReadCount();
+              _newDashboardKey.currentState.fetchUpcomingJobs();
               _notificationChildKey.currentState.getNotifications();
             } catch (e) {
-              print("ERROR FCM new lead: $e"); //No Need to handle
+              print("Error FCM");
             }
           }
           if (myNotification.header.body.contains("received a new message")) {
@@ -175,30 +141,7 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
               print("ERROR FCM new message: $e"); //No Need to handle
             }
           }
-          if (myNotification.header.body.contains("accepted your bid")) {
-            try {
-              _getUnReadCount();
-              _notificationChildKey.currentState.getNotifications();
-            } catch (e) {
-              print("ERROR FCM accepted bid: $e"); //No Need to handle
-            }
-          }
-          if (myNotification.payload.type.contains("rescheduled_job")) {
-            try {
-              _getUnReadCount();
-              _notificationChildKey.currentState.getNotifications();
-            } catch (e) {
-              print("ERROR FCM accepted bid: $e"); //No Need to handle
-            }
-          }
-          if (myNotification.payload.type.contains("transaction_issue")) {
-            try {
-              _getUnReadCount();
-              _notificationChildKey.currentState.getNotifications();
-            } catch (e) {
-              print("ERROR FCM accepted bid: $e"); //No Need to handle
-            }
-          }
+
         }
       },
       onResume: (Map<String, dynamic> message) async {
@@ -236,18 +179,7 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
           Navigator.push(context,
               MaterialPageRoute(builder: (context) => JobDetailPage(iosNotification.jobId)));
         }
-        if (iosNotification.type == "accept_bid") {
-          if (iosNotification.jobId != null) {
-            while (Navigator.canPop(context)) {
-              Navigator.pop(context);
-            }
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) =>
-                        JobDetailPage(iosNotification.jobId)));
-          }
-        }  else if (iosNotification.type == "new_message") {
+        if (iosNotification.type == "new_message") {
           while (Navigator.canPop(context)) {
             Navigator.pop(context);
           }
@@ -285,23 +217,6 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
                   MaterialPageRoute(
                       builder: (context) => JobDetailPage(data.jobId)));
             }
-          } else if (data.type == "start_job") {
-            if (data.jobId != null) {
-              while (Navigator.canPop(context)) {
-                Navigator.pop(context);
-              }
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => JobDetailPage(data.jobId)));
-            }
-          } else if (data.type == "new_leads") {
-            while (Navigator.canPop(context)) {
-              Navigator.pop(context);
-            }
-            setState(() {
-              _currentPage = 1;
-            });
           } else if (data.type == "new_message") {
             while (Navigator.canPop(context)) {
               Navigator.pop(context);
@@ -314,14 +229,6 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
                       null,
                       fromJobPage: true,
                     )));
-          } else if (data.type == "transaction_issue") {
-            while (Navigator.canPop(context)) {
-              Navigator.pop(context);
-            }
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => JobDetailPage(data.jobId)));
           }
         }
       }
@@ -334,15 +241,13 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
     _dioHelper
         .getRequest(BASE_URL + URL_UNREAD_COUNTS, {'token': ''}).then((result) {
           print("UNREAD COUNT: $result");
-      Map<String, dynamic> object = json.decode(json.encode(result.data));
-      var status = object['status'];
-      if (status) {
-        setState(() {
-          _chatCount = object['response']['message_data']['unread_count'];
-          _notificationCount = object['response']['notification_data']
-          ['total_unread_notifications'];
-        });
-      }
+          UnreadCountModel unreadCountModel = unreadCountModelResponseFromJson(json.encode(result.data));
+          if(unreadCountModel.status){
+            setState(() {
+              _chatCount = unreadCountModel.unreadMessages;
+              _notificationCount = unreadCountModel.unreadNotifications;
+            });
+          }
     });
   }
 
@@ -418,7 +323,7 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
                 _currentPage,
                 navBarItemClickListener,
                 2,
-                count: 0,
+                count: _chatCount,
               ),
             ),
             separator(mediaQueryData),
@@ -430,7 +335,7 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
                 _currentPage,
                 navBarItemClickListener,
                 3,
-                count: 0,
+                count: _notificationCount,
               ),
             ),
             separator(mediaQueryData),
@@ -501,7 +406,7 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
 
   Widget _showInBody() {
     if (_currentPage == 0)
-      return NewDashboardPage();
+      return NewDashboardPage(_newDashboardKey);
     else if (_currentPage == 1) {
       _createJobModel = CreateJobModel();
       return OrderPage1(_createJobModel);
