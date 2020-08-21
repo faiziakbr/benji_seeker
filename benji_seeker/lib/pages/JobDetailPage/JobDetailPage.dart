@@ -352,7 +352,7 @@ class _JobDetailPageState extends State<JobDetailPage> {
                 )
               : _isError
                   ? Center(
-                      child: MontserratText("No Job Detail!", 18,
+                      child: MontserratText("Job doesn't exists!", 18,
                           Colors.black.withOpacity(0.4), FontWeight.normal,
                           left: 16, right: 16),
                     )
