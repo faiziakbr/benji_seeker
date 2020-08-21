@@ -20,10 +20,10 @@ import 'itemNotification.dart';
 
 class NotificationsPage extends StatefulWidget {
   final GlobalKey key;
-  final Function goToLeads;
+//  final Function goToLeads;
   final Function updateNotificationCount;
 
-  NotificationsPage(this.key, this.goToLeads, {this.updateNotificationCount});
+  NotificationsPage(this.key, {this.updateNotificationCount});
 
   @override
   NotificationsPageState createState() => NotificationsPageState();
@@ -208,7 +208,7 @@ class NotificationsPageState extends State<NotificationsPage> {
 
   @override
   void dispose() {
-//    widget.updateNotificationCount();
+    widget.updateNotificationCount();
     _readNotification();
     super.dispose();
   }

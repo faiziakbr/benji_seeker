@@ -13,6 +13,7 @@ import 'package:benji_seeker/custom_texts/MontserratText.dart';
 import 'package:benji_seeker/custom_texts/QuicksandText.dart';
 import 'package:benji_seeker/models/ChatModel.dart';
 import 'package:benji_seeker/models/JobDetailModel.dart';
+import 'package:benji_seeker/models/ProviderDetail.dart';
 import 'package:benji_seeker/utils/DioHelper.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -50,6 +51,7 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
   JobDetailModel _jobDetailModel;
   DateTime dateTime;
   bool _loadFullScreen = false;
+  Provider _provider;
 
   @override
   void initState() {
@@ -65,16 +67,12 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
         print("JOB DETAIL: ${result.data}");
         _jobDetailModel = jobDetailResponseFromJson(json.encode(result.data));
         if (_jobDetailModel.status) {
+          _fetchProviderDetail(_jobDetailModel.detail.providerId);
           dateTime = DateTime.parse(_jobDetailModel.detail.when);
-          setState(() {
-            _loadFullScreen = false;
-          });
+
         } else {
           _jobDetailModel = jobDetailResponseFromJson(json.encode(result.data));
-          setState(() {
-            _loadFullScreen = false;
-            _isError = true;
-          });
+
         }
         if (_jobDetailModel.status) {
           _loadChat();
@@ -177,6 +175,44 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
       _isSocketConnected();
     });
     super.initState();
+  }
+
+  _fetchProviderDetail(String providerId) {
+    _dioHelper.getRequest(BASE_URL + URL_PROVIDER_DETAIL(providerId),
+        {"token": ""}).then((value) {
+      ProviderDetail providerDetail =
+      providerDetailResponseFromJson(json.encode(value.data));
+      if (providerDetail.status) {
+        _provider = providerDetail.provider;
+        setState(() {
+          _loadFullScreen = false;
+        });
+      } else {
+        MyToast("${providerDetail.errors[0]}", context, position: 1);
+        setState(() {
+          _loadFullScreen = false;
+          _isError = true;
+        });
+      }
+    }).catchError((error) {
+      try {
+        var err = error as DioError;
+        if (err.type == DioErrorType.RESPONSE) {
+          ProviderDetail providerDetail =
+          providerDetailResponseFromJson(json.encode(err.response.data));
+          MyToast("${providerDetail.errors[0]}", context, position: 1);
+        } else {
+          MyToast("${err.message}", context, position: 1);
+        }
+        setState(() {
+          _isError = true;
+        });
+      } catch (e) {
+        setState(() {
+          _isError = true;
+        });
+      }
+    });
   }
 
   @override
@@ -348,7 +384,7 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: <Widget>[
                         QuicksandText(
-                          "${widget.providerName}",
+                          _provider != null ? "${_provider.nickName}" : "${widget.providerName}",
                           18,
                           Colors.white,
                           FontWeight.bold,

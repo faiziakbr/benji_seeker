@@ -26,6 +26,7 @@ class Detail {
   String processId;
   String category;
   String subCategory;
+  String subCategoryImage;
   String when;
   bool isRecurring;
   int recurringDays;
@@ -45,6 +46,7 @@ class Detail {
     processId = json['process_id'];
     category = json['category'];
     subCategory = json['sub_category'];
+    subCategoryImage = json['sub_category_image'];
     when = json['when'];
     isRecurring = json["is_recurring"];
     if (isRecurring) {

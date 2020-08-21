@@ -19,8 +19,10 @@ import 'package:benji_seeker/utils/DioHelper.dart';
 import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_app_badger/flutter_app_badger.dart';
 import 'package:overlay_support/overlay_support.dart';
+import 'package:uni_links/uni_links.dart';
 
 import 'Chat/ChatPage.dart';
 import 'JobDetailPage/JobDetailPage.dart';
@@ -53,6 +55,7 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
 
     _getUnReadCount();
     _firebaseCloudMessagingListeners();
+    _initUniLinks();
 
     SavedData savedData = SavedData();
     savedData.getIntValue(BADGE).then((value) {
@@ -60,6 +63,75 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
     });
 
     super.initState();
+  }
+
+  Future<Null> _initUniLinks() async {
+    try {
+      String initialLink = await getInitialLink();
+      if (initialLink != null) _openURLfromColdStart(initialLink);
+
+      getLinksStream().listen((event) {
+        if (event != null) _openURLNormally(event);
+      });
+    } on PlatformException catch (e) {
+      print("DEEP LINKING ERROR: $e");
+    }
+  }
+
+  void _openURLfromColdStart(String url) {
+    if (url.contains("https://development.benjilawn.com")) {
+      if(url.contains("dashboard")){
+        try {
+          while (Navigator.canPop(context)) {
+            Navigator.pop(context);
+          }
+          setState(() {
+            _currentPage = 0;
+          });
+        } catch (e){
+          print("ERROR all jobs: $e"); //No Need to handle
+        }
+      } else if (url.contains("job")) {
+        Uri uri = Uri.parse(url);
+        while (Navigator.canPop(context)) {
+          Navigator.pop(context);
+        }
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) =>
+                    JobDetailPage(uri.pathSegments.last)));
+      }
+    }
+  }
+
+  void _openURLNormally(String url){
+    if (url.contains("https://development.benjilawn.com")) {
+      if(url.contains("dashboard")){
+        try {
+          _getUnReadCount();
+          while (Navigator.canPop(context)) {
+            Navigator.pop(context);
+          }
+          setState(() {
+            _currentPage = 0;
+          });
+        } catch (e){
+          print("ERROR all jobs: $e"); //No Need to handle
+        }
+      }
+       else if (url.contains("job")) {
+        Uri uri = Uri.parse(url);
+        while (Navigator.canPop(context)) {
+          Navigator.pop(context);
+        }
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) =>
+                    JobDetailPage(uri.pathSegments.last)));
+      }
+    }
   }
 
   void _firebaseCloudMessagingListeners() {
@@ -384,12 +456,6 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
     }
   }
 
-  void positiveButton() {}
-
-  void negativeButton(BuildContext context) {
-    Navigator.pop(context);
-  }
-
   _goToLeads() {
 //    setState(() {
 //      _currentPage = 1;
@@ -398,7 +464,16 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
 
   _updateChatCount() {
     try {
-//      _getUnReadCount();
+      _getUnReadCount();
+    } catch (e) {
+      print("ERROR *************: $e");
+    }
+  }
+
+  _updateNotificationCount() {
+    try {
+      _getUnReadCount();
+      _notificationChildKey.currentState.getNotifications();
     } catch (e) {
       print("ERROR *************: $e");
     }
@@ -416,7 +491,7 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
         updateChatCount: _updateChatCount,
       );
     } else if (_currentPage == 3) {
-      return NotificationsPage(_notificationChildKey, _goToLeads());
+      return NotificationsPage(_notificationChildKey, updateNotificationCount: _updateNotificationCount,);
     } else {
       return MoreOptionsPage();
     }
