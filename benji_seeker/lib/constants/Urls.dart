@@ -1,10 +1,10 @@
 //const String BASE_URL = "https://app.benjilawn.com/api/";
-const String BASE_URL = "https://development.benjilawn.com/api/";
+const String BASE_URL = "http://05f8ded5efb1.ngrok.io/api/";
 //const String BASE_URL_CATEGORY = "https://app.benjilawn.com/uploads/sub_categories/";
 //const String BASE_PROFILE_URL = "https://app.benjilawn.com/api/uploads/profile_pictures/";
-const String BASE_URL_CATEGORY = "https://development.benjilawn.com/uploads/sub_categories/";
-const String BASE_PROFILE_URL = "https://development.benjilawn.com/uploads/profile_pictures/";
-const String BASE_JOB_IMAGE_URL = "https://development.benjilawn.com/uploads/jobs/";
+const String BASE_URL_CATEGORY = "http://05f8ded5efb1.ngrok.io/uploads/sub_categories/";
+const String BASE_PROFILE_URL = "http://05f8ded5efb1.ngrok.io/uploads/profile_pictures/";
+const String BASE_JOB_IMAGE_URL = "http://05f8ded5efb1.ngrok.io/uploads/jobs/";
 
 const String BASE_GOOGLE_AUTOCOMPLETE_URL = "https://maps.googleapis.com/maps/api/place/autocomplete/json";
 const String BASE_GOOGLE_PLACE_DETAIL_URL = "https://maps.googleapis.com/maps/api/place/details/json";

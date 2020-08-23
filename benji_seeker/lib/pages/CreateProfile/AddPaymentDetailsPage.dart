@@ -1,5 +1,8 @@
+import 'dart:async';
 import 'dart:convert';
 
+import 'package:benji_seeker/My_Widgets/DialogInfo.dart';
+import 'package:benji_seeker/My_Widgets/MaskedTextInputFormatter.dart';
 import 'package:benji_seeker/My_Widgets/MyDarkButton.dart';
 import 'package:benji_seeker/My_Widgets/MyLoadingDialog.dart';
 import 'package:benji_seeker/My_Widgets/MyToast.dart';
@@ -16,6 +19,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:keyboard_visibility/keyboard_visibility.dart';
+import 'package:string_validator/string_validator.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../BotNav.dart';
@@ -71,7 +75,7 @@ class _AddPaymentDetailsPageState extends State<AddPaymentDetailsPage> {
         ),
         centerTitle: true,
         title:
-            MontserratText("Bank Details", 16, Colors.black, FontWeight.bold),
+            MontserratText("Payment Details", 16, Colors.black, FontWeight.bold),
 //        trailing: MyDarkButton("SUBMIT", submitBtnClick,fontWeight: FontWeight.w600,),
       ),
       body: Container(
@@ -99,12 +103,14 @@ class _AddPaymentDetailsPageState extends State<AddPaymentDetailsPage> {
                               fontWeight: FontWeight.w500, textSize: 20),
                           cursorColor: accentColor,
                           keyboardType: TextInputType.number,
+                          inputFormatters: [MaskedTextInputFormatter(mask: "####-####-####-####",separator: "-")],
                           decoration: InputDecoration(
                               labelText: "Card Number",
                               labelStyle: labelTextStyle(letterSpacing: 0.06),
                               contentPadding: const EdgeInsets.only(top: -8.0)),
                           validator: (String value) {
                             if (value.isEmpty) return "Card number is required";
+                            if (value.length != 19) return "Card numbers are 16";
                             return null;
                           },
                           onSaved: (value) {
@@ -140,12 +146,22 @@ class _AddPaymentDetailsPageState extends State<AddPaymentDetailsPage> {
                               fontWeight: FontWeight.w500, textSize: 20),
                           cursorColor: accentColor,
                           keyboardType: TextInputType.datetime,
+                          inputFormatters: [MaskedTextInputFormatter(mask: "##/##",separator: "/")],
                           decoration: InputDecoration(
                               labelText: "Expiry Date",
                               labelStyle: labelTextStyle(letterSpacing: 0.06),
                               contentPadding: const EdgeInsets.only(top: -8.0)),
                           validator: (String value) {
                             if (value.isEmpty) return "Expiry date is required";
+                            List<String> dateSplit = value.split("/");
+                            if(isNumeric(dateSplit[0])){
+                              int month = int.parse(dateSplit[0]);
+                              if(month < 1 || month > 12){
+                                return "Month should be 1 to 12";
+                              }
+                            }else{
+                              return "Expiry date is wrong";
+                            }
                             return null;
                           },
                           onSaved: (value) {
@@ -167,6 +183,7 @@ class _AddPaymentDetailsPageState extends State<AddPaymentDetailsPage> {
                               contentPadding: const EdgeInsets.only(top: -8.0)),
                           validator: (String value) {
                             if (value.isEmpty) return "CVV is required";
+                            if (value.length != 3) return "CVV is 3 digits";
                             return null;
                           },
                           onSaved: (value) {
@@ -257,6 +274,8 @@ class _AddPaymentDetailsPageState extends State<AddPaymentDetailsPage> {
     }
     if (_formKey.currentState.validate()) {
       _formKey.currentState.save();
+      String cardNumber = _formData["card_number"];
+      _formData["card_number"] = cardNumber.replaceAll("-", "");
 
       Map<String, dynamic> data = {
         "access_code": "${widget.userData["access_code"]}",
@@ -290,11 +309,25 @@ class _AddPaymentDetailsPageState extends State<AddPaymentDetailsPage> {
         savedData.setValue(EMAIL, "${data["email"]}");
         savedData.setValue(PHONE, "$phoneNumber");
 
-        while (Navigator.canPop(context)) {
-          Navigator.pop(context);
-        }
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => BotNavPage()));
+        showDialog(
+          context: context,
+          builder: (_) => DialogInfo(
+            "assets/profile_submitted.png",
+            "Welcome! ${data["first_name"]}",
+            "We are excited to help you plan and complete your year's chores for you.",
+          ),
+        );
+
+        Timer(const Duration(seconds: 3), () {
+          while (Navigator.canPop(context)) {
+            Navigator.pop(context);
+          }
+          Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => BotNavPage(
+                  )));
+        });
 
       } else {
         Navigator.pop(context);

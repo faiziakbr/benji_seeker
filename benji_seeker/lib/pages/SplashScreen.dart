@@ -93,16 +93,16 @@ class _SplashScreenState extends State<SplashScreen> {
             MaterialPageRoute(builder: (context) => PhoneNumberPage()));
         return;
       }
-      _postVerifyToken(token).then((verifyToken) {
-        try {
-          if (verifyToken.status) {
-            if (verifyToken.verifyTokenUserModel.role == "seeker") {
-              var userStatus = verifyToken.verifyTokenUserModel.status;
-              print("STATUS: $userStatus");
-              if (userStatus == "active" ||
-                  userStatus == "inactive" ||
-                  userStatus == "blocked") {
-
+      try {
+        _postVerifyToken(token).then((verifyToken) {
+          try {
+            if (verifyToken.status) {
+              if (verifyToken.verifyTokenUserModel.role == "seeker") {
+                var userStatus = verifyToken.verifyTokenUserModel.status;
+                print("STATUS: $userStatus");
+                if (userStatus == "active" ||
+                    userStatus == "inactive" ||
+                    userStatus == "blocked") {
                   _getBasicInfoResponse().then((userInfo) {
                     if (userInfo.status) {
                       SavedData savedData = SavedData();
@@ -119,29 +119,35 @@ class _SplashScreenState extends State<SplashScreen> {
                       Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => BotNavPage(
-                              )));
+                              builder: (context) =>
+                                  BotNavPage(
+                                  )));
                     }
                   });
+                }
+              } else {
+                MyToast("This app is for seekers only.", context);
+                SavedData savedData = new SavedData();
+                savedData.logOut();
+                Timer(const Duration(seconds: 1), () {
+                  Navigator.pop(context);
+                  Navigator.push(context,
+                      MaterialPageRoute(
+                          builder: (context) => PhoneNumberPage()));
+                });
               }
             } else {
-              MyToast("This app is for seekers only.", context);
-              SavedData savedData = new SavedData();
-              savedData.logOut();
-              Timer(const Duration(seconds: 1), () {
-                Navigator.pop(context);
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => PhoneNumberPage()));
-              });
+              Navigator.pushReplacement(context,
+                  MaterialPageRoute(builder: (context) => PhoneNumberPage()));
             }
-          } else {
-            Navigator.pushReplacement(context,
-                MaterialPageRoute(builder: (context) => PhoneNumberPage()));
+          } catch (e) {
+            exit(0);
           }
-        } catch (e) {
-          exit(0);
-        }
-      });
+        });
+      }catch (e){
+        Navigator.pushReplacement(context,
+            MaterialPageRoute(builder: (context) => PhoneNumberPage()));
+      }
     });
   }
 

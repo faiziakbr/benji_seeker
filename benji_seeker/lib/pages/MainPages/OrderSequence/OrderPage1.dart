@@ -14,12 +14,11 @@ import 'package:benji_seeker/utils/DioHelper.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
-import 'OrderPage2.dart';
-
 class OrderPage1 extends StatefulWidget {
   final CreateJobModel createJobModel;
+  final bool isWhenSelected;
 
-  OrderPage1(this.createJobModel);
+  OrderPage1(this.createJobModel, {this.isWhenSelected = false});
 
   @override
   _OrderPage1State createState() => _OrderPage1State();
@@ -88,48 +87,52 @@ class _OrderPage1State extends State<OrderPage1> {
                                 18, separatorColor, FontWeight.normal),
                           ),
                         )
-                      : Container(
-                          height: mediaQueryData.size.height * 0.78,
-                          padding: EdgeInsets.symmetric(
-                              horizontal: mediaQueryData.size.width * 0.04),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              QuicksandText("Schedule Your Tasks", 22,
-                                  Colors.black, FontWeight.bold),
-                              MontserratText(
-                                "Select a job below:",
-                                16,
-                                separatorColor,
-                                FontWeight.normal,
-                                top: 8.0,
-                              ),
-                              SizedBox(
-                                height: mediaQueryData.size.height * 0.05,
-                              ),
-                              _itemCategories.length == 0
-                                  ? Container(
-                                  height: mediaQueryData.size.height * 0.5,
-                                    child: Center(
-                                      child: MontserratText("No categories!", 18,
-                                          separatorColor, FontWeight.normal),
-                                    ),
-                                  )
-                                  : Expanded(
-                                      child: ListView.builder(
-                                          physics: BouncingScrollPhysics(),
-                                          itemCount: _itemCategories.length,
-                                          itemBuilder: (context, index) {
-                                            String image = BASE_URL_CATEGORY +
-                                                _itemCategories[index].image;
-                                            return ItemOrder(
-                                                mediaQueryData,
-                                                _itemCategories[index].name,
-                                                '$image',
-                                                _itemCategories[index].id,
-                                                itemClick);
-                                          }))
-                            ],
+                      : Expanded(
+//                          height: mediaQueryData.size.height * 0.85,
+//                          padding: EdgeInsets.symmetric(
+//                              horizontal: mediaQueryData.size.width * 0.04),
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: mediaQueryData.size.width * 0.04),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                QuicksandText("Schedule Your Tasks", 22,
+                                    Colors.black, FontWeight.bold),
+                                MontserratText(
+                                  "Select a job below:",
+                                  16,
+                                  separatorColor,
+                                  FontWeight.normal,
+                                  top: 8.0,
+                                ),
+                                SizedBox(
+                                  height: mediaQueryData.size.height * 0.05,
+                                ),
+                                _itemCategories.length == 0
+                                    ? Container(
+                                    height: mediaQueryData.size.height * 0.5,
+                                      child: Center(
+                                        child: MontserratText("No categories!", 18,
+                                            separatorColor, FontWeight.normal),
+                                      ),
+                                    )
+                                    : Expanded(
+                                        child: ListView.builder(
+                                            physics: BouncingScrollPhysics(),
+                                            itemCount: _itemCategories.length,
+                                            itemBuilder: (context, index) {
+                                              String image = BASE_URL_CATEGORY +
+                                                  _itemCategories[index].image;
+                                              return ItemOrder(
+                                                  mediaQueryData,
+                                                  _itemCategories[index].name,
+                                                  '$image',
+                                                  _itemCategories[index].id,
+                                                  itemClick);
+                                            }))
+                              ],
+                            ),
                           ),
                         ),
             ],

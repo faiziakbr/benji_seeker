@@ -35,10 +35,11 @@ class ItemJobModel {
   int recurrence;
   List<dynamic> skipDates = [];
   String jobId;
+  String imageUrl;
   bool isWhenDeterminedLocally = false;
 
   ItemJobModel(
-      this.title, this.when, this.endDate, this.recurrence, this.jobId, this.skipDates, {this.isWhenDeterminedLocally = false});
+      this.title, this.when, this.endDate, this.recurrence, this.jobId, this.skipDates, this.imageUrl, {this.isWhenDeterminedLocally = false});
 
   ItemJobModel.fromJson(Map<String, dynamic> json) {
     title = json['title'];
@@ -46,6 +47,7 @@ class ItemJobModel {
     endDate = json['end_date'];
     recurrence = json['recurrence'];
     jobId = json['job_id'];
+    imageUrl = json['image_url'];
     if (json['skip'] != null) {
       skipDates = json['skip'];
     }
@@ -53,6 +55,6 @@ class ItemJobModel {
 
   @override
   String toString() {
-    return "JOB ID: $jobId, title: $title, when: $when, endDate: $endDate";
+    return "JOB ID: $jobId, title: $title, when: $when, endDate: $endDate Image: $imageUrl";
   }
 }

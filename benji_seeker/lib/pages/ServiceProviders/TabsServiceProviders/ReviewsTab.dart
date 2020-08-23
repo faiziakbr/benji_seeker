@@ -37,7 +37,7 @@ class _ReviewsTabState extends State<ReviewsTab> {
                   filledColor: starColor,
                   emptyColor: Colors.grey,
                   halfFilledColor: accentColor,
-                  initialRating: 4,
+                  initialRating: widget.provider.rating != null ? widget.provider.rating : 0.0,
                   size: 20,
                 ),
               ],

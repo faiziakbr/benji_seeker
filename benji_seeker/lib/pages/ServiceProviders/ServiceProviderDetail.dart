@@ -166,14 +166,14 @@ class _ServiceProviderDetailState extends State<ServiceProviderDetail>
                                 textAlign: TextAlign.center,
                                 top: 8.0,
                               ),
-                              MontserratText(
-                                "Outdoors Services",
-                                18.0,
-                                lightTextColor,
-                                FontWeight.normal,
-                                textAlign: TextAlign.center,
-                                top: 8.0,
-                              ),
+//                              MontserratText(
+//                                "Outdoors Services",
+//                                18.0,
+//                                lightTextColor,
+//                                FontWeight.normal,
+//                                textAlign: TextAlign.center,
+//                                top: 8.0,
+//                              ),
                               MontserratText(
                                 "${_provider.address}",
                                 18.0,

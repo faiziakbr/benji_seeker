@@ -11,10 +11,10 @@ import 'package:benji_seeker/utils/DioHelper.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
+import '../../BotNav.dart';
 import 'ItemPackagePage.dart';
 
 class PackageSelectionPage extends StatefulWidget {
-
   final CreateJobModel createJobModel;
   final String title;
 
@@ -61,12 +61,26 @@ class _PackageSelectionPageState extends State<PackageSelectionPage> {
                   width: mediaQueryData.size.width * 0.66,
                   color: accentColor,
                 ),
-                Align(
-                  alignment: Alignment.topRight,
-                  child: IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: Icon(Icons.close),
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: Icon(Icons.arrow_back),
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        while (Navigator.canPop(context)) {
+                          Navigator.pop(context);
+                        }
+                        Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => BotNavPage()));
+                      },
+                      icon: Icon(Icons.close),
+                    ),
+                  ],
                 ),
                 _isLoading
                     ? Container(
@@ -107,7 +121,13 @@ class _PackageSelectionPageState extends State<PackageSelectionPage> {
                                         physics: BouncingScrollPhysics(),
                                         itemCount: _packageList.length + 1,
                                         itemBuilder: (context, index) {
-                                          return ItemPackagePage(mediaQueryData, index, _packageList.length + 1, wage, _packageList, widget.createJobModel);
+                                          return ItemPackagePage(
+                                              mediaQueryData,
+                                              index,
+                                              _packageList.length + 1,
+                                              wage,
+                                              _packageList,
+                                              widget.createJobModel);
                                         }))
                               ],
                             ),
@@ -121,15 +141,15 @@ class _PackageSelectionPageState extends State<PackageSelectionPage> {
   }
 
   void _fetchPackageDetails(String subCategoryId) {
-    _dioHelper
-        .getRequest(BASE_URL + URL_SUB_CATRGORY_DETAIL(subCategoryId), {"token": ""}).then((value) {
-
-          print("RESPONSE: ${value.data}");
+    _dioHelper.getRequest(BASE_URL + URL_SUB_CATRGORY_DETAIL(subCategoryId),
+        {"token": ""}).then((value) {
+      print("RESPONSE: ${value.data}");
       PackageModel packageModel =
-      packageResponseFromJson(json.encode(value.data));
+          packageResponseFromJson(json.encode(value.data));
 
       if (packageModel.status) {
-        widget.createJobModel.setRecurringOptions.addAll(packageModel.recurringOptions);
+        widget.createJobModel.setRecurringOptions
+            .addAll(packageModel.recurringOptions);
         _packageList.addAll(packageModel.packages);
         wage = packageModel.wage;
       } else {
@@ -144,7 +164,7 @@ class _PackageSelectionPageState extends State<PackageSelectionPage> {
         print("ERR RESPONSE: ${err.response.data}");
         if (err.type == DioErrorType.RESPONSE) {
           PackageModel response =
-          packageResponseFromJson(json.encode(err.response.data));
+              packageResponseFromJson(json.encode(err.response.data));
           MyToast("${response.errors[0]}", context, position: 1);
         } else {
           MyToast("${err.message}", context, position: 1);

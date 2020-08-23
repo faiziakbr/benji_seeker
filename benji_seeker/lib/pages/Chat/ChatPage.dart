@@ -411,25 +411,10 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
                         )
                       ],
                     ),
-//        actions: <Widget>[
-//          IconButton(
-//            icon: Icon(
-//              Icons.call,
-//              color: Colors.white,
-//            ),
-//            onPressed: () {},
-//          ),
-//          IconButton(
-//            icon: Icon(
-//              Icons.tune,
-//              color: Colors.white,
-//            ),
-//            onPressed: () {},
-//          ),
-//        ],
+                    toolbarHeight: 130,
                     bottom: PreferredSize(
                       preferredSize:
-                          Size.fromHeight(mediaQueryData.size.height * 0.12),
+                          Size.fromHeight(mediaQueryData.size.height * 0.1),
                       child: Container(
                         color: Colors.white,
                         padding: EdgeInsets.only(
@@ -439,11 +424,12 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
                             right: mediaQueryData.size.width * 0.04),
                         child: Row(
                           children: <Widget>[
-                            Image.asset(
-                              "assets/lawn_moving.png",
+                            SvgPicture.network(
+                              "$BASE_URL_CATEGORY${_jobDetailModel.detail.subCategoryImage}",
                               fit: BoxFit.cover,
                               width: 40,
                               height: 40,
+                              color: accentColor,
                             ),
                             Flexible(
                               child: Container(

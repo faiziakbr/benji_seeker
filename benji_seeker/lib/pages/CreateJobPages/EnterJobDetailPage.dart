@@ -130,7 +130,7 @@ class _EnterJobDetailPageState extends State<EnterJobDetailPage> {
                         mediaQueryData,
                         2,
                         _isAddLocationComplete,
-                        _whenToComplete,
+                        _whenToComplete || widget.createJobModel.isJobTimeSet,
                         "When?",
                         "Tell us when you want your lawn mowed",
                         "${DateFormat.yMd().add_jm().format(widget.createJobModel.jobTime)} ${widget.createJobModel.endTime != null ? "Repeats ${widget.createJobModel.recurringText}" : ""}",
@@ -139,7 +139,7 @@ class _EnterJobDetailPageState extends State<EnterJobDetailPage> {
                     _item(
                         mediaQueryData,
                         3,
-                        _whenToComplete,
+                        _whenToComplete || widget.createJobModel.isJobTimeSet,
                         _showSomePicsComplete,
                         "Show us some pictures",
                         "Upload at least three pictures of your lawn.",
@@ -183,17 +183,40 @@ class _EnterJobDetailPageState extends State<EnterJobDetailPage> {
   }
 
   void _btnSubmit() async {
+    if (_images == null || _images.length < 3) {
+      MyToast("Please select 3 images.", context, position: 1);
+//      Navigator.pop(context);
+      return;
+    }
+    if (_controller.text.isEmpty) {
+      MyToast("Description is required.", context, position: 1);
+//      Navigator.pop(context);
+      return;
+    }
+    if (_isAddLocationComplete == false) {
+      MyToast("Location is required.", context, position: 1);
+//      Navigator.pop(context);
+      return;
+    }
+
     MyLoadingDialog(context, "Posting job...");
 
     FormData formData;
     if (widget.createJobModel.recurringDays != null &&
         widget.createJobModel.endTime != null) {
-      if (!widget.createJobModel.jobTime
-          .isBefore(widget.createJobModel.endTime)) {
-        MyToast("Job end date can't be before the start", context);
-        Navigator.pop(context);
-        return;
+      if (widget.createJobModel.isRecurringSet) {
+        if (!widget.createJobModel.jobTime
+            .isBefore(widget.createJobModel.endTime)) {
+          MyToast("Job end date can't be before the start", context);
+          Navigator.pop(context);
+          return;
+        }
       }
+
+      _createJobModel.emailDateLabel =
+          "${DateFormat.EEEE().format(_createJobModel.jobTime)}, ${DateFormat.MMMM().add_d().format(_createJobModel.jobTime)}, ${DateFormat.y().add_jm().format(_createJobModel.jobTime)} (Local)";
+
+      print("EMAIL DATE LABEL ${_createJobModel.emailDateLabel}");
       formData = FormData.fromMap({
         "sub_category_id": _createJobModel.categoryId,
         _createJobModel.estimatedTime != null ? "estimated_time" : "task_id":
@@ -211,6 +234,8 @@ class _EnterJobDetailPageState extends State<EnterJobDetailPage> {
         "place_id": _createJobModel.placeId
       });
     } else {
+      _createJobModel.emailDateLabel =
+      "${DateFormat.EEEE().format(_createJobModel.jobTime)}, ${DateFormat.MMMM().add_d().format(_createJobModel.jobTime)}, ${DateFormat.y().add_jm().format(_createJobModel.jobTime)} (Local)";
       formData = FormData.fromMap({
         "sub_category_id": _createJobModel.categoryId,
         _createJobModel.estimatedTime != null ? "estimated_time" : "task_id":
@@ -243,12 +268,28 @@ class _EnterJobDetailPageState extends State<EnterJobDetailPage> {
           justStatusResponseFromJson(json.encode(value.data));
 
       if (justStatusModel.status) {
-        MyToast("Job created successfully", context, position: 1);
-        while (Navigator.canPop(context)) {
-          Navigator.pop(context);
-        }
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => BotNavPage()));
+//        MyToast("Job created successfully", context, position: 1);
+//        while (Navigator.canPop(context)) {
+//          Navigator.pop(context);
+//        }
+//        Navigator.pushReplacement(
+//            context, MaterialPageRoute(builder: (context) => BotNavPage()));
+        showDialog(
+          context: context,
+          builder: (_) => DialogInfo(
+            "assets/start_job.png",
+            "Congratulation",
+            "Task added to your Task Calendar.",
+          ),
+        );
+
+        Timer(const Duration(seconds: 3), () {
+          while (Navigator.canPop(context)) {
+            Navigator.pop(context);
+          }
+          Navigator.pushReplacement(
+              context, MaterialPageRoute(builder: (context) => BotNavPage()));
+        });
       } else {
         MyToast("${justStatusModel.errors[0]}", context, position: 1);
       }
@@ -465,7 +506,7 @@ class _EnterJobDetailPageState extends State<EnterJobDetailPage> {
                   : Container(),
             ],
           ),
-          Separator()
+          index != 4 ? Separator() : Container()
         ],
       ),
     );

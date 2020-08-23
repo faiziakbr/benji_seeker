@@ -28,11 +28,11 @@ class ItemOrder extends StatelessWidget {
             child: Row(
               children: <Widget>[
                 Container(
-                  width: mediaQueryData.size.width * 0.13,
-                  height: mediaQueryData.size.width * 0.1,
+                  width: mediaQueryData.size.width * 0.16,
+                  height: mediaQueryData.size.width * 0.13,
                   child: SvgPicture.network(
                     image,
-                    color: iconColor,
+                    color: accentColor,
                     fit: BoxFit.contain,
                   ),
                   margin: EdgeInsets.all(5.0),
@@ -64,27 +64,27 @@ class ItemOrder extends StatelessWidget {
   }
 }
 
-class MyPainter extends CustomPainter {
-  final Path path;
-  final Color color;
-  final bool showPath;
-  MyPainter(this.path, this.color, {this.showPath = true});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    var paint = Paint()
-      ..color = color
-      ..strokeWidth = 4.0;
-    canvas.drawPath(path, paint);
-    if (showPath) {
-      var border = Paint()
-        ..color = Colors.black
-        ..strokeWidth = 1.0
-        ..style = PaintingStyle.stroke;
-      canvas.drawPath(path, border);
-    }
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) => true;
-}
+//class MyPainter extends CustomPainter {
+//  final Path path;
+//  final Color color;
+//  final bool showPath;
+//  MyPainter(this.path, this.color, {this.showPath = true});
+//
+//  @override
+//  void paint(Canvas canvas, Size size) {
+//    var paint = Paint()
+//      ..color = color
+//      ..strokeWidth = 4.0;
+//    canvas.drawPath(path, paint);
+//    if (showPath) {
+//      var border = Paint()
+//        ..color = Colors.black
+//        ..strokeWidth = 1.0
+//        ..style = PaintingStyle.stroke;
+//      canvas.drawPath(path, border);
+//    }
+//  }
+//
+//  @override
+//  bool shouldRepaint(CustomPainter oldDelegate) => true;
+//}

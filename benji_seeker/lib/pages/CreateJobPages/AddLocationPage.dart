@@ -96,6 +96,10 @@ class _AddLocationPageState extends State<AddLocationPage> {
                                   context);
                               Navigator.pop(context); //poping progress dialog
                             }
+                          }).catchError((error){
+                            MyToast("Unexpected error.",
+                                context);
+                            Navigator.pop(context);
                           });
                         }
                       });

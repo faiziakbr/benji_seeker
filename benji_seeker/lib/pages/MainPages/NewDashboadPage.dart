@@ -13,6 +13,7 @@ import 'package:benji_seeker/utils/DioHelper.dart';
 import 'package:date_util/date_util.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 class NewDashboardPage extends StatefulWidget {
   final GlobalKey key;
@@ -235,7 +236,7 @@ class NewDashboardPageState extends State<NewDashboardPage> {
                                                   Colors.black.withOpacity(0.2),
                                               width: 1),
                                           color: isToday
-                                              ? Colors.green
+                                              ? Colors.green.withOpacity(0.6)
                                               : Colors.white),
                                       child: Column(
                                         crossAxisAlignment:
@@ -252,33 +253,45 @@ class NewDashboardPageState extends State<NewDashboardPage> {
                                             FontWeight.bold,
                                             textAlign: TextAlign.center,
                                           ),
-                                          Image.asset(
-                                            isToday
-                                                ? "assets/event_white_icon.png"
-                                                : "assets/event_icon.png",
-                                            width: 40,
-                                            fit: BoxFit.contain,
-                                          )
+                                          _jobImage(boxDay)
                                         ],
                                       ),
                                     ),
                                   );
                                 } else
-                                  return Container(
-                                    decoration: BoxDecoration(
-                                        border: Border.all(
-                                            color:
-                                                Colors.black.withOpacity(0.2),
-                                            width: 1),
-                                        color: isToday
-                                            ? Colors.green
-                                            : Colors.white),
-                                    child: MontserratText(
-                                      "$startDay",
-                                      16,
-                                      isToday ? Colors.white : separatorColor,
-                                      FontWeight.bold,
-                                      textAlign: TextAlign.center,
+                                  return GestureDetector(
+                                    onTap: (){
+                                      DateTime nextMinutes =  DateTime(boxDay.year, boxDay.month, boxDay.day, DateTime.now().hour).add(Duration(minutes: 45));
+//                                      print(DateTime.now().isBefore(nextMinutes));
+//                                      print("NOW: ${DateTime.now()} and next Minutes: ${nextMinutes}");
+                                      if(DateTime.now().isBefore(nextMinutes)) {
+                                        var createJobModel = CreateJobModel();
+                                        createJobModel.jobTime =
+                                            DateTime(boxDay.year, boxDay.month, boxDay.day, DateTime.now().hour, 45);
+                                        createJobModel.isJobTimeSet = true;
+                                        Navigator.push(context,
+                                            MaterialPageRoute(
+                                                builder: (context) =>
+                                                    OrderPage1(createJobModel,
+                                                      isWhenSelected: true,)));
+                                      }
+                                    },
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                          border: Border.all(
+                                              color:
+                                                  Colors.black.withOpacity(0.2),
+                                              width: 1),
+                                          color: isToday
+                                              ? Colors.green.withOpacity(0.6)
+                                              : Colors.white),
+                                      child: MontserratText(
+                                        "$startDay",
+                                        16,
+                                        isToday ? Colors.white : separatorColor,
+                                        FontWeight.bold,
+                                        textAlign: TextAlign.center,
+                                      ),
                                     ),
                                   );
                               }
@@ -287,6 +300,22 @@ class NewDashboardPageState extends State<NewDashboardPage> {
                     ],
                   ),
       ),
+    );
+  }
+
+  Widget _jobImage(DateTime boxDay) {
+    String image = "";
+    for (var value in _itemJobModelList) {
+      DateTime dateTime = DateTime.parse(value.when).toLocal();
+      if(boxDay == DateTime(dateTime.year, dateTime.month, dateTime.day)){
+        image = "$BASE_URL_CATEGORY${value.imageUrl}";
+      }
+    }
+    return SvgPicture.network(
+      "$image",
+      width: 40,
+      color: accentColor,
+      fit: BoxFit.contain,
     );
   }
 
@@ -335,8 +364,14 @@ class NewDashboardPageState extends State<NewDashboardPage> {
       for (ItemJobModel item in _list) {
 //        print("JOB ID: ${item.jobId}");
         if (item.recurrence != null) {
-          ItemJobModel itemJobModel = ItemJobModel(item.title, item.when,
-              item.endDate, item.recurrence, item.jobId, item.skipDates);
+          ItemJobModel itemJobModel = ItemJobModel(
+              item.title,
+              item.when,
+              item.endDate,
+              item.recurrence,
+              item.jobId,
+              item.skipDates,
+              item.imageUrl);
           _itemJobModelList.add(itemJobModel);
 //          print("ADDED 1 ${itemJobModel.toString()}");
           DateTime incrementedTime = DateTime.parse(item.when);
@@ -350,16 +385,29 @@ class NewDashboardPageState extends State<NewDashboardPage> {
             if (incrementedTime.isBefore(endTime)) {
               item.when = incrementedTime.toIso8601String();
 //              ItemJobModel itemJobModel = item;
-              ItemJobModel itemJobModel = ItemJobModel(item.title, item.when,
-                  item.endDate, item.recurrence, item.jobId, item.skipDates,
+              ItemJobModel itemJobModel = ItemJobModel(
+                  item.title,
+                  item.when,
+                  item.endDate,
+                  item.recurrence,
+                  item.jobId,
+                  item.skipDates,
+                  item.imageUrl,
                   isWhenDeterminedLocally: true);
 //              print("ADDED 2 ${itemJobModel.toString()}");
               _itemJobModelList.add(itemJobModel);
             }
           }
         } else {
-          ItemJobModel itemJobModel = ItemJobModel(item.title, item.when,
-              item.endDate, item.recurrence, item.jobId, item.skipDates);
+          ItemJobModel itemJobModel = ItemJobModel(
+            item.title,
+            item.when,
+            item.endDate,
+            item.recurrence,
+            item.jobId,
+            item.skipDates,
+            item.imageUrl,
+          );
 //          print("ADDED 3 ${itemJobModel.toString()}");
           _itemJobModelList.add(itemJobModel);
         }

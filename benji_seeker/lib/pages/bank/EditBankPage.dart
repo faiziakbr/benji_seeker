@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:benji_seeker/My_Widgets/CustomProgressDialog.dart';
+import 'package:benji_seeker/My_Widgets/MaskedTextInputFormatter.dart';
 import 'package:benji_seeker/My_Widgets/MyDarkButton.dart';
 import 'package:benji_seeker/My_Widgets/MyToast.dart';
 import 'package:benji_seeker/constants/MyColors.dart';
@@ -9,6 +10,7 @@ import 'package:benji_seeker/custom_texts/MontserratText.dart';
 import 'package:benji_seeker/utils/DioHelper.dart';
 import 'package:dio/dio.dart';
 import "package:flutter/material.dart";
+import 'package:flutter/services.dart';
 import 'package:keyboard_visibility/keyboard_visibility.dart';
 import 'package:string_validator/string_validator.dart';
 
@@ -118,8 +120,8 @@ class _EditBankDetailsState extends State<EditBankDetails> {
           ),
         ),
         centerTitle: true,
-        title:
-            MontserratText("Bank Details", 16, Colors.black, FontWeight.bold),
+        title: MontserratText(
+            "Payment Details", 16, Colors.black, FontWeight.bold),
 //        trailing: MyDarkButton("SUBMIT", submitBtnClick,fontWeight: FontWeight.w600,),
       ),
       body: _isLoading
@@ -151,7 +153,8 @@ class _EditBankDetailsState extends State<EditBankDetails> {
                                   _textField(mediaQueryData, "Card Number",
                                       "card_number", _formData['card_number']),
                                   _textField(mediaQueryData, "Card Holder Name",
-                                      "name", _formData['name'], textInputType: TextInputType.text),
+                                      "name", _formData['name'],
+                                      textInputType: TextInputType.text),
                                   _textField(mediaQueryData, "CVV", "cvv",
                                       _formData['cvv'],
                                       textInputType: TextInputType.number,
@@ -202,12 +205,33 @@ class _EditBankDetailsState extends State<EditBankDetails> {
         obscureText: obscure,
         initialValue: initialValue,
         keyboardType: textInputType,
+        inputFormatters: _textInputFormatter(key),
         decoration: InputDecoration(
             labelText: "$text",
             labelStyle: _labelTextStyle(),
             contentPadding: const EdgeInsets.only(top: -8.0)),
         validator: (value) {
           if (value.isEmpty) return "Field is required!";
+          if (key == "card_number" && value.length != 19) {
+            return "Card numbers are 16";
+          }
+          if(key == "cvv"){
+            if (value.length != 3) return "CVV is 3 digits";
+          }
+          if(key == "expiry_date"){
+            List<String> dateSplit = value.split("/");
+            if(isNumeric(dateSplit[0])){
+              int month = int.parse(dateSplit[0]);
+              if(month < 1 || month > 12){
+                return "Month should be 1 to 12";
+              }
+            }else{
+              return "Expiry date is wrong";
+            }
+            if(!isNumeric(dateSplit[1])){
+              return "Expiry date is wrong";
+            }
+          }
 //          if (textInputType == TextInputType.text) {
 //            value = value.replaceAll(' ', '');
 //            if (!isAlpha(value)) {
@@ -240,6 +264,18 @@ class _EditBankDetailsState extends State<EditBankDetails> {
         fontFamily: "Montserrat");
   }
 
+  List<TextInputFormatter> _textInputFormatter(String key) {
+    if (key == "card_number") {
+      return [
+        MaskedTextInputFormatter(mask: "####-####-####-####", separator: "-")
+      ];
+    } else if (key == "expiry_date") {
+      return [MaskedTextInputFormatter(mask: "##/##", separator: "/")];
+    } else {
+      return [];
+    }
+  }
+
   void _submitBtnClick() {
     if (_formKey.currentState.validate()) {
       _formKey.currentState.save();
@@ -257,6 +293,7 @@ class _EditBankDetailsState extends State<EditBankDetails> {
 
   void _postUpdateBankDetails(
       String accountNumber, String holderName, String cvv, String expiryDate) {
+    accountNumber = accountNumber.replaceAll("-", "");
     Map<String, dynamic> map = {
       'card_number': accountNumber,
       "card_holder_name": holderName,
@@ -270,8 +307,8 @@ class _EditBankDetailsState extends State<EditBankDetails> {
         .then((value) {
       print("GOT DAta: $value");
       //TODO HAS DANISH TO SEND PROPER RESPONSE
-      if(value == 200){
-                MyToast("Successfully Updated!", context, position: 1);
+      if (int.parse(value.toString()) == 200) {
+        MyToast("Successfully Updated!", context, position: 1);
         Navigator.pop(context);
       } else {
         MyToast("Error updating your account details.", context, position: 1);

@@ -80,7 +80,7 @@ class ItemServiceProvider extends StatelessWidget {
                             left: 8.0,
                           ),
                           MontserratText(
-                              "Ask from Danish", 14, lightTextColor, FontWeight.w200,
+                              "", 14, lightTextColor, FontWeight.w200,
                               bottom: 8.0, left: 8.0),
                           MontserratText("${bidder.totalJobs} Jobs Done", 14, accentColor,
                               FontWeight.w600,

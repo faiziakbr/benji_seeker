@@ -68,9 +68,10 @@ class _ItemPackagePageState extends State<ItemPackagePage>
                   MyDarkButton(
                     _showDetails ? "Viewing" : "View Pricing",
                     () {
-                      setState(() {
-                        _showDetails = !_showDetails;
-                      });
+                      print("ITE INDEX: ${widget.index}");
+                        setState(() {
+                          _showDetails = !_showDetails;
+                        });
                     },
                     color: _showDetails ? lightSeparatorColor : separatorColor,
                   ),
@@ -102,13 +103,25 @@ class _ItemPackagePageState extends State<ItemPackagePage>
                                   ],
                                   crossAxisAlignment: CrossAxisAlignment.end,
                                 ),
-                                MontserratText(
-                                  "Price is exclusive of 2.9% and 30 cents for payment processing fee.",
-                                  14,
-                                  separatorColor,
-                                  FontWeight.w600,
-                                  top: 8.0,
-                                  bottom: 8.0,
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    MontserratText("Note: ",14,
+                                      orangeColor,
+                                      FontWeight.w600,
+                                      top: 8.0,
+                                      bottom: 8.0,),
+                                    Expanded(
+                                      child: MontserratText(
+                                        "Price is exclusive of 2.9% and 30 cents for payment processing fee.",
+                                        14,
+                                        separatorColor,
+                                        FontWeight.w600,
+                                        top: 8.0,
+                                        bottom: 8.0,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                                 Container(
                                     width:
@@ -121,7 +134,7 @@ class _ItemPackagePageState extends State<ItemPackagePage>
                                             context,
                                             MaterialPageRoute(
                                                 builder: (context) =>
-                                                    EnterJobDetailPage(widget.createJobModel, widget._list[widget.index].name, )));
+                                                    EnterJobDetailPage(widget.createJobModel, widget._list[widget.index].name,)));
                                       },
                                     ))
                               ],

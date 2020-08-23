@@ -1,10 +1,18 @@
 import 'package:benji_seeker/pages/SplashScreen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:overlay_support/overlay_support.dart';
 
 import 'constants/MyColors.dart';
 
-void main() => runApp(MyApp());
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
+      .then((_) {
+    kNotificationDuration = const Duration(seconds: 3);
+    runApp(MyApp());
+  });
+}
 
 class MyApp extends StatelessWidget {
 
@@ -50,10 +58,9 @@ class MyApp extends StatelessWidget {
           title: 'Benji Seeker',
           theme: ThemeData(
             primarySwatch: colorCustom,
-            accentColor: accentColor
+            accentColor: accentColor,
           ),
           home: SplashScreen(),
-//        home: PhoneNumberPage(),
         ),
       ),
     );

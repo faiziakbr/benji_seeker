@@ -69,16 +69,24 @@ class NotificationsPageState extends State<NotificationsPage> {
         _isLoading = false;
       });
     }).catchError((error) {
-      var err = error as DioError;
-      if (err.type == DioErrorType.RESPONSE) {
-        var errorResponse = responseFromJson(json.encode(err.response.data));
-        MyToast("${errorResponse.errors[0]}", context);
-      } else
-        MyToast("${err.message}", context);
-      setState(() {
-        _isError = true;
-        _isLoading = false;
-      });
+      try {
+        var err = error as DioError;
+        if (err.type == DioErrorType.RESPONSE) {
+          var errorResponse = responseFromJson(json.encode(err.response.data));
+          MyToast("${errorResponse.errors[0]}", context);
+        } else
+          MyToast("${err.message}", context);
+        setState(() {
+          _isError = true;
+          _isLoading = false;
+        });
+      } catch (e){
+        MyToast("Unexpected error.", context, position: 1);
+        setState(() {
+          _isError = true;
+          _isLoading = false;
+        });
+      }
     });
   }
 
@@ -123,7 +131,7 @@ class NotificationsPageState extends State<NotificationsPage> {
                                       height: 70,
                                       width: 70),
                                   MontserratText(
-                                      "There is no notification!",
+                                      "Nothing to show!",
                                       18,
                                       Colors.black.withOpacity(0.4),
                                       FontWeight.normal,

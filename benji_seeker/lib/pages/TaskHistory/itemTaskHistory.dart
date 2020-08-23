@@ -32,7 +32,7 @@ class ItemWorkHistory extends StatelessWidget {
             height: mediaQueryData.size.width * 0.1,
             child: SvgPicture.network(
               "$BASE_URL_CATEGORY${itemCompletedModel.logo}",
-              color: iconColor,
+              color: accentColor,
               fit: BoxFit.contain,
             ),
             margin: EdgeInsets.all(5.0),

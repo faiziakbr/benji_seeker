@@ -59,7 +59,8 @@ class _RecurringOptionsPageState extends State<RecurringOptionsPage> {
                 widget.createJobModel.recurringText = "";
                 widget.createJobModel.isRecurringID = "";
                 widget.createJobModel.endTime = null;
-                Navigator.pop(context, true);
+                widget.createJobModel.isRecurringSet = false;
+                Navigator.pop(context, false);
               },
               icon: Icon(
                 Icons.close,
@@ -178,10 +179,10 @@ class _RecurringOptionsPageState extends State<RecurringOptionsPage> {
         mediaQueryData,
         context,
         "assets/recursive_icon.png",
-        "END TIME",
+        "END date",
         _setDateComplete
             ? "${DateFormat.yMd().format(widget.createJobModel.endTime)}"
-            : "Set end time"));
+            : "Set end date"));
 
     widgets.add(_confirmButton(mediaQueryData));
     return widgets;
@@ -227,10 +228,12 @@ class _RecurringOptionsPageState extends State<RecurringOptionsPage> {
         height: 50,
         child: MyDarkButton("Continue", () {
           print("ID: ${widget.createJobModel.isRecurringID}");
-          if (widget.createJobModel.endTime != null)
+          if (widget.createJobModel.endTime != null) {
+            widget.createJobModel.isRecurringSet = true;
             Navigator.pop(context, true);
+          }
           else
-            MyToast("Set end time", context, position: 1);
+            MyToast("Set end date", context, position: 1);
         }));
   }
 }

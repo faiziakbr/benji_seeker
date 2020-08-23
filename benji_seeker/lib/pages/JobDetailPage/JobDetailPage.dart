@@ -7,6 +7,7 @@ import 'package:benji_seeker/My_Widgets/MyLightButton.dart';
 import 'package:benji_seeker/My_Widgets/MyLoadingDialog.dart';
 import 'package:benji_seeker/My_Widgets/MyToast.dart';
 import 'package:benji_seeker/My_Widgets/Separator.dart';
+import 'package:benji_seeker/My_Widgets/TransparentRoute.dart';
 import 'package:benji_seeker/SharedPref/SavedData.dart';
 import 'package:benji_seeker/constants/Constants.dart';
 import 'package:benji_seeker/constants/MyColors.dart';
@@ -32,6 +33,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
 import '../BotNav.dart';
+import '../ImageViewer.dart';
 
 class JobDetailPage extends StatefulWidget {
   final String jobId;
@@ -420,7 +422,10 @@ class _JobDetailPageState extends State<JobDetailPage> {
                   children: <Widget>[
                     GestureDetector(
                       onTap: () {
-                        Navigator.pop(context);
+                        while(Navigator.canPop(context)){
+                          Navigator.pop(context);
+                        }
+                        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => BotNavPage()));
                       },
                       child: Padding(
                         padding: const EdgeInsets.all(4.0),
@@ -631,10 +636,11 @@ class _JobDetailPageState extends State<JobDetailPage> {
         indicatorBgPadding: 5.0,
         dotBgColor: Colors.transparent,
         images: networkImage,
-        onImageTap: (index) {
-//          Navigator.of(context).push(TransparentRoute(
-//              builder: (BuildContext context) =>
-//                  ImageViewer(networkImage, index)));
+        onImageTap: (index)  {
+           Navigator.of(context).push(TransparentRoute(
+              builder: (BuildContext context) =>
+                  ImageViewer(networkImage, index)));
+
         },
       ),
     );
@@ -831,8 +837,8 @@ class _JobDetailPageState extends State<JobDetailPage> {
 //                ),
 //              ),
                         GestureDetector(
-                          onTap: () {
-                            Navigator.push(
+                          onTap: () async {
+                            var result = await Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                     builder: (context) => ChatPage(
@@ -840,6 +846,8 @@ class _JobDetailPageState extends State<JobDetailPage> {
                                           _jobDetailModel,
                                           providerName: _provider.nickName,
                                         )));
+                            if(result == null)
+                              _reconnectSocket();
                           },
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(8.0),
@@ -1070,14 +1078,16 @@ class _JobDetailPageState extends State<JobDetailPage> {
                                 const EdgeInsets.only(left: 8.0, right: 16.0),
                             child: MyDarkButton(
                               "SUMMARY",
-                              () {
-                                Navigator.push(
+                              () async {
+                                var result = await Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                         builder: (context) => SummaryPage(
                                             widget.jobId,
                                             _completedJobModel,
                                             _jobDetail.processId)));
+                                if(result == null)
+                                  _reconnectSocket();
                               },
                               textSize: 14,
                               fontWeight: FontWeight.w600,
@@ -1091,12 +1101,14 @@ class _JobDetailPageState extends State<JobDetailPage> {
     );
   }
 
-  void _rescheduleJob() {
-    Navigator.push(
+  void _rescheduleJob() async {
+    var result = await Navigator.push(
         context,
         MaterialPageRoute(
             builder: (context) =>
                 When(null, rescheduleJob: true, jobDetail: _jobDetail)));
+    if(result == null)
+      _reconnectSocket();
   }
 
   void _skipJob(String processId, DateTime date){

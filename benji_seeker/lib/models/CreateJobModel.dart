@@ -11,10 +11,12 @@ class CreateJobModel {
   String placeId;
 
   DateTime jobTime = DateTime.now();
+  bool isJobTimeSet = false;
   String isRecurringID = "";
   int recurringDays;
   String recurringText;
   DateTime endTime;
+  bool isRecurringSet = false;
 
   String emailDateLabel;
 
