@@ -66,9 +66,9 @@ class _ItemPackagePageState extends State<ItemPackagePage>
                     bottom: 8.0,
                   ),
                   MyDarkButton(
-                    _showDetails ? "Viewing" : "View Pricing",
+                    _showDetails ? "SELECTED" : "View Pricing",
                     () {
-                      print("ITE INDEX: ${widget.index}");
+//                      print("ITE INDEX: ${widget.index}");
                         setState(() {
                           _showDetails = !_showDetails;
                         });

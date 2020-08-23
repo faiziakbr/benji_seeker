@@ -178,10 +178,14 @@ class _SplashScreenState extends State<SplashScreen> {
       else
         return VerifyTokenModel(status: false);
     } on DioError catch (e) {
-      if (e.response != null)
-        return verifyTokenResponseFromJson(json.encode(e.response.data));
-      else
+      try {
+        if (e.response != null)
+          return verifyTokenResponseFromJson(json.encode(e.response.data));
+        else
+          return VerifyTokenModel(status: false);
+      } catch (e){
         return VerifyTokenModel(status: false);
+      }
     }
   }
 

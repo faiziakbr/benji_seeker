@@ -48,6 +48,7 @@ class ItemPackage{
   String name;
   double hours;
   String description;
+  bool isOpen = false;
 
   ItemPackage.fromJson( Map<String, dynamic> json){
     id = json['_id'];

@@ -30,6 +30,7 @@ class _PackageSelectionPageState extends State<PackageSelectionPage> {
   DioHelper _dioHelper;
   double wage = 0.0;
   List<ItemPackage> _packageList = [];
+  List<bool> _openedPackages = [];
 
   @override
   void initState() {
@@ -151,6 +152,9 @@ class _PackageSelectionPageState extends State<PackageSelectionPage> {
         widget.createJobModel.setRecurringOptions
             .addAll(packageModel.recurringOptions);
         _packageList.addAll(packageModel.packages);
+        for (ItemPackage data in packageModel.packages) {
+          _openedPackages.add(false);
+        }
         wage = packageModel.wage;
       } else {
         setState(() {

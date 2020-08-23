@@ -117,6 +117,7 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
 
   void _btnContinueClick() {
     String phoneNumber = "+1"+_controller.text.toString().trim();
+    FocusScope.of(context).requestFocus(FocusNode());
     if (phoneNumber.isNotEmpty) {
       setState(() {
         _isClicked = !_isClicked;

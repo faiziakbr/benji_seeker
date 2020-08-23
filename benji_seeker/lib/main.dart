@@ -15,7 +15,6 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-
   static Map<int, Color> color = {
     50: Color.fromRGBO(67, 162, 54, .1),
     100: Color.fromRGBO(67, 162, 54, .2),
@@ -40,22 +39,29 @@ class MyApp extends StatelessWidget {
   //+19386661770
   //+13328883090
 
-
   MaterialColor colorCustom = MaterialColor(0xFF43A236, color);
 
   @override
   Widget build(BuildContext context) {
     return OverlaySupport(
       child: GestureDetector(
-        onTap: (){
+        onTap: () {
           FocusScopeNode currentFocus = FocusScope.of(context);
-          if (!currentFocus.hasPrimaryFocus && currentFocus.focusedChild != null) {
+          if (!currentFocus.hasPrimaryFocus &&
+              currentFocus.focusedChild != null) {
             FocusManager.instance.primaryFocus.unfocus();
           }
         },
         child: MaterialApp(
           debugShowCheckedModeBanner: false,
-          title: 'Benji Seeker',
+          title: 'benji',
+          builder: (context, child) {
+            final MediaQueryData data = MediaQuery.of(context);
+            return MediaQuery(
+              data: data.copyWith(textScaleFactor: 1.0),
+              child: child,
+            );
+          },
           theme: ThemeData(
             primarySwatch: colorCustom,
             accentColor: accentColor,
