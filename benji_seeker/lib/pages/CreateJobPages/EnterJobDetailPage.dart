@@ -130,16 +130,16 @@ class _EnterJobDetailPageState extends State<EnterJobDetailPage> {
                         mediaQueryData,
                         2,
                         _isAddLocationComplete,
-                        _whenToComplete || widget.createJobModel.isJobTimeSet,
+                        _whenToComplete,
                         "When?",
                         "Tell us when you want your lawn mowed",
-                        "${DateFormat.yMd().add_jm().format(widget.createJobModel.jobTime)} ${widget.createJobModel.endTime != null ? "Repeats ${widget.createJobModel.recurringText}" : ""}",
+                        "${DateFormat.yMd().add_jm().format(widget.createJobModel.jobTime)} ${widget.createJobModel.endTime != null ? "Repeats ${widget.createJobModel.recurringText} till ${DateFormat.yMd().format(widget.createJobModel.endTime)}" : ""}",
                         "SET DATE & TIME",
                         _btnClick),
                     _item(
                         mediaQueryData,
                         3,
-                        _whenToComplete || widget.createJobModel.isJobTimeSet,
+                        _whenToComplete,
                         _showSomePicsComplete,
                         "Show us some pictures",
                         "Upload at least three pictures of your lawn.",
@@ -223,14 +223,14 @@ class _EnterJobDetailPageState extends State<EnterJobDetailPage> {
             _createJobModel.estimatedTime != null
                 ? _createJobModel.estimatedTime
                 : _createJobModel.taskId,
-        "time": _createJobModel.jobTime.toIso8601String(),
+        "time": "${DateFormat("E MMM d y hh:mm:ss", Locale(Intl.getCurrentLocale()).languageCode).format(_createJobModel.jobTime)} GMT${DateTime.now().timeZoneOffset.inHours}00",
         "latitude": _createJobModel.latitude,
         "longitude": _createJobModel.longitude,
         "full_address": _createJobModel.address,
         "description": _controller.text.toString(),
         "email_date_label": _createJobModel.emailDateLabel,
         "recurring": widget.createJobModel.recurringDays,
-        "end_date": widget.createJobModel.endTime.toIso8601String(),
+        "end_date": "${DateFormat("E MMM d y hh:mm:ss", Locale(Intl.getCurrentLocale()).languageCode).format(_createJobModel.endTime)} GMT${DateTime.now().timeZoneOffset.inHours}00",
         "place_id": _createJobModel.placeId
       });
     } else {
@@ -242,7 +242,7 @@ class _EnterJobDetailPageState extends State<EnterJobDetailPage> {
             _createJobModel.estimatedTime != null
                 ? _createJobModel.estimatedTime
                 : _createJobModel.taskId,
-        "time": _createJobModel.jobTime.toIso8601String(),
+        "time": "${DateFormat("E MMM d y hh:mm:ss", Locale(Intl.getCurrentLocale()).languageCode).format(_createJobModel.jobTime)} GMT${DateTime.now().timeZoneOffset.inHours}00",
         "latitude": _createJobModel.latitude,
         "longitude": _createJobModel.longitude,
         "full_address": _createJobModel.address,

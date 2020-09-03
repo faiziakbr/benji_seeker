@@ -47,7 +47,7 @@ class ItemServiceProvider extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
                       MontserratText(
-                        "${bidder.rating}",
+                        "${bidder.rating.toStringAsFixed(1)}",
                         14.0,
                         Colors.black,
                         FontWeight.bold,

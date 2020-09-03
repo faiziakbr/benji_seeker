@@ -8,7 +8,7 @@ HelpModel helpModelresponseFromHelp(String jsonString) {
 class HelpModel {
   bool status;
   List<FAQ> faqs = [];
-  List<dynamic> error = ['Unexpected Error'];
+  List<dynamic> error = ['Unexpected Error' ];
 
   HelpModel.fromJson(Map<String, dynamic> json) {
     status = json['status'];

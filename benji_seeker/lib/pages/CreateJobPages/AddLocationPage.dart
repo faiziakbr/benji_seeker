@@ -49,6 +49,7 @@ class _AddLocationPageState extends State<AddLocationPage> {
         title: TextField(
           controller: _controller,
           cursorColor: Colors.black,
+          autofocus: true,
           decoration: InputDecoration.collapsed(hintText: "Enter location"),
           onChanged: (value) {
             Timer(const Duration(milliseconds: 800), () {

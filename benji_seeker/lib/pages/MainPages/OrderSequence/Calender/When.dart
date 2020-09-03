@@ -40,32 +40,40 @@ class _WhenState extends State<When> {
 
   bool _selected = true;
 
+  bool _removeRecurringOption = false;
+
   //For rescheduling
-  CreateJobModel _createJobModel = CreateJobModel();
+  CreateJobModel _createJobModel;
 
   @override
   void initState() {
     if (widget.rescheduleJob) {
-      _createJobModel.jobTime = DateTime.parse(widget.jobDetail.when);
+      _createJobModel = CreateJobModel();
+      _createJobModel.jobTime = DateTime.parse(widget.jobDetail.when).toLocal();
       _setDateComplete = true;
       _setTimeComplete = true;
+      _removeRecurringOption = true;
     } else {
       _createJobModel = widget.createJobModel;
-      if(_createJobModel.isJobTimeSet) {
+      if (_createJobModel.isJobTimeSet) {
         _setDateComplete = true;
         _setTimeComplete = true;
-      }else {
-        _createJobModel.jobTime = DateTime(DateTime
-            .now()
-            .year,
-            DateTime
-                .now()
-                .month, DateTime
-                .now()
-                .day, 5, 0, 0)
-            .add(Duration(days: 7));
+      } else {
+        if (_createJobModel.createFromCalendar){
+          _setDateComplete = true;
+        } else {
+          _createJobModel.jobTime = DateTime(DateTime
+              .now()
+              .year,
+              DateTime
+                  .now()
+                  .month, DateTime
+                  .now()
+                  .day, 5, 0, 0)
+              .add(Duration(days: 7));
+        }
       }
-      if(_createJobModel.isRecurringSet){
+      if (_createJobModel.isRecurringSet) {
         _setRecurringComplete = true;
       }
     }
@@ -119,8 +127,10 @@ class _WhenState extends State<When> {
                         "assets/calender_icon.png",
                         "DATE",
                         _setDateComplete
-                            ? "Start date: ${DateFormat.yMd().format(_createJobModel.jobTime)}"
-                            : "Select start date.", _setDateComplete),
+                            ? "Start date: ${DateFormat.yMd().format(
+                            _createJobModel.jobTime)}"
+                            : "Select start date.",
+                        _setDateComplete),
                   ),
                   GestureDetector(
                     onTap: () {
@@ -135,32 +145,69 @@ class _WhenState extends State<When> {
                         "assets/time_icon.png",
                         "TIME",
                         _setTimeComplete
-                            ? "Start time: ${DateFormat.jm().format(_createJobModel.jobTime)}"
-                            : "Set start time.", _setTimeComplete),
+                            ? "Start time: ${DateFormat.jm().format(
+                            _createJobModel.jobTime)}"
+                            : "Set start time.",
+                        _setTimeComplete),
                   ),
-                  GestureDetector(
-                    onTap: () async {
-                      var result = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) =>
-                                  RecurringOptionsPage(_createJobModel)));
-                      if (result != null) {
-                        setState(() {
-                          _setRecurringComplete = result;
-                        });
-                      }
-                    },
-                    child: _customCard(
-                        mediaQueryData,
-                        context,
-                        "assets/recursive_icon.png",
-                        "RECURRING",
-                        (_setRecurringComplete &&
-                                widget.createJobModel.endTime != null)
-                            ? "${widget.createJobModel.recurringText}\nEnd Data: ${DateFormat.yMd().format(widget.createJobModel.endTime)}"
-                            : "Is this recurring?", _setRecurringComplete),
+
+//                    child: _removeRecurringOption ? Container() : _customCard(
+//                        mediaQueryData,
+//                        context,
+//                        "assets/recursive_icon.png",
+//                        "RECURRING",
+//                        (_setRecurringComplete &&
+//                                widget.createJobModel.endTime != null)
+//                            ? "${widget.createJobModel.recurringText}\nEnd Data: ${DateFormat.yMd().format(widget.createJobModel.endTime)}"
+//                            : "Is this recurring?", _setRecurringComplete),
+                  _removeRecurringOption || _createJobModel.setRecurringOptions.length == 0
+                      ? Container()
+                      : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      MontserratText(
+                        "Recurring?",
+                        18,
+                        Colors.black,
+                        FontWeight.bold,
+                        bottom: 8.0,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          GestureDetector(
+                              onTap: () async {
+                                var result = await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            RecurringOptionsPage(
+                                                _createJobModel)));
+                                if (result != null) {
+                                  setState(() {
+                                    _setRecurringComplete = result;
+                                  });
+                                }
+                              },
+                              child: _recurringButtons(
+                                  mediaQueryData, "YES", _setRecurringComplete)),
+                          GestureDetector(
+                            onTap: (){
+                              _createJobModel.recurringText = "";
+                              _createJobModel.isRecurringID = "";
+                              _createJobModel.endTime = null;
+                              _createJobModel.isRecurringSet = false;
+                              setState(() {
+                                _setRecurringComplete = false;
+                              });
+                            },
+                              child: _recurringButtons(mediaQueryData, "NO", !_setRecurringComplete))
+                        ],
+                      ),
+                      _createJobModel.isRecurringSet ? MontserratText("Repeats ${_createJobModel.recurringText} till ${DateFormat.yMd().format(_createJobModel.endTime)}", 18, Colors.black, FontWeight.w600, bottom: 16.0,) : Container()
+                    ],
                   ),
+
                   Container(
                     width: mediaQueryData.size.width * 0.9,
                     height: 50,
@@ -171,7 +218,10 @@ class _WhenState extends State<When> {
 
                       if (_setDateComplete && _setTimeComplete) {
                         if (widget.rescheduleJob) {
-                          if(_createJobModel.jobTime.difference(DateTime.now()).inMinutes > 45) {
+                          if (_createJobModel.jobTime
+                              .difference(DateTime.now())
+                              .inMinutes >
+                              45) {
                             _createJobModel.emailDateLabel =
                             "${DateFormat.EEEE().format(
                                 _createJobModel.jobTime)}, ${DateFormat.MMMM()
@@ -185,10 +235,14 @@ class _WhenState extends State<When> {
                                 _createJobModel.emailDateLabel);
                             _createJobModel.isJobTimeSet = true;
                           } else {
-                            MyToast("Can't set time under 45 minutes", context, position: 1);
+                            MyToast("Can't set time under 45 minutes", context,
+                                position: 1);
                           }
                         } else {
-                          if(widget.createJobModel.jobTime.difference(DateTime.now()).inMinutes > 45) {
+                          if (widget.createJobModel.jobTime
+                              .difference(DateTime.now())
+                              .inMinutes >
+                              45) {
                             widget.createJobModel.jobTime =
                                 _createJobModel.jobTime;
                             widget.createJobModel.emailDateLabel =
@@ -201,11 +255,13 @@ class _WhenState extends State<When> {
                             _createJobModel.isJobTimeSet = true;
                             Navigator.pop(context, true);
                           } else {
-                            MyToast("Can't set time under 45 minutes", context, position: 1);
+                            MyToast("Can't set time under 45 minutes", context,
+                                position: 1);
                           }
                         }
                       } else {
-                        MyToast("Date and Time are required!", context, position: 1);
+                        MyToast("Date and Time are required!", context,
+                            position: 1);
                       }
                     }),
                   ),
@@ -236,8 +292,9 @@ class _WhenState extends State<When> {
             ),
             title: MontserratText(title, 16, Colors.black, FontWeight.bold),
             subtitle:
-                MontserratText(subTitle, 16, separatorColor, FontWeight.w300),
-            trailing: isCompleted ?  Container(
+            MontserratText(subTitle, 16, separatorColor, FontWeight.w300),
+            trailing: isCompleted
+                ? Container(
               width: mediaQueryData.size.width * 0.1,
               height: mediaQueryData.size.height * 0.2,
               margin: const EdgeInsets.only(right: 8.0),
@@ -245,12 +302,47 @@ class _WhenState extends State<When> {
                 Icons.check,
                 color: accentColor,
               ),
-            ) : Container(width: 0,
-              height: 0,),
+            )
+                : Container(
+              width: 0,
+              height: 0,
+            ),
           ),
         ],
       ),
     );
+  }
+
+  Widget _recurringButtons(MediaQueryData mediaQueryData, String text,
+      bool selected) {
+    return Container(
+        width: mediaQueryData.size.width * 0.45,
+        margin: const EdgeInsets.only(bottom: 16.0),
+        padding: const EdgeInsets.all(16.0),
+        decoration: BoxDecoration(border: Border.all(color: accentColor),
+            borderRadius: text == "YES" ? BorderRadius.only(
+                topLeft: Radius.circular(8.0), bottomLeft: Radius.circular(8.0)) : BorderRadius.only(
+                topRight: Radius.circular(8.0), bottomRight: Radius.circular(8.0))),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            SizedBox(
+              width: 20,
+              height: 20,
+            ),
+            MontserratText("$text", 22, selected ? Colors.green : Colors.black,
+                FontWeight.bold),
+            selected
+                ? Icon(
+              Icons.check,
+              color: Colors.green,
+            )
+                : SizedBox(
+              width: 20,
+              height: 20,
+            )
+          ],
+        ));
   }
 
   Widget _showIOSStyleDatePicker(MediaQueryData mediaQueryData, String type) {
@@ -287,7 +379,14 @@ class _WhenState extends State<When> {
             Flexible(
               child: CupertinoDatePicker(
                 mode: CupertinoDatePickerMode.date,
-                minimumDate: DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day),
+                minimumDate: DateTime(DateTime
+                    .now()
+                    .year, DateTime
+                    .now()
+                    .month,
+                    DateTime
+                        .now()
+                        .day),
                 initialDateTime: DateTime.now().add(Duration(days: 7)),
                 onDateTimeChanged: (DateTime value) {
                   var time = _createJobModel.jobTime;
@@ -340,7 +439,7 @@ class _WhenState extends State<When> {
             ),
             Flexible(
               child: CupertinoDatePicker(
-                initialDateTime: DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, DateTime.now().hour + 1),
+                initialDateTime: _createJobModel.jobTime,
                 minuteInterval: 15,
                 mode: CupertinoDatePickerMode.time,
                 onDateTimeChanged: (DateTime value) {
@@ -359,7 +458,6 @@ class _WhenState extends State<When> {
                 width: mediaQueryData.size.width * 0.35,
                 margin: const EdgeInsets.symmetric(vertical: 8.0),
                 child: MyDarkButton("Done", () {
-
                   setState(() {
                     _showDatePickerSheet = false;
                     _setTimeComplete = true;
@@ -462,7 +560,7 @@ class _WhenState extends State<When> {
       Navigator.pop(context);
       print("UPCOMING JOBS: ${value.data}");
       JustStatusModel justStatusModel =
-          justStatusResponseFromJson(json.encode(value.data));
+      justStatusResponseFromJson(json.encode(value.data));
 
       if (justStatusModel.status) {
         MyToast("Job rescheduled successfully", context, position: 1);
@@ -480,7 +578,7 @@ class _WhenState extends State<When> {
         var err = error as DioError;
         if (err.type == DioErrorType.RESPONSE) {
           JustStatusModel justModel =
-              justStatusResponseFromJson(json.encode(err.response.data));
+          justStatusResponseFromJson(json.encode(err.response.data));
           MyToast("${justModel.errors[0]}", context, position: 1);
         } else {
           MyToast("${err.message}", context, position: 1);

@@ -25,7 +25,7 @@ class _ReviewsTabState extends State<ReviewsTab> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           ListTile(
-            leading: QuicksandText(widget.provider.rating != null ? "${widget.provider.rating}" : "0.0", 40, Colors.black, FontWeight.bold),
+            leading: QuicksandText(widget.provider.rating != null ? "${widget.provider.rating.toStringAsFixed(1)}" : "0.0", 40, Colors.black, FontWeight.bold),
             title: Row(
               children: <Widget>[
                 RatingBar.readOnly(

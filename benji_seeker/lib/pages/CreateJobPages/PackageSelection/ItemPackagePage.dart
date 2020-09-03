@@ -11,11 +11,12 @@ class ItemPackagePage extends StatefulWidget {
   final int index;
   final int size;
   final double wage;
-  final List<ItemPackage> _list;
+  final List<ItemPackage> list;
   final CreateJobModel createJobModel;
+  final Function onClick;
 
   ItemPackagePage(this.mediaQueryData, this.index, this.size, this.wage,
-      this._list, this.createJobModel);
+      this.list, this.createJobModel, this.onClick);
 
   @override
   _ItemPackagePageState createState() => _ItemPackagePageState();
@@ -23,7 +24,7 @@ class ItemPackagePage extends StatefulWidget {
 
 class _ItemPackagePageState extends State<ItemPackagePage>
     with SingleTickerProviderStateMixin {
-  bool _showDetails = false;
+//  bool _showDetails = false;
   int _customHours = 0;
   FocusNode _focus = new FocusNode();
 
@@ -31,13 +32,8 @@ class _ItemPackagePageState extends State<ItemPackagePage>
   bool _isValid = false;
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return widget.index == widget.size - 1
+    return widget.index == widget.list.length - 1
         ? _lastCustomPackage(widget.mediaQueryData)
         : Card(
             margin: const EdgeInsets.only(bottom: 16.0),
@@ -50,15 +46,15 @@ class _ItemPackagePageState extends State<ItemPackagePage>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  MontserratText("${widget._list[widget.index].name}", 18,
+                  MontserratText("${widget.list[widget.index].name}", 18,
                       separatorColor, FontWeight.bold),
                   MontserratText(
-                      "Around ${widget._list[widget.index].hours.toStringAsFixed(1)} hrs",
+                      "Around ${widget.list[widget.index].hours.toStringAsFixed(1)} hrs",
                       14,
                       orangeColor,
                       FontWeight.normal),
                   MontserratText(
-                    "${widget._list[widget.index].description}",
+                    "${widget.list[widget.index].description}",
                     14,
                     separatorColor,
                     FontWeight.normal,
@@ -66,26 +62,45 @@ class _ItemPackagePageState extends State<ItemPackagePage>
                     bottom: 8.0,
                   ),
                   MyDarkButton(
-                    _showDetails ? "SELECTED" : "View Pricing",
+                    widget.list[widget.index].isOpen
+                        ? "SELECTED"
+                        : "View Pricing",
                     () {
-//                      print("ITE INDEX: ${widget.index}");
-                        setState(() {
-                          _showDetails = !_showDetails;
-                        });
+                      setState(() {
+//                        _showDetails = !_showDetails;
+                        widget.list[widget.index].isOpen =
+                            !widget.list[widget.index].isOpen;
+                        print("INDEX: ${widget.index}");
+                        widget.onClick(widget.index);
+//                        for (var otherTest in widget.list) {
+//                          if (otherTest != widget.list[widget.index]) {
+//                            otherTest.isOpen = false;
+//                          }
+//                        }
+//                        for (int i = 0; i < widget.list.length; i++) {
+////                          if(widget.index == i){
+////                            widget.list[widget.index].isOpen = !widget.list[widget.index].isOpen;
+////                          }else{
+//                          widget.list[widget.index].isOpen = false;
+////                          }
+//                        }
+                      });
                     },
-                    color: _showDetails ? lightSeparatorColor : separatorColor,
+                    color: widget.list[widget.index].isOpen
+                        ? lightSeparatorColor
+                        : separatorColor,
                   ),
                   AnimatedSize(
                       vsync: this,
                       duration: Duration(milliseconds: 200),
-                      child: _showDetails
+                      child: widget.list[widget.index].isOpen
                           ? Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
                                 Row(
                                   children: <Widget>[
                                     MontserratText(
-                                      "\$${(widget._list[widget.index].hours * widget.wage).toStringAsFixed(2)}",
+                                      "\$${(widget.list[widget.index].hours * widget.wage).toStringAsFixed(2)}",
                                       52,
                                       separatorColor,
                                       FontWeight.bold,
@@ -106,11 +121,14 @@ class _ItemPackagePageState extends State<ItemPackagePage>
                                 Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    MontserratText("Note: ",14,
+                                    MontserratText(
+                                      "Note: ",
+                                      14,
                                       orangeColor,
                                       FontWeight.w600,
                                       top: 8.0,
-                                      bottom: 8.0,),
+                                      bottom: 8.0,
+                                    ),
                                     Expanded(
                                       child: MontserratText(
                                         "Price is exclusive of 2.9% and 30 cents for payment processing fee.",
@@ -129,12 +147,17 @@ class _ItemPackagePageState extends State<ItemPackagePage>
                                     child: MyDarkButton(
                                       "CONFIRM",
                                       () {
-                                        widget.createJobModel.taskId = widget._list[widget.index].id;
+                                        widget.createJobModel.taskId =
+                                            widget.list[widget.index].id;
                                         Navigator.push(
                                             context,
                                             MaterialPageRoute(
                                                 builder: (context) =>
-                                                    EnterJobDetailPage(widget.createJobModel, widget._list[widget.index].name,)));
+                                                    EnterJobDetailPage(
+                                                      widget.createJobModel,
+                                                      widget.list[widget.index]
+                                                          .name,
+                                                    )));
                                       },
                                     ))
                               ],
@@ -165,7 +188,7 @@ class _ItemPackagePageState extends State<ItemPackagePage>
               FontWeight.bold,
               bottom: 16.0,
             ),
-            _showDetails
+            widget.list[widget.index].isOpen
                 ? TextField(
                     style: TextStyle(fontSize: 18),
                     cursorColor: accentColor,
@@ -193,7 +216,9 @@ class _ItemPackagePageState extends State<ItemPackagePage>
                     () {
                       print("INDEX: ${widget.index}");
                       setState(() {
-                        _showDetails = !_showDetails;
+                        widget.list[widget.index].isOpen =
+                            !widget.list[widget.index].isOpen;
+                        widget.onClick(widget.index);
                       });
                     },
                     color: separatorColor,
@@ -201,7 +226,7 @@ class _ItemPackagePageState extends State<ItemPackagePage>
             AnimatedSize(
                 vsync: this,
                 duration: Duration(milliseconds: 200),
-                child: _showDetails
+                child: widget.list[widget.index].isOpen
                     ? Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
@@ -233,17 +258,19 @@ class _ItemPackagePageState extends State<ItemPackagePage>
                                   setState(() {
                                     _isValid = false;
                                   });
-                                  widget.createJobModel.estimatedTime = int.parse(_controller.text.toString());
+                                  widget.createJobModel.estimatedTime =
+                                      int.parse(_controller.text.toString());
                                   Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                           builder: (context) =>
-                                              EnterJobDetailPage(widget.createJobModel, "job")));
+                                              EnterJobDetailPage(
+                                                  widget.createJobModel,
+                                                  "job")));
                                 } else {
                                   setState(() {
                                     _isValid = true;
                                   });
-
                                 }
                               },
                             ),

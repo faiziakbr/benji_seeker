@@ -21,11 +21,11 @@ import 'package:flutter/material.dart';
 import 'package:rating_bar/rating_bar.dart';
 
 class SummaryPage extends StatefulWidget {
-  final String jobId;
-  final CompletedJobModel completedJobModel;
   final String processId;
 
-  SummaryPage(this.jobId, this.completedJobModel, this.processId);
+  final bool rateAndTip;
+
+  SummaryPage(this.processId, {this.rateAndTip = false});
 
   @override
   _SummaryPageState createState() => _SummaryPageState();
@@ -36,8 +36,8 @@ class _SummaryPageState extends State<SummaryPage> {
   bool _isLoading = true;
   bool _isError = false;
 
-  bool _showTip = false;
-  bool _hasGivenReview = false;
+//  bool _showTip = false;
+//  bool _hasGivenReview = false;
   double _rating = 0;
   String _review = "";
   String _tip;
@@ -46,8 +46,8 @@ class _SummaryPageState extends State<SummaryPage> {
   @override
   void initState() {
     _dioHelper = DioHelper.instance;
-    _showTip = widget.completedJobModel.tipGiven;
-    _hasGivenReview = widget.completedJobModel.rated;
+//    _showTip = widget.completedJobModel.tipGiven;
+//    _hasGivenReview = widget.completedJobModel.rated;
 
     _fetchSummary();
     super.initState();
@@ -55,13 +55,23 @@ class _SummaryPageState extends State<SummaryPage> {
 
   _fetchSummary() {
     _dioHelper.getRequest(
-        BASE_URL + URL_SUMMARY(widget.jobId), {"token": ""}).then((value) {
+        BASE_URL + URL_SUMMARY(widget.processId), {"token": ""}).then((value) {
       print("SUMMARY: $value");
       SummaryModel summaryModel =
           summaryModelResponseFromJson(json.encode(value.data));
 
       if (summaryModel.status) {
         _summaryModel = summaryModel;
+
+        print("CAN GIVE TIP: ${_summaryModel.canGiveTip} AND RATE: ${_summaryModel.canRateProvider}");
+        if(widget.rateAndTip) {
+          if (_summaryModel.canGiveTip != null && _summaryModel.canGiveTip) {
+            _addTipButtonClick();
+          }
+          if (_summaryModel.canRateProvider != null && _summaryModel.canRateProvider) {
+            _rateButtonClick();
+          }
+        }
       } else {
         MyToast("${_summaryModel.errors[0]}", context);
         setState(() {
@@ -108,12 +118,12 @@ class _SummaryPageState extends State<SummaryPage> {
           justStatusResponseFromJson(json.encode(value.data));
 
       if (justStatusModel.status) {
-        MyToast("Job rescheduled successfully", context, position: 1);
+        MyToast("Tipped successfully", context, position: 1);
         Navigator.pushReplacement(
             context,
             MaterialPageRoute(
                 builder: (context) => SummaryPage(
-                    widget.jobId, widget.completedJobModel, widget.processId)));
+                    widget.processId)));
       } else {
         MyToast("${justStatusModel.errors[0]}", context, position: 1);
       }
@@ -135,7 +145,7 @@ class _SummaryPageState extends State<SummaryPage> {
   }
 
   _postAddReview(double rating, String review){
-    MyLoadingDialog(context, "Giving review...");
+    MyLoadingDialog(context, "Giving rating...");
     Map<String, dynamic> data = {
       "process_id":"${widget.processId}",
       "rating":rating,
@@ -149,12 +159,12 @@ class _SummaryPageState extends State<SummaryPage> {
       justStatusResponseFromJson(json.encode(value.data));
 
       if (justStatusModel.status) {
-        MyToast("Job rescheduled successfully", context, position: 1);
+        MyToast("Rated successfully", context, position: 1);
         Navigator.pushReplacement(
             context,
             MaterialPageRoute(
                 builder: (context) => SummaryPage(
-                    widget.jobId, widget.completedJobModel, widget.processId)));
+                    widget.processId)));
       } else {
         MyToast("${justStatusModel.errors[0]}", context, position: 1);
       }
@@ -275,25 +285,25 @@ class _SummaryPageState extends State<SummaryPage> {
 //                        ],
 //                      ),
 //                    ),
-                              _showTip || _summaryModel.tip != null
+                              _summaryModel.tip != null
                                   ? Column(
                                       children: <Widget>[
                                         Separator(),
                                         amountDetails(
-                                            "Tip", "${_summaryModel.tip}",
+                                            "Tip", _summaryModel.tip != null ? "${_summaryModel.tip.toStringAsFixed(2)}" : "0.0",
                                             fontWeight: FontWeight.bold,
                                             size: 22,
                                             fontType: false),
                                         Separator(),
                                         amountDetails(
-                                            "Total", "\$${_summaryModel.total}",
+                                            "Total", _summaryModel.total != null ? "\$${_summaryModel.total}" : "0.0",
                                             size: 22,
                                             fontWeight: FontWeight.bold,
                                             fontType: false)
                                       ],
                                     )
                                   : Container(),
-                              _hasGivenReview || _summaryModel.rating != null
+                               _summaryModel.rating != null
                                   ? Container(
                                       margin: const EdgeInsets.only(top: 16.0),
                                       child: Column(
@@ -309,7 +319,7 @@ class _SummaryPageState extends State<SummaryPage> {
                                                 filledIcon: Icons.star,
                                                 emptyIcon: Icons.star,
                                                 halfFilledIcon: Icons.star_half,
-                                                isHalfAllowed: true,
+                                                isHalfAllowed: false,
                                                 filledColor: starColor,
                                                 emptyColor: Colors.grey,
                                                 halfFilledColor: accentColor,
@@ -361,7 +371,7 @@ class _SummaryPageState extends State<SummaryPage> {
                                       width: mediaQueryData.size.width,
                                       height: 50.0,
                                       child: MyDarkButton(
-                                        "RATE JOHN",
+                                        "RATE",
                                         _rateButtonClick,
                                       ),
                                     )
@@ -384,7 +394,6 @@ class _SummaryPageState extends State<SummaryPage> {
 
     if (tipValue != null && tipValue != "") {
       setState(() {
-        _showTip = true;
         _tip = "\$" + tipValue;
       });
       _postAddTip(double.parse(tipValue));
@@ -399,7 +408,6 @@ class _SummaryPageState extends State<SummaryPage> {
 
     if (result != null) {
       setState(() {
-        _hasGivenReview = true;
         _rating = result["RATING"];
         _review = result["REVIEW"];
       });
@@ -415,7 +423,7 @@ class _SummaryPageState extends State<SummaryPage> {
       FontWeight fontWeight = FontWeight.normal,
       bool fontType = true}) {
     return Container(
-      margin: const EdgeInsets.only(top: 8.0),
+      margin: const EdgeInsets.only(top: 16.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[

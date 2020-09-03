@@ -32,6 +32,9 @@ class _PackageSelectionPageState extends State<PackageSelectionPage> {
   List<ItemPackage> _packageList = [];
   List<bool> _openedPackages = [];
 
+  var openTab = true;
+  var previousIndex = 0;
+
   @override
   void initState() {
     _dioHelper = DioHelper.instance;
@@ -120,15 +123,25 @@ class _PackageSelectionPageState extends State<PackageSelectionPage> {
                                 Expanded(
                                     child: ListView.builder(
                                         physics: BouncingScrollPhysics(),
-                                        itemCount: _packageList.length + 1,
+                                        itemCount: _packageList.length,
                                         itemBuilder: (context, index) {
                                           return ItemPackagePage(
                                               mediaQueryData,
                                               index,
-                                              _packageList.length + 1,
+                                              _packageList.length,
                                               wage,
                                               _packageList,
-                                              widget.createJobModel);
+                                              widget.createJobModel, (value) {
+                                            setState(() {
+                                              for (var item
+                                                  in _packageList) {
+                                                if (item !=
+                                                    _packageList[value]) {
+                                                  item.isOpen = false;
+                                                }
+                                              }
+                                            });
+                                          });
                                         }))
                               ],
                             ),
@@ -152,6 +165,7 @@ class _PackageSelectionPageState extends State<PackageSelectionPage> {
         widget.createJobModel.setRecurringOptions
             .addAll(packageModel.recurringOptions);
         _packageList.addAll(packageModel.packages);
+        _packageList.add(ItemPackage());
         for (ItemPackage data in packageModel.packages) {
           _openedPackages.add(false);
         }

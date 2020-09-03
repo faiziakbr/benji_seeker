@@ -50,6 +50,8 @@ class ItemPackage{
   String description;
   bool isOpen = false;
 
+  ItemPackage({this.id, this.name, this.hours, this.description});
+
   ItemPackage.fromJson( Map<String, dynamic> json){
     id = json['_id'];
     name = json['name'];

@@ -1,4 +1,5 @@
 import 'package:benji_seeker/My_Widgets/MyDarkButton.dart';
+import 'package:benji_seeker/My_Widgets/MyToast.dart';
 import 'package:benji_seeker/constants/MyColors.dart';
 import 'package:benji_seeker/custom_texts/MontserratText.dart';
 import 'package:benji_seeker/custom_texts/QuicksandText.dart';
@@ -19,6 +20,7 @@ class InputDialog extends StatefulWidget {
 class _InputDialogState extends State<InputDialog> {
 
   TextEditingController _textEditingController = TextEditingController();
+  bool _validate = false;
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +38,7 @@ class _InputDialogState extends State<InputDialog> {
             QuicksandText(widget.title, 20.0, Colors.white, FontWeight.bold,
                 textAlign: TextAlign.center),
             MontserratText(
-                widget.inputTextLabel, 16, lightTextColor, FontWeight.normal),
+                widget.inputTextLabel, 16, Colors.white, FontWeight.normal),
             Container(
               margin: EdgeInsets.only(
                   left: mediaQueryData.size.width * 0.2,
@@ -50,6 +52,7 @@ class _InputDialogState extends State<InputDialog> {
                 decoration: InputDecoration(
                   hintText: widget.hintText,
                   hintStyle: TextStyle(color: lightTextColor),
+                  errorText: _validate ? "Enter the Tip." : null
                 ),
               ),
             ),
@@ -63,6 +66,13 @@ class _InputDialogState extends State<InputDialog> {
   }
 
   _sendTip() {
-    Navigator.pop(context, _textEditingController.text.toString());
+    if(_textEditingController.text.isEmpty) {
+      setState(() {
+        _textEditingController.text.isEmpty ? _validate = true : _validate =
+        false;
+      });
+    }else {
+      Navigator.pop(context, _textEditingController.text.toString());
+    }
   }
 }

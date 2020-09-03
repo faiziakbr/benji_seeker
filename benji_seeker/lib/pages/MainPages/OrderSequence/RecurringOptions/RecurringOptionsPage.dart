@@ -53,21 +53,21 @@ class _RecurringOptionsPageState extends State<RecurringOptionsPage> {
           centerTitle: true,
           backgroundColor: Colors.transparent,
           elevation: 0.0,
-          actions: [
-            IconButton(
-              onPressed: () {
-                widget.createJobModel.recurringText = "";
-                widget.createJobModel.isRecurringID = "";
-                widget.createJobModel.endTime = null;
-                widget.createJobModel.isRecurringSet = false;
-                Navigator.pop(context, false);
-              },
-              icon: Icon(
-                Icons.close,
-                color: Colors.black,
-              ),
-            )
-          ],
+//          actions: [
+//            IconButton(
+//              onPressed: () {
+//                widget.createJobModel.recurringText = "";
+//                widget.createJobModel.isRecurringID = "";
+//                widget.createJobModel.endTime = null;
+//                widget.createJobModel.isRecurringSet = false;
+//                Navigator.pop(context, false);
+//              },
+//              icon: Icon(
+//                Icons.close,
+//                color: Colors.black,
+//              ),
+//            )
+//          ],
         ),
         backgroundColor: Colors.white,
         body: SafeArea(
@@ -180,7 +180,7 @@ class _RecurringOptionsPageState extends State<RecurringOptionsPage> {
         context,
         "assets/recursive_icon.png",
         "END date",
-        _setDateComplete
+        _setDateComplete || widget.createJobModel.endTime != null
             ? "${DateFormat.yMd().format(widget.createJobModel.endTime)}"
             : "Set end date"));
 

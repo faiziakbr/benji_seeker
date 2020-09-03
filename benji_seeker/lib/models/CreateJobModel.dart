@@ -18,6 +18,8 @@ class CreateJobModel {
   DateTime endTime;
   bool isRecurringSet = false;
 
+  bool createFromCalendar = false;
+
   String emailDateLabel;
 
   List<RecurringOptions> setRecurringOptions = List();

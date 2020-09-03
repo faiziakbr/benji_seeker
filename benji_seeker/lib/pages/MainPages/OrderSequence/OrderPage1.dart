@@ -16,9 +16,8 @@ import 'package:flutter/material.dart';
 
 class OrderPage1 extends StatefulWidget {
   final CreateJobModel createJobModel;
-  final bool isWhenSelected;
 
-  OrderPage1(this.createJobModel, {this.isWhenSelected = false});
+  OrderPage1(this.createJobModel);
 
   @override
   _OrderPage1State createState() => _OrderPage1State();

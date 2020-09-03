@@ -1,3 +1,4 @@
+import 'package:benji_seeker/My_Widgets/MyToast.dart';
 import 'package:benji_seeker/constants/MyColors.dart';
 import 'package:benji_seeker/custom_texts/MontserratText.dart';
 import 'package:benji_seeker/custom_texts/QuicksandText.dart';
@@ -52,7 +53,7 @@ class _DialogRatingState extends State<DialogRating> {
               emptyColor: Colors.grey,
               halfFilledColor: accentColor,
               initialRating: _rating,
-              size: 20,
+              size: 30,
               onRatingChanged: (double rating) {
                 setState(() {
                   _rating = rating;
@@ -91,6 +92,10 @@ class _DialogRatingState extends State<DialogRating> {
   }
 
   _sendRating() {
+    if(_rating == 0.0){
+      MyToast("Rating is required.", context, position: 1);
+      return;
+    }
     Map<String, dynamic> map = {
       "RATING": _rating,
       "REVIEW": _textEditingController.text.toString()

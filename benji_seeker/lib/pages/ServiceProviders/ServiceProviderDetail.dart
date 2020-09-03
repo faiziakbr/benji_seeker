@@ -200,7 +200,7 @@ class _ServiceProviderDetailState extends State<ServiceProviderDetail>
                                           Row(
                                             children: <Widget>[
                                               QuicksandText(
-                                                "${_provider.rating ?? 0}",
+                                                _provider.rating != null ? "${_provider.rating.toStringAsFixed(1)}" : "0.0",
                                                 30.0,
                                                 Colors.black,
                                                 FontWeight.bold,

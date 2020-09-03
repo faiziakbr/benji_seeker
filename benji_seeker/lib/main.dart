@@ -1,3 +1,4 @@
+import 'package:benji_seeker/pages/PhotoViewPage.dart';
 import 'package:benji_seeker/pages/SplashScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -28,6 +29,8 @@ class MyApp extends StatelessWidget {
     900: Color.fromRGBO(67, 162, 54, 1),
   };
 
+  //+11223334444
+  //+12333444555
   //+17203391672
   //+13477974446
   //+13155352624
@@ -36,6 +39,7 @@ class MyApp extends StatelessWidget {
   //+11779169467
 
   //provider
+  //+18888822222
   //+19386661770
   //+13328883090
 
@@ -66,6 +70,7 @@ class MyApp extends StatelessWidget {
             primarySwatch: colorCustom,
             accentColor: accentColor,
           ),
+//          home: PhotoViewTest(),
           home: SplashScreen(),
         ),
       ),

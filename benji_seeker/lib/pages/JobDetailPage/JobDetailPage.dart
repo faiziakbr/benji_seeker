@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:benji_seeker/My_Widgets/DescriptionTextWidget.dart';
 import 'package:benji_seeker/My_Widgets/DialogYesNo.dart';
 import 'package:benji_seeker/My_Widgets/MyDarkButton.dart';
 import 'package:benji_seeker/My_Widgets/MyLightButton.dart';
@@ -23,6 +24,7 @@ import 'package:benji_seeker/models/UpcomingJobModel.dart';
 import 'package:benji_seeker/pages/Chat/ChatPage.dart';
 import 'package:benji_seeker/pages/MainPages/OrderSequence/Calender/When.dart';
 import 'package:benji_seeker/pages/PaymentSequence/SummaryPage.dart';
+import 'package:benji_seeker/pages/PhotoViewPage.dart';
 import 'package:benji_seeker/pages/ServiceProviders/itemServiceProvider.dart';
 import 'package:benji_seeker/utils/DioHelper.dart';
 import 'package:carousel_pro/carousel_pro.dart';
@@ -38,8 +40,10 @@ import '../ImageViewer.dart';
 class JobDetailPage extends StatefulWidget {
   final String jobId;
   final String generatedRecurringTime;
+  final bool fromNotification;
 
-  JobDetailPage(this.jobId, {this.generatedRecurringTime});
+  JobDetailPage(this.jobId,
+      {this.generatedRecurringTime, this.fromNotification = false});
 
   @override
   _JobDetailPageState createState() => _JobDetailPageState();
@@ -73,10 +77,13 @@ class _JobDetailPageState extends State<JobDetailPage> {
   @override
   void initState() {
     _dioHelper = DioHelper.instance;
-    _fetchData(widget.jobId);
 
     _connectSocket();
     _isSocketConnected();
+
+    _listenJobChanges(widget.jobId);
+
+    _fetchData(widget.jobId);
 
     super.initState();
   }
@@ -126,7 +133,6 @@ class _JobDetailPageState extends State<JobDetailPage> {
 
   Future<bool> _checkForJobBidsChange(String processId) async {
     try {
-      print("A JOB BID CHANGE LISTEN CALL");
       return await platform
           .invokeMethod("aJobBidChanged", {"processId": "$processId"});
     } on PlatformException catch (e) {
@@ -160,7 +166,6 @@ class _JobDetailPageState extends State<JobDetailPage> {
       JobDetailModel jobDetailModel =
           jobDetailResponseFromJson(json.encode(value.data));
       if (jobDetailModel.status) {
-        _listenJobChanges(jobDetailModel.detail.processId);
         _jobDetailModel = jobDetailModel;
         _jobDetail = jobDetailModel.detail;
         if (_jobDetail.nextStep == "active") {
@@ -171,12 +176,18 @@ class _JobDetailPageState extends State<JobDetailPage> {
           }
         } else if (_jobDetail.nextStep == "summary") {
           _fetchCompletedJobInfo();
+        } else if (_jobDetail.nextStep == "under_progress") {
+          _fetchProviderDetail(_jobDetail.providerId);
+        } else if (_jobDetail.nextStep == "arrived_at_location") {
+          _fetchProviderDetail(_jobDetail.providerId);
         }
       } else {
         MyToast("${jobDetailModel.errors[0]}", context, position: 1);
-        setState(() {
-          _isError = true;
-        });
+        if (mounted) {
+          setState(() {
+            _isError = true;
+          });
+        }
       }
     }).catchError((error) {
       try {
@@ -190,15 +201,19 @@ class _JobDetailPageState extends State<JobDetailPage> {
           MyToast("${err.message}", context, position: 1);
         }
       } catch (e) {
-        MyToast("Unexpected Error!", context, position: 1);
+//        MyToast("Unexpected Error! 17", context, position: 1);
       }
-      setState(() {
-        _isError = true;
-      });
+      if (mounted) {
+        setState(() {
+          _isError = true;
+        });
+      }
     }).whenComplete(() {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     });
   }
 
@@ -255,6 +270,7 @@ class _JobDetailPageState extends State<JobDetailPage> {
         });
       }
     }).catchError((error) {
+      print("ERROR fetch provider details $error");
       try {
         var err = error as DioError;
         if (err.type == DioErrorType.RESPONSE) {
@@ -344,7 +360,7 @@ class _JobDetailPageState extends State<JobDetailPage> {
           //height is smaller than the persistentContentHeight it will be
           //animated on a height change.
           //You can use it for example if you have no header.
-          persistentContentHeight: mediaQueryData.size.height * 0.2,
+          persistentContentHeight: _contentHeight(mediaQueryData),
 
           //required
           //This is the widget which will be overlapped by the bottom sheet.
@@ -400,6 +416,23 @@ class _JobDetailPageState extends State<JobDetailPage> {
     );
   }
 
+  double _contentHeight(MediaQueryData mediaQueryData) {
+    if (_jobDetail != null && _jobDetail.nextStep != null) {
+      if (_jobDetail.nextStep == "booking_accepted") {
+        return mediaQueryData.size.height * 0.3;
+      } else if (_jobDetail.nextStep == "summary") {
+        return mediaQueryData.size.height * 0.4;
+      } else if (_jobDetail.nextStep == "under_progress") {
+        return mediaQueryData.size.height * 0.18;
+      } else if (_jobDetail.nextStep == "arrived_at_location") {
+        return mediaQueryData.size.height * 0.18;
+      } else {
+        return mediaQueryData.size.height * 0.2;
+      }
+    }
+    return 0.0;
+  }
+
   Widget _body(MediaQueryData mediaQueryData) {
     DateTime dateTimee =
         DateTime.parse(widget.generatedRecurringTime ?? _jobDetail.when);
@@ -422,12 +455,23 @@ class _JobDetailPageState extends State<JobDetailPage> {
                   children: <Widget>[
                     GestureDetector(
                       onTap: () {
-                        while(Navigator.canPop(context)){
+                        if (Navigator.canPop(context))
                           Navigator.pop(context);
+                        else {
+                          while (Navigator.canPop(context)) {
+                            Navigator.pop(context);
+                          }
+                          Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => BotNavPage(
+                                        fromNotifications:
+                                            widget.fromNotification,
+                                      )));
                         }
-                        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => BotNavPage()));
                       },
-                      child: Padding(
+                      child: Container(
+                        margin: const EdgeInsets.only(top: 8.0, left: 8.0),
                         padding: const EdgeInsets.all(4.0),
                         child: CircleAvatar(
                           backgroundColor: Colors.grey.withOpacity(0.7),
@@ -488,8 +532,11 @@ class _JobDetailPageState extends State<JobDetailPage> {
                       "${_jobDetail.where}", null,
                       isImage: true,
                       imagePath: "assets/green_location_icon.png"),
-                  _info(mediaQueryData, Icons.menu, null,
-                      "${_jobDetail.description}"),
+                  DescriptionTextWidget(
+                    text: "${_jobDetail.description}",
+                  ),
+//                  _info(mediaQueryData, Icons.menu, null,
+//                      "${_jobDetail.description}"),
                   _jobDetail.isRecurring
                       ? _recurringTextWidget(mediaQueryData, _jobDetail)
                       : Container(),
@@ -503,10 +550,12 @@ class _JobDetailPageState extends State<JobDetailPage> {
     );
   }
 
-  Widget _buttons(MediaQueryData mediaQueryData){
-    if (_jobDetailModel.detail.nextStep == "active" && _jobDetailModel.detail.isRecurring == false)
+  Widget _buttons(MediaQueryData mediaQueryData) {
+    if (_jobDetailModel.detail.nextStep == "active" &&
+        _jobDetailModel.detail.isRecurring == false)
       return _cancelAndRescheduleButtons(mediaQueryData);
-     else if (_jobDetailModel.detail.nextStep == "active" || _jobDetailModel.detail.isRecurring){
+    else if (_jobDetailModel.detail.nextStep == "active" &&
+        _jobDetailModel.detail.isRecurring) {
       return Column(
         children: [
           _cancelAndRescheduleButtons(mediaQueryData),
@@ -516,21 +565,19 @@ class _JobDetailPageState extends State<JobDetailPage> {
             margin: const EdgeInsets.only(top: 16.0, bottom: 16.0),
             child: MyLightButton(
               "SKIP THIS WEEK",
-                  () {
+              () {
                 showDialog(
                     context: context,
-                    barrierDismissible:
-                    bool.fromEnvironment("dismiss dialog"),
+                    barrierDismissible: bool.fromEnvironment("dismiss dialog"),
                     builder: (BuildContext context) {
                       return DialogYesNo("Skip upcoming job service?",
-                          "Are you sure you want to skip this job.",
-                              () {
-                                DateTime dateTime =
-                                DateTime.parse(widget.generatedRecurringTime ?? _jobDetail.when);
-                                _skipJob(_jobDetailModel.detail.processId, dateTime);
-                          }, () {
-                            Navigator.pop(context);
-                          });
+                          "Are you sure you want to skip this job.", () {
+                        DateTime dateTime = DateTime.parse(
+                            widget.generatedRecurringTime ?? _jobDetail.when);
+                        _skipJob(_jobDetailModel.detail.processId, dateTime);
+                      }, () {
+                        Navigator.pop(context);
+                      });
                     });
               },
               textColor: Colors.black,
@@ -541,11 +588,11 @@ class _JobDetailPageState extends State<JobDetailPage> {
         ],
       );
     } else {
-       return Container();
+      return Container();
     }
   }
 
-  Widget _cancelAndRescheduleButtons(MediaQueryData mediaQueryData){
+  Widget _cancelAndRescheduleButtons(MediaQueryData mediaQueryData) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
@@ -557,19 +604,17 @@ class _JobDetailPageState extends State<JobDetailPage> {
             margin: const EdgeInsets.only(left: 16.0),
             child: MyLightButton(
               "CANCEL",
-                  () {
+              () {
                 showDialog(
                     context: context,
-                    barrierDismissible:
-                    bool.fromEnvironment("dismiss dialog"),
+                    barrierDismissible: bool.fromEnvironment("dismiss dialog"),
                     builder: (BuildContext context) {
                       return DialogYesNo("Cancel this service?",
-                          "Are you sure you want to cancel this service.",
-                              () {
-                            _cancelJob(_jobDetail.processId);
-                          }, () {
-                            Navigator.pop(context);
-                          });
+                          "Are you sure you want to cancel this service.", () {
+                        _cancelJob(_jobDetail.processId);
+                      }, () {
+                        Navigator.pop(context);
+                      });
                     });
               },
               textColor: Colors.black,
@@ -583,11 +628,10 @@ class _JobDetailPageState extends State<JobDetailPage> {
           child: Container(
             height: 50,
             width: mediaQueryData.size.width * 0.6,
-            margin:
-            const EdgeInsets.only(left: 8.0, right: 16.0),
+            margin: const EdgeInsets.only(left: 8.0, right: 16.0),
             child: MyDarkButton(
               "RESCHEDULE",
-                  () {
+              () {
                 _rescheduleJob();
               },
               textSize: 14,
@@ -636,11 +680,10 @@ class _JobDetailPageState extends State<JobDetailPage> {
         indicatorBgPadding: 5.0,
         dotBgColor: Colors.transparent,
         images: networkImage,
-        onImageTap: (index)  {
-           Navigator.of(context).push(TransparentRoute(
+        onImageTap: (index) {
+          Navigator.of(context).push(TransparentRoute(
               builder: (BuildContext context) =>
-                  ImageViewer(networkImage, index)));
-
+                  PhotoViewPage(networkImage, index)));
         },
       ),
     );
@@ -720,6 +763,10 @@ class _JobDetailPageState extends State<JobDetailPage> {
         return _providerDetail(mediaQueryData);
       case "summary":
         return _providerSummary(mediaQueryData);
+      case "under_progress":
+        return _providerDetail(mediaQueryData);
+      case "arrived_at_location":
+        return _providerDetail(mediaQueryData);
       default:
         return Container();
     }
@@ -778,6 +825,8 @@ class _JobDetailPageState extends State<JobDetailPage> {
   }
 
   Widget _providerDetail(MediaQueryData mediaQueryData) {
+    print(
+        "JOB DETAIL: ${_jobDetail.nextStep} and NextStep: ${_jobDetail.isRecurring}");
     return Container(
       color: Colors.white,
       height: mediaQueryData.size.height * 0.3,
@@ -811,18 +860,120 @@ class _JobDetailPageState extends State<JobDetailPage> {
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: <Widget>[
-                          MontserratText("${_provider.rating}", 14,
-                              Colors.black, FontWeight.bold),
+                          MontserratText(
+                              _provider.rating != null
+                                  ? "${_provider.rating.toStringAsFixed(1)}"
+                                  : "0.0",
+                              14,
+                              Colors.black,
+                              FontWeight.bold),
                           Icon(
                             Icons.star,
                             color: Colors.orange,
-                          )
+                          ),
+                          GestureDetector(
+                            onTap: () async {
+                              var result = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => ChatPage(
+                                            widget.jobId,
+                                            _jobDetailModel,
+                                            providerName: _provider.nickName,
+                                          )));
+                              if (result == null) _reconnectSocket();
+                            },
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8.0),
+                              child: Container(
+                                width: 40,
+                                height: 40,
+                                color: Colors.black,
+                                child: Icon(
+                                  Icons.message,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: <Widget>[
+                        (_jobDetail.nextStep == "under_progress" ||
+                                _jobDetail.nextStep == "arrived_at_location")
+                            ? Container()
+                            : _jobDetail.isRecurring
+                                ? InkWell(
+                                    onTap: () {
+                                      showDialog(
+                                          context: context,
+                                          barrierDismissible:
+                                              bool.fromEnvironment(
+                                                  "dismiss dialog"),
+                                          builder: (BuildContext context) {
+                                            return DialogYesNo(
+                                                "Skip upcoming job service?",
+                                                "Are you sure you want to skip this job.",
+                                                () {
+                                              DateTime dateTime = DateTime.parse(
+                                                  widget.generatedRecurringTime ??
+                                                      _jobDetail.when);
+                                              _skipJob(
+                                                  _jobDetailModel
+                                                      .detail.processId,
+                                                  dateTime);
+                                            }, () {
+                                              Navigator.pop(context);
+                                            });
+                                          });
+                                    },
+                                    child: Flexible(
+                                      child: MontserratText("SKIP THIS WEEK",
+                                          17, Colors.black, FontWeight.w600),
+//                          child: Container(
+//                            height: 30,
+//                            width: mediaQueryData.size.width * 0.6,
+//                            margin: const EdgeInsets.only(
+//                                top: 16.0, bottom: 16.0),
+//                            child: MyLightButton(
+//                              "SKIP THIS WEEK",
+//                                  () {
+//                                showDialog(
+//                                    context: context,
+//                                    barrierDismissible:
+//                                    bool.fromEnvironment(
+//                                        "dismiss dialog"),
+//                                    builder:
+//                                        (BuildContext context) {
+//                                      return DialogYesNo(
+//                                          "Skip upcoming job service?",
+//                                          "Are you sure you want to skip this job.",
+//                                              () {
+//                                            DateTime dateTime =
+//                                            DateTime.parse(widget
+//                                                .generatedRecurringTime ??
+//                                                _jobDetail.when);
+//                                            _skipJob(
+//                                                _jobDetailModel
+//                                                    .detail.processId,
+//                                                dateTime);
+//                                          }, () {
+//                                        Navigator.pop(context);
+//                                      });
+//                                    });
+//                              },
+//                              textColor: Colors.black,
+//                              fontWeight: FontWeight.w600,
+//                              borderColor: Colors.black,
+//                            ),
+//                          ),
+                                    ),
+                                  )
+                                : Container()
 //              ClipRRect(
 //                borderRadius: BorderRadius.circular(8.0),
 //                child: Container(
@@ -836,33 +987,32 @@ class _JobDetailPageState extends State<JobDetailPage> {
 //                  ),
 //                ),
 //              ),
-                        GestureDetector(
-                          onTap: () async {
-                            var result = await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => ChatPage(
-                                          widget.jobId,
-                                          _jobDetailModel,
-                                          providerName: _provider.nickName,
-                                        )));
-                            if(result == null)
-                              _reconnectSocket();
-                          },
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(8.0),
-                            child: Container(
-                              width: 40,
-                              height: 40,
-                              color: Colors.black,
-                              child: Icon(
-                                Icons.message,
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                            ),
-                          ),
-                        ),
+//                        GestureDetector(
+//                          onTap: () async {
+//                            var result = await Navigator.push(
+//                                context,
+//                                MaterialPageRoute(
+//                                    builder: (context) => ChatPage(
+//                                          widget.jobId,
+//                                          _jobDetailModel,
+//                                          providerName: _provider.nickName,
+//                                        )));
+//                            if (result == null) _reconnectSocket();
+//                          },
+//                          child: ClipRRect(
+//                            borderRadius: BorderRadius.circular(8.0),
+//                            child: Container(
+//                              width: 40,
+//                              height: 40,
+//                              color: Colors.black,
+//                              child: Icon(
+//                                Icons.message,
+//                                color: Colors.white,
+//                                size: 20,
+//                              ),
+//                            ),
+//                          ),
+//                        ),
 //                        ClipRRect(
 //                          borderRadius: BorderRadius.circular(8.0),
 //                          child: Container(
@@ -878,61 +1028,69 @@ class _JobDetailPageState extends State<JobDetailPage> {
 //                        ),
                       ],
                     ),
-                    Separator(
-                      leftMargin: 16.0,
-                      rightMargin: 16.0,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        Flexible(
-                          flex: 1,
-                          child: Container(
-                            height: 50,
-                            width: mediaQueryData.size.width * 0.6,
-                            margin: const EdgeInsets.only(left: 16.0),
-                            child: MyLightButton(
-                              "CANCEL",
-                              () {
-                                showDialog(
-                                    context: context,
-                                    barrierDismissible:
-                                        bool.fromEnvironment("dismiss dialog"),
-                                    builder: (BuildContext context) {
-                                      return DialogYesNo("Cancel this service?",
-                                          "Are you sure you want to cancel this service.",
-                                          () {
-                                        _cancelJob(_jobDetail.processId);
-                                      }, () {
-                                        Navigator.pop(context);
-                                      });
-                                    });
-                              },
-                              textColor: Colors.black,
-                              fontWeight: FontWeight.w600,
-                              borderColor: Colors.black,
-                            ),
+                    (_jobDetail.nextStep == "under_progress" ||
+                            _jobDetail.nextStep == "arrived_at_location")
+                        ? Container()
+                        : Separator(
+                            leftMargin: 16.0,
+                            rightMargin: 16.0,
                           ),
-                        ),
-                        Flexible(
-                          flex: 1,
-                          child: Container(
-                            height: 50,
-                            width: mediaQueryData.size.width * 0.6,
-                            margin:
-                                const EdgeInsets.only(left: 8.0, right: 16.0),
-                            child: MyDarkButton(
-                              "RESCHEDULE",
-                              () {
-                                _rescheduleJob();
-                              },
-                              textSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        )
-                      ],
-                    )
+                    (_jobDetail.nextStep == "under_progress" ||
+                            _jobDetail.nextStep == "arrived_at_location")
+                        ? Container()
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Flexible(
+                                flex: 1,
+                                child: Container(
+                                  height: 50,
+                                  width: mediaQueryData.size.width * 0.6,
+                                  margin: const EdgeInsets.only(left: 16.0),
+                                  child: MyLightButton(
+                                    "CANCEL",
+                                    () {
+                                      showDialog(
+                                          context: context,
+                                          barrierDismissible:
+                                              bool.fromEnvironment(
+                                                  "dismiss dialog"),
+                                          builder: (BuildContext context) {
+                                            return DialogYesNo(
+                                                "Cancel this service?",
+                                                "Are you sure you want to cancel this service.",
+                                                () {
+                                              _cancelJob(_jobDetail.processId);
+                                            }, () {
+                                              Navigator.pop(context);
+                                            });
+                                          });
+                                    },
+                                    textColor: Colors.black,
+                                    fontWeight: FontWeight.w600,
+                                    borderColor: Colors.black,
+                                  ),
+                                ),
+                              ),
+                              Flexible(
+                                flex: 1,
+                                child: Container(
+                                  height: 50,
+                                  width: mediaQueryData.size.width * 0.6,
+                                  margin: const EdgeInsets.only(
+                                      left: 8.0, right: 16.0),
+                                  child: MyDarkButton(
+                                    "RESCHEDULE",
+                                    () {
+                                      _rescheduleJob();
+                                    },
+                                    textSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              )
+                            ],
+                          )
                   ],
                 ),
     );
@@ -975,7 +1133,7 @@ class _JobDetailPageState extends State<JobDetailPage> {
                         children: <Widget>[
                           MontserratText(
                               _provider.rating != null
-                                  ? "${_provider.rating}"
+                                  ? "${_provider.rating.toStringAsFixed(1)}"
                                   : "0.0",
                               14,
                               Colors.black,
@@ -986,19 +1144,19 @@ class _JobDetailPageState extends State<JobDetailPage> {
                           )
                         ],
                       ),
-                      trailing: ClipRRect(
-                        borderRadius: BorderRadius.circular(8.0),
-                        child: Container(
-                          width: 40,
-                          height: 40,
-                          color: Colors.orange,
-                          child: Icon(
-                            Icons.local_hospital,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                        ),
-                      ),
+//                      trailing: ClipRRect(
+//                        borderRadius: BorderRadius.circular(8.0),
+//                        child: Container(
+//                          width: 40,
+//                          height: 40,
+//                          color: Colors.orange,
+//                          child: Icon(
+//                            Icons.local_hospital,
+//                            color: Colors.white,
+//                            size: 20,
+//                          ),
+//                        ),
+//                      ),
                     ),
                     Separator(
                       leftMargin: 16.0,
@@ -1054,21 +1212,41 @@ class _JobDetailPageState extends State<JobDetailPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
-                        Flexible(
-                          flex: 1,
-                          child: Container(
-                            height: 50,
-                            width: mediaQueryData.size.width * 0.6,
-                            margin: const EdgeInsets.only(left: 16.0),
-                            child: MyLightButton(
-                              "NEED HELP?",
-                              () {},
-                              textColor: Colors.black,
-                              fontWeight: FontWeight.w600,
-                              borderColor: Colors.black,
-                            ),
-                          ),
-                        ),
+                        !_completedJobModel.rated ||
+                                !_completedJobModel.tipGiven
+                            ? Flexible(
+                                flex: 1,
+                                child: Container(
+                                  height: 50,
+                                  width: mediaQueryData.size.width * 0.6,
+                                  margin: const EdgeInsets.only(left: 16.0),
+                                  child: MyLightButton(
+                                    "${_tipText(_completedJobModel.tipGiven, _completedJobModel.rated)}",
+                                    () async {
+                                      var result = await Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) => SummaryPage(
+                                                    _jobDetail.processId,
+                                                    rateAndTip: true,
+                                                  )));
+                                      print("RESULT ON BACK: $result");
+                                      if (result == null) {
+                                        setState(() {
+                                          _isLoading = true;
+                                          _isError = false;
+                                        });
+                                        _reconnectSocket();
+                                        _fetchData(widget.jobId);
+                                      }
+                                    },
+                                    textColor: Colors.black,
+                                    fontWeight: FontWeight.w600,
+                                    borderColor: Colors.black,
+                                  ),
+                                ),
+                              )
+                            : Container(),
                         Flexible(
                           flex: 1,
                           child: Container(
@@ -1082,12 +1260,16 @@ class _JobDetailPageState extends State<JobDetailPage> {
                                 var result = await Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                        builder: (context) => SummaryPage(
-                                            widget.jobId,
-                                            _completedJobModel,
-                                            _jobDetail.processId)));
-                                if(result == null)
+                                        builder: (context) =>
+                                            SummaryPage(_jobDetail.processId)));
+                                if (result == null) {
+                                  setState(() {
+                                    _isLoading = true;
+                                    _isError = false;
+                                  });
                                   _reconnectSocket();
+                                  _fetchData(widget.jobId);
+                                }
                               },
                               textSize: 14,
                               fontWeight: FontWeight.w600,
@@ -1101,17 +1283,28 @@ class _JobDetailPageState extends State<JobDetailPage> {
     );
   }
 
+  String _tipText(bool tipGiven, bool rated) {
+    if (!tipGiven && !rated) {
+      return "Rate & Tip";
+    } else if (!tipGiven) {
+      return "Tip ${_provider.nickName}";
+    } else if (!rated) {
+      return "Rate ${_provider.nickName}";
+    } else {
+      return "";
+    }
+  }
+
   void _rescheduleJob() async {
     var result = await Navigator.push(
         context,
         MaterialPageRoute(
             builder: (context) =>
                 When(null, rescheduleJob: true, jobDetail: _jobDetail)));
-    if(result == null)
-      _reconnectSocket();
+    if (result == null) _reconnectSocket();
   }
 
-  void _skipJob(String processId, DateTime date){
+  void _skipJob(String processId, DateTime date) {
     Navigator.pop(context); //popping DialogYesNo
     MyLoadingDialog(context, "Skipping job...");
     DioHelper dioHelper = DioHelper.instance;
@@ -1120,9 +1313,11 @@ class _JobDetailPageState extends State<JobDetailPage> {
       "process_id": "$processId",
       "date": date.toIso8601String()
     };
-    dioHelper.postRequest(BASE_URL + URL_SKIP_JOB, {"token":""}, map).then((value){
+    dioHelper
+        .postRequest(BASE_URL + URL_SKIP_JOB, {"token": ""}, map)
+        .then((value) {
       JustStatusModel justStatusModel =
-      justStatusResponseFromJson(json.encode(value.data));
+          justStatusResponseFromJson(json.encode(value.data));
       if (justStatusModel.status) {
         while (Navigator.canPop(context)) {
           Navigator.pop(context);
@@ -1133,13 +1328,13 @@ class _JobDetailPageState extends State<JobDetailPage> {
         Navigator.pop(context);
         MyToast("${justStatusModel.errors[0]}", context);
       }
-    }).catchError((error){
+    }).catchError((error) {
       try {
         Navigator.pop(context);
         var err = error as DioError;
         if (err.type == DioErrorType.RESPONSE) {
           JustStatusModel justModel =
-          justStatusResponseFromJson(json.encode(err.response.data));
+              justStatusResponseFromJson(json.encode(err.response.data));
           MyToast("${justModel.errors[0]}", context, position: 1);
         } else {
           MyToast("${err.message}", context, position: 1);
@@ -1157,7 +1352,7 @@ class _JobDetailPageState extends State<JobDetailPage> {
 
     dioHelper.postRequest(BASE_URL + URL_CANCEL_JOB, {"token": ""},
         {"process_id": "$jobId"}).then((value) {
-//          print("CANCEL JOB RESPONSE: $value");
+      print("CANCEL JOB RESPONSE: $value");
       JustStatusModel justStatusModel =
           justStatusResponseFromJson(json.encode(value.data));
       if (justStatusModel.status) {
@@ -1172,7 +1367,7 @@ class _JobDetailPageState extends State<JobDetailPage> {
       }
     }).catchError((error) {
       try {
-//        print("CANCEL JOB ERROR: $error");
+        print("CANCEL JOB ERROR: $error");
         Navigator.pop(context);
         var err = error as DioError;
         if (err.type == DioErrorType.RESPONSE) {
