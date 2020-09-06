@@ -49,7 +49,7 @@ class JobDetailPage extends StatefulWidget {
   _JobDetailPageState createState() => _JobDetailPageState();
 }
 
-class _JobDetailPageState extends State<JobDetailPage> {
+class _JobDetailPageState extends State<JobDetailPage> with WidgetsBindingObserver {
   DioHelper _dioHelper;
   var platform = MethodChannel('samples.flutter.dev/battery');
   bool _isLoading = true;
@@ -77,6 +77,7 @@ class _JobDetailPageState extends State<JobDetailPage> {
   @override
   void initState() {
     _dioHelper = DioHelper.instance;
+    WidgetsBinding.instance.addObserver(this);
 
     _connectSocket();
     _isSocketConnected();
@@ -86,6 +87,14 @@ class _JobDetailPageState extends State<JobDetailPage> {
     _fetchData(widget.jobId);
 
     super.initState();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _fetchData(widget.jobId);
+    }
+    super.didChangeAppLifecycleState(state);
   }
 
   void _reconnectSocket() {

@@ -77,7 +77,6 @@ class NewDashboardPageState extends State<NewDashboardPage> {
   @override
   void initState() {
     _dioHelper = DioHelper.instance;
-    _scrollController = ScrollController();
     fetchUpcomingJobs();
     super.initState();
   }
@@ -107,7 +106,9 @@ class NewDashboardPageState extends State<NewDashboardPage> {
         if (DateTime(i, j) ==
             DateTime(DateTime.now().year, DateTime.now().month)) {
           _jumpToPosition = index;
-          print("JUMP TO POS: $_jumpToPosition");
+          _scrollController =
+              ScrollController(initialScrollOffset: _jumpToPosition * 560.0);
+//          print("JUMP TO POS: $_jumpToPosition");
         }
         yearlyView.add(DateTime(i, j));
         index += 1;
@@ -176,9 +177,9 @@ class NewDashboardPageState extends State<NewDashboardPage> {
                           setState(() {
                             _monthlyView = false;
                           });
-                          Timer(const Duration(milliseconds: 50), () {
-                            _scrollController.jumpTo(_jumpToPosition * 560.0);
-                          });
+//                          Timer(const Duration(milliseconds: 50), () {
+//                            _scrollController.jumpTo(_jumpToPosition * 560.0);
+//                          });
                         }
                       },
                       child: _monthlyYearlyToggleButton("YEAR", false))
@@ -319,6 +320,8 @@ class NewDashboardPageState extends State<NewDashboardPage> {
                         DateTime today = DateTime(DateTime.now().year,
                             DateTime.now().month, DateTime.now().day);
 
+//                        print(
+//                            "${DateFormat("E MMM d y HH:mm:ss", Locale(Intl.getCurrentLocale()).languageCode).format(DateTime.now())} GMT${DateTime.now().timeZoneOffset.inHours}00 ${_gmtFormatter(DateTime.now())}");
                         if (today.isBefore(clickedBoxDate) ||
                             today == clickedBoxDate) {
                           if (DateTime(boxDay.year, boxDay.month,
@@ -364,6 +367,16 @@ class NewDashboardPageState extends State<NewDashboardPage> {
       ],
     );
   }
+
+
+
+//  String _gmtFormatter(DateTime dateTime) {
+//    if (dateTime.timeZoneOffset.isNegative) {
+//      return "GMT${dateTime.timeZoneOffset.inHours}00";
+//    } else {
+//      return "GMT+${dateTime.timeZoneOffset.inHours}00";
+//    }
+//  }
 
   Widget _yearlyViewWidget(MediaQueryData mediaQueryData) {
     return Container(

@@ -61,7 +61,8 @@ class _FeedbackPageState extends State<FeedbackPage> {
           child: Column(
             children: <Widget>[
               _textField(mediaQueryData, "Subject", _subjectController),
-              _textField(mediaQueryData, "Message", _messageController, maxLines: 5),
+              _textField(mediaQueryData, "Message", _messageController,
+                  maxLines: 5),
               Expanded(
                 child: Align(
                   alignment: FractionalOffset.bottomCenter,
@@ -97,31 +98,32 @@ class _FeedbackPageState extends State<FeedbackPage> {
     );
   }
 
-  void _btnClick(){
+  void _btnClick() {
     var subject = _subjectController.text.toString();
     var message = _messageController.text.toString();
 
     if (subject.isNotEmpty && message.isNotEmpty) {
       _showProgressDialog("Submitting...");
-      _postFeedbackResponse(subject, message).then((value){
+      _postFeedbackResponse(subject, message).then((value) {
         Navigator.pop(context);
-        if(value.status){
-          _showDialog("assets/start_job.png", "Thank You!!", "We greatly appreciate your feedback and it will help us serve you better.");
-          Timer(const Duration(seconds: 3), (){
-            Navigator.pop(context);//Pop info dialog
-            Navigator.pop(context);//Pop Screen
+        if (value.status) {
+          _showDialog("assets/start_job.png", "Thank You!!",
+              "We greatly appreciate your feedback and it will help us serve you better.");
+          Timer(const Duration(seconds: 3), () {
+            Navigator.pop(context); //Pop info dialog
+            if (Navigator.canPop(context)) Navigator.pop(context); //Pop Screen
           });
-
-        }else{
+        } else {
           MyToast("Error occured!", context);
         }
       });
-    }else{
+    } else {
       MyToast("Fill the form complete!", context);
     }
   }
 
-  Widget _textField(MediaQueryData mediaQueryData, String label, TextEditingController controller,
+  Widget _textField(MediaQueryData mediaQueryData, String label,
+      TextEditingController controller,
       {int maxLines = 1}) {
     return Container(
       margin: EdgeInsets.only(top: mediaQueryData.size.height * 0.03),
@@ -129,8 +131,10 @@ class _FeedbackPageState extends State<FeedbackPage> {
         controller: controller,
         cursorColor: accentColor,
         style: _labelTextStyle(fontWeight: FontWeight.w500, textSize: 20),
-        decoration:
-        InputDecoration(labelText: "$label", labelStyle: _labelTextStyle(), contentPadding: const EdgeInsets.only(top: -8.0)),
+        decoration: InputDecoration(
+            labelText: "$label",
+            labelStyle: _labelTextStyle(),
+            contentPadding: const EdgeInsets.only(top: -8.0)),
         maxLines: maxLines,
         minLines: 1,
       ),

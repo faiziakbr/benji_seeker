@@ -1,4 +1,3 @@
-
 import 'package:benji_seeker/constants/MyColors.dart';
 import 'package:benji_seeker/custom_texts/MontserratText.dart';
 import 'package:flutter/material.dart';
@@ -34,6 +33,9 @@ class ItemOrder extends StatelessWidget {
                     image,
                     color: accentColor,
                     fit: BoxFit.contain,
+                    placeholderBuilder: (BuildContext context) => Container(
+                        padding: const EdgeInsets.all(10.0),
+                        child: const CircularProgressIndicator()),
                   ),
                   margin: EdgeInsets.all(5.0),
                 ),

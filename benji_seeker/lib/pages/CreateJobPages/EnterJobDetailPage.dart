@@ -223,14 +223,14 @@ class _EnterJobDetailPageState extends State<EnterJobDetailPage> {
             _createJobModel.estimatedTime != null
                 ? _createJobModel.estimatedTime
                 : _createJobModel.taskId,
-        "time": "${DateFormat("E MMM d y hh:mm:ss", Locale(Intl.getCurrentLocale()).languageCode).format(_createJobModel.jobTime)} GMT${DateTime.now().timeZoneOffset.inHours}00",
+        "time": "${DateFormat("E MMM d y HH:mm:ss", Locale(Intl.getCurrentLocale()).languageCode).format(_createJobModel.jobTime)} ${_gmtFormatter(_createJobModel.jobTime)}",
         "latitude": _createJobModel.latitude,
         "longitude": _createJobModel.longitude,
         "full_address": _createJobModel.address,
         "description": _controller.text.toString(),
         "email_date_label": _createJobModel.emailDateLabel,
         "recurring": widget.createJobModel.recurringDays,
-        "end_date": "${DateFormat("E MMM d y hh:mm:ss", Locale(Intl.getCurrentLocale()).languageCode).format(_createJobModel.endTime)} GMT${DateTime.now().timeZoneOffset.inHours}00",
+        "end_date": "${DateFormat("E MMM d y HH:mm:ss", Locale(Intl.getCurrentLocale()).languageCode).format(_createJobModel.endTime)} ${_gmtFormatter(_createJobModel.jobTime)}",
         "place_id": _createJobModel.placeId
       });
     } else {
@@ -242,7 +242,7 @@ class _EnterJobDetailPageState extends State<EnterJobDetailPage> {
             _createJobModel.estimatedTime != null
                 ? _createJobModel.estimatedTime
                 : _createJobModel.taskId,
-        "time": "${DateFormat("E MMM d y hh:mm:ss", Locale(Intl.getCurrentLocale()).languageCode).format(_createJobModel.jobTime)} GMT${DateTime.now().timeZoneOffset.inHours}00",
+        "time": "${DateFormat("E MMM d y HH:mm:ss", Locale(Intl.getCurrentLocale()).languageCode).format(_createJobModel.jobTime)} ${_gmtFormatter(_createJobModel.jobTime)}",
         "latitude": _createJobModel.latitude,
         "longitude": _createJobModel.longitude,
         "full_address": _createJobModel.address,
@@ -308,6 +308,14 @@ class _EnterJobDetailPageState extends State<EnterJobDetailPage> {
         MyToast("Unexpected Error!", context, position: 1);
       }
     });
+  }
+
+  String _gmtFormatter(DateTime dateTime) {
+    if (dateTime.timeZoneOffset.isNegative) {
+      return "GMT${dateTime.timeZoneOffset.inHours}00";
+    } else {
+      return "GMT+${dateTime.timeZoneOffset.inHours}00";
+    }
   }
 
   void _btnClick(int index) async {

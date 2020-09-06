@@ -70,7 +70,6 @@ class MyApp extends StatelessWidget {
             primarySwatch: colorCustom,
             accentColor: accentColor,
           ),
-//          home: PhotoViewTest(),
           home: SplashScreen(),
         ),
       ),

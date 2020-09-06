@@ -548,7 +548,7 @@ class _WhenState extends State<When> {
 
     Map<String, dynamic> map = {
       "jobId": "$jobId",
-      "start_date": "$startTime",
+      "start_date": "${DateFormat("E MMM d y HH:mm:ss", Locale(Intl.getCurrentLocale()).languageCode).format(startTime)} ${_gmtFormatter(startTime)}",
       "email_date_label": "$emailDateLabel"
     };
 
@@ -587,5 +587,13 @@ class _WhenState extends State<When> {
         MyToast("Unexpected Error!", context, position: 1);
       }
     });
+  }
+
+  String _gmtFormatter(DateTime dateTime) {
+    if (dateTime.timeZoneOffset.isNegative) {
+      return "GMT${dateTime.timeZoneOffset.inHours}00";
+    } else {
+      return "GMT+${dateTime.timeZoneOffset.inHours}00";
+    }
   }
 }
