@@ -213,31 +213,34 @@ class _EditBankDetailsState extends State<EditBankDetails> {
         validator: (value) {
           if (value.isEmpty) return "Field is required!";
           if (key == "card_number" && value.length != 19) {
-            return "Card numbers are 16";
+            return "Please enter a valid credit card number.";
           }
           if(key == "cvv"){
             if (value.length != 3) return "CVV is 3 digits";
           }
           if(key == "expiry_date"){
             List<String> dateSplit = value.split("/");
-            if(isNumeric(dateSplit[0])){
+            if(isNumeric(dateSplit[0]) && isNumeric(dateSplit[1])){
               int month = int.parse(dateSplit[0]);
+              int year = int.parse(dateSplit[1]);
+              year = 2000 + year;
               if(month < 1 || month > 12){
                 return "Month should be 1 to 12";
               }
-            }else{
-              return "Expiry date is wrong";
-            }
-            if(!isNumeric(dateSplit[1])){
+
+              if (DateTime.now().year > year){
+                return "Invalid year entered";
+              }
+            }else {
               return "Expiry date is wrong";
             }
           }
-//          if (textInputType == TextInputType.text) {
-//            value = value.replaceAll(' ', '');
-//            if (!isAlpha(value)) {
-//              return "Name should contain only alphabets.";
-//            }
-//          }
+          if (key == "name") {
+            value = value.replaceAll(' ', '');
+            if (!isAlpha(value)) {
+              return "Name should contain only alphabets.";
+            }
+          }
           return null;
         },
         onSaved: (value) {

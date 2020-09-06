@@ -74,8 +74,8 @@ class _AddPaymentDetailsPageState extends State<AddPaymentDetailsPage> {
           ),
         ),
         centerTitle: true,
-        title:
-            MontserratText("Payment Details", 16, Colors.black, FontWeight.bold),
+        title: MontserratText(
+            "Payment Details", 16, Colors.black, FontWeight.bold),
 //        trailing: MyDarkButton("SUBMIT", submitBtnClick,fontWeight: FontWeight.w600,),
       ),
       body: Container(
@@ -103,14 +103,18 @@ class _AddPaymentDetailsPageState extends State<AddPaymentDetailsPage> {
                               fontWeight: FontWeight.w500, textSize: 20),
                           cursorColor: accentColor,
                           keyboardType: TextInputType.number,
-                          inputFormatters: [MaskedTextInputFormatter(mask: "####-####-####-####",separator: "-")],
+                          inputFormatters: [
+                            MaskedTextInputFormatter(
+                                mask: "####-####-####-####", separator: "-")
+                          ],
                           decoration: InputDecoration(
                               labelText: "Card Number",
                               labelStyle: labelTextStyle(letterSpacing: 0.06),
                               contentPadding: const EdgeInsets.only(top: -8.0)),
                           validator: (String value) {
                             if (value.isEmpty) return "Card number is required";
-                            if (value.length != 19) return "Card numbers are 16";
+                            if (value.length != 19)
+                              return "Please enter a valid credit card number.";
                             return null;
                           },
                           onSaved: (value) {
@@ -132,6 +136,10 @@ class _AddPaymentDetailsPageState extends State<AddPaymentDetailsPage> {
                           validator: (String value) {
                             if (value.isEmpty)
                               return "Card holder name is required";
+                            value = value.replaceAll(' ', '');
+                            if (!isAlpha(value)) {
+                              return "Name should contain only alphabets.";
+                            }
                             return null;
                           },
                           onSaved: (value) {
@@ -146,7 +154,10 @@ class _AddPaymentDetailsPageState extends State<AddPaymentDetailsPage> {
                               fontWeight: FontWeight.w500, textSize: 20),
                           cursorColor: accentColor,
                           keyboardType: TextInputType.datetime,
-                          inputFormatters: [MaskedTextInputFormatter(mask: "##/##",separator: "/")],
+                          inputFormatters: [
+                            MaskedTextInputFormatter(
+                                mask: "##/##", separator: "/")
+                          ],
                           decoration: InputDecoration(
                               labelText: "Expiry Date",
                               labelStyle: labelTextStyle(letterSpacing: 0.06),
@@ -154,12 +165,20 @@ class _AddPaymentDetailsPageState extends State<AddPaymentDetailsPage> {
                           validator: (String value) {
                             if (value.isEmpty) return "Expiry date is required";
                             List<String> dateSplit = value.split("/");
-                            if(isNumeric(dateSplit[0])){
+                            if (isNumeric(dateSplit[0]) &&
+                                isNumeric(dateSplit[1])) {
                               int month = int.parse(dateSplit[0]);
-                              if(month < 1 || month > 12){
+                              int year = int.parse(dateSplit[1]);
+                              year = 2000 + year;
+                              print(" ${DateTime.now().year} EYAR $year");
+                              if (month < 1 || month > 12) {
                                 return "Month should be 1 to 12";
                               }
-                            }else{
+
+                              if (DateTime.now().year > year) {
+                                return "Invalid year entered";
+                              }
+                            } else {
                               return "Expiry date is wrong";
                             }
                             return null;
@@ -263,7 +282,8 @@ class _AddPaymentDetailsPageState extends State<AddPaymentDetailsPage> {
         color: isHyperLink ? Colors.blueAccent : Colors.black,
         fontFamily: "Montserrat",
         fontSize: 14.0,
-        decoration: isHyperLink ? TextDecoration.underline : TextDecoration.none);
+        decoration:
+            isHyperLink ? TextDecoration.underline : TextDecoration.none);
   }
 
   void _submitBtnClick() {
@@ -279,28 +299,26 @@ class _AddPaymentDetailsPageState extends State<AddPaymentDetailsPage> {
 
       Map<String, dynamic> data = {
         "access_code": "${widget.userData["access_code"]}",
-        "first_name":"${widget.userData["first_name"]}",
-        "last_name":"${widget.userData["last_name"]}",
-        "email":"${widget.userData["email"]}",
-        "password":"${widget.userData["password"]}",
-        "payment_details":"${json.encode(_formData)}"
+        "first_name": "${widget.userData["first_name"]}",
+        "last_name": "${widget.userData["last_name"]}",
+        "email": "${widget.userData["email"]}",
+        "password": "${widget.userData["password"]}",
+        "payment_details": "${json.encode(_formData)}"
       };
       _postSignUp(data, "${widget.userData["phone"]}");
-
     }
   }
 
-  _postSignUp(Map<String, dynamic> data, String phoneNumber){
+  _postSignUp(Map<String, dynamic> data, String phoneNumber) {
     print("SIGN UP DATA: $data");
     MyLoadingDialog(context, "Creating account...");
 
     DioHelper dioHelper = DioHelper.instance;
 
 //    {status: true, token: 2973d6e28ea6fe698dfbbecb1fe0f6d0b527ca7cce5cd15ea8d80cb211faecaf517cbbd1e992372f, seeker_id: 5f3455ce07009326f25fa965}
-    dioHelper.postRequest(BASE_URL + URL_SIGN_UP, null, data).then((value){
+    dioHelper.postRequest(BASE_URL + URL_SIGN_UP, null, data).then((value) {
       print("RESPONSE: ${value.data}");
-      SignUpModel signUpModel =
-      signUpResponseFromJson(json.encode(value.data));
+      SignUpModel signUpModel = signUpResponseFromJson(json.encode(value.data));
       if (signUpModel.status) {
         SavedData savedData = new SavedData();
         savedData.setValue(TOKEN, signUpModel.token);
@@ -323,23 +341,19 @@ class _AddPaymentDetailsPageState extends State<AddPaymentDetailsPage> {
             Navigator.pop(context);
           }
           Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => BotNavPage(
-                  )));
+              context, MaterialPageRoute(builder: (context) => BotNavPage()));
         });
-
       } else {
         Navigator.pop(context);
         MyToast("${signUpModel.errors[0]}", context);
       }
-    }).catchError((error){
+    }).catchError((error) {
       try {
         Navigator.pop(context);
         var err = error as DioError;
         if (err.type == DioErrorType.RESPONSE) {
           SignUpModel signUpModel =
-          signUpResponseFromJson(json.encode(err.response.data));
+              signUpResponseFromJson(json.encode(err.response.data));
           MyToast("${signUpModel.errors[0]}", context, position: 1);
         } else {
           MyToast("${err.message}", context, position: 1);
