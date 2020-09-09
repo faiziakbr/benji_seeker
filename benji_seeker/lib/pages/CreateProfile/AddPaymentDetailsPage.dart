@@ -170,7 +170,6 @@ class _AddPaymentDetailsPageState extends State<AddPaymentDetailsPage> {
                               int month = int.parse(dateSplit[0]);
                               int year = int.parse(dateSplit[1]);
                               year = 2000 + year;
-                              print(" ${DateTime.now().year} EYAR $year");
                               if (month < 1 || month > 12) {
                                 return "Month should be 1 to 12";
                               }

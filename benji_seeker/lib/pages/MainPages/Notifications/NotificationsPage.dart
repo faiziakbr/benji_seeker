@@ -82,7 +82,6 @@ class NotificationsPageState extends State<NotificationsPage> {
           _isLoading = false;
         });
       } catch (e){
-        MyToast("Unexpected error.", context, position: 1);
         setState(() {
           _isError = true;
           _isLoading = false;

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:benji_seeker/My_Widgets/DialogInfo.dart';
 import 'package:benji_seeker/My_Widgets/MyDarkButton.dart';
@@ -17,10 +16,11 @@ import 'package:benji_seeker/pages/MainPages/OrderSequence/Calender/When.dart';
 import 'package:benji_seeker/utils/DioHelper.dart';
 import 'package:camera/camera.dart';
 import 'package:dio/dio.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:keyboard_visibility/keyboard_visibility.dart';
+import 'package:multi_image_picker/multi_image_picker.dart';
 
 import '../BotNav.dart';
 import 'AddLocationPage.dart';
@@ -47,7 +47,7 @@ class _EnterJobDetailPageState extends State<EnterJobDetailPage> {
 
   List<CameraDescription> cameras;
   TextEditingController _controller = TextEditingController();
-  List<File> _images;
+  List<ByteData> _images = List();
 
   CreateJobModel _createJobModel;
 
@@ -223,26 +223,29 @@ class _EnterJobDetailPageState extends State<EnterJobDetailPage> {
             _createJobModel.estimatedTime != null
                 ? _createJobModel.estimatedTime
                 : _createJobModel.taskId,
-        "time": "${DateFormat("E MMM d y HH:mm:ss", Locale(Intl.getCurrentLocale()).languageCode).format(_createJobModel.jobTime)} ${_gmtFormatter(_createJobModel.jobTime)}",
+        "time":
+            "${DateFormat("E MMM d y HH:mm:ss", Locale(Intl.getCurrentLocale()).languageCode).format(_createJobModel.jobTime)} ${_gmtFormatter(_createJobModel.jobTime)}",
         "latitude": _createJobModel.latitude,
         "longitude": _createJobModel.longitude,
         "full_address": _createJobModel.address,
         "description": _controller.text.toString(),
         "email_date_label": _createJobModel.emailDateLabel,
         "recurring": widget.createJobModel.recurringDays,
-        "end_date": "${DateFormat("E MMM d y HH:mm:ss", Locale(Intl.getCurrentLocale()).languageCode).format(_createJobModel.endTime)} ${_gmtFormatter(_createJobModel.jobTime)}",
+        "end_date":
+            "${DateFormat("E MMM d y HH:mm:ss", Locale(Intl.getCurrentLocale()).languageCode).format(_createJobModel.endTime)} ${_gmtFormatter(_createJobModel.jobTime)}",
         "place_id": _createJobModel.placeId
       });
     } else {
       _createJobModel.emailDateLabel =
-      "${DateFormat.EEEE().format(_createJobModel.jobTime)}, ${DateFormat.MMMM().add_d().format(_createJobModel.jobTime)}, ${DateFormat.y().add_jm().format(_createJobModel.jobTime)} (Local)";
+          "${DateFormat.EEEE().format(_createJobModel.jobTime)}, ${DateFormat.MMMM().add_d().format(_createJobModel.jobTime)}, ${DateFormat.y().add_jm().format(_createJobModel.jobTime)} (Local)";
       formData = FormData.fromMap({
         "sub_category_id": _createJobModel.categoryId,
         _createJobModel.estimatedTime != null ? "estimated_time" : "task_id":
             _createJobModel.estimatedTime != null
                 ? _createJobModel.estimatedTime
                 : _createJobModel.taskId,
-        "time": "${DateFormat("E MMM d y HH:mm:ss", Locale(Intl.getCurrentLocale()).languageCode).format(_createJobModel.jobTime)} ${_gmtFormatter(_createJobModel.jobTime)}",
+        "time":
+            "${DateFormat("E MMM d y HH:mm:ss", Locale(Intl.getCurrentLocale()).languageCode).format(_createJobModel.jobTime)} ${_gmtFormatter(_createJobModel.jobTime)}",
         "latitude": _createJobModel.latitude,
         "longitude": _createJobModel.longitude,
         "full_address": _createJobModel.address,
@@ -255,8 +258,10 @@ class _EnterJobDetailPageState extends State<EnterJobDetailPage> {
     var list = formData.files;
 
     _images.forEach((element) {
+//      list.add(MapEntry(
+//          "pictures", MultipartFile.fromBytes(element.absolute.path)));
       list.add(MapEntry(
-          "pictures", MultipartFile.fromFileSync(element.absolute.path)));
+          "pictures", MultipartFile.fromBytes(element.buffer.asUint8List())));
     });
 
     _dioHelper
@@ -334,7 +339,7 @@ class _EnterJobDetailPageState extends State<EnterJobDetailPage> {
     }
 
     if (index == 3) {
-      _getImages();
+      loadAssets();
     }
   }
 
@@ -351,21 +356,63 @@ class _EnterJobDetailPageState extends State<EnterJobDetailPage> {
     }
   }
 
-  Future _getImages() async {
-    FocusScope.of(context).requestFocus(FocusNode());
-    List<File> files = await FilePicker.getMultiFile(
-        type: FileType.custom,
-        allowCompression: true,
-        allowedExtensions: ["jpg", "jpeg", "png"]);
+//  Future _getImages() async {
+//    FocusScope.of(context).requestFocus(FocusNode());
+//    List<File> files = await FilePicker.getMultiFile(
+//        type: FileType.custom,
+//        allowCompression: true,
+//        allowedExtensions: ["jpg", "jpeg", "png"]);
+//
+//    if (files != null && files.length > 2)
+//      setState(() {
+//        _images = files;
+//        print("IMAGE *********: ${_images[0].path}");
+//        _showSomePicsComplete = true;
+//      });
+//    else {
+//      MyToast("You need to select more than 3 images.", context, position: 1);
+//    }
+//  }
 
-    if (files.length > 2 && files != null)
-      setState(() {
-        _images = files;
-        _showSomePicsComplete = true;
+//  List<Asset> images = List<Asset>();
+//  String _error = 'No Error Dectected';
+
+  Future<void> loadAssets() async {
+    List<Asset> resultList = List<Asset>();
+    String error = 'No Error Detected';
+
+    try {
+      resultList =
+          await MultiImagePicker.pickImages(maxImages: 10, enableCamera: false);
+    } on Exception catch (e) {
+      error = e.toString();
+    }
+
+    // If the widget was removed from the tree while the asynchronous platform
+    // message was in flight, we want to discard the reply rather than calling
+    // setState to update our non-existent appearance.
+    if (!mounted) return;
+
+    if (resultList.length > 2) {
+      _images.clear();
+      _addImages(resultList).then((value) {
+        if (value){
+          setState(() {
+            _showSomePicsComplete = true;
+          });
+        }
       });
-    else {
+    } else {
       MyToast("You need to select more than 3 images.", context, position: 1);
     }
+  }
+
+  Future<bool> _addImages(List<Asset> resultList) async {
+    for (Asset data in resultList) {
+      ByteData image = await data.getByteData();
+      _images.add(image);
+    }
+    return true;
   }
 
   Widget _item(
@@ -378,7 +425,7 @@ class _EnterJobDetailPageState extends State<EnterJobDetailPage> {
       String completedText,
       String btnText,
       Function btnClick,
-      {List<File> images}) {
+      {List<ByteData> images}) {
     return Container(
       margin:
           EdgeInsets.symmetric(horizontal: mediaQueryData.size.width * 0.05),
@@ -404,20 +451,20 @@ class _EnterJobDetailPageState extends State<EnterJobDetailPage> {
                           children: <Widget>[
                             Row(
                               children: <Widget>[
-                                Image.file(
-                                  _images[0],
+                                Image.memory(
+                                  _images[0].buffer.asUint8List(),
                                   width: 80,
                                   height: 80,
                                   fit: BoxFit.cover,
                                 ),
-                                Image.file(
-                                  _images[1],
+                                Image.memory(
+                                  _images[1].buffer.asUint8List(),
                                   width: 80,
                                   height: 80,
                                   fit: BoxFit.cover,
                                 ),
-                                Image.file(
-                                  _images[2],
+                                Image.memory(
+                                  _images[2].buffer.asUint8List(),
                                   width: 80,
                                   height: 80,
                                   fit: BoxFit.cover,

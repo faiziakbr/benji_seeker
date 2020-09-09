@@ -259,9 +259,11 @@ class _JobDetailPageState extends State<JobDetailPage> with WidgetsBindingObserv
         _biddersError = true;
       });
     }).whenComplete(() {
-      setState(() {
-        _biddersLoading = false;
-      });
+      if(mounted) {
+        setState(() {
+          _biddersLoading = false;
+        });
+      }
     });
   }
 
@@ -428,7 +430,7 @@ class _JobDetailPageState extends State<JobDetailPage> with WidgetsBindingObserv
   double _contentHeight(MediaQueryData mediaQueryData) {
     if (_jobDetail != null && _jobDetail.nextStep != null) {
       if (_jobDetail.nextStep == "booking_accepted") {
-        return mediaQueryData.size.height * 0.3;
+        return mediaQueryData.size.height * 0.35;
       } else if (_jobDetail.nextStep == "summary") {
         return mediaQueryData.size.height * 0.4;
       } else if (_jobDetail.nextStep == "under_progress") {
@@ -655,7 +657,7 @@ class _JobDetailPageState extends State<JobDetailPage> with WidgetsBindingObserv
   Widget _recurringTextWidget(
       MediaQueryData mediaQueryData, Detail jobDetailModel) {
     String recurringText =
-        "Recurring, Every ${jobDetailModel.recurringDays} days until ${DateFormat.yMMMMd().format(DateTime.parse(jobDetailModel.endDate))}";
+        "Recurring, Every ${jobDetailModel.recurringDays} days until ${DateFormat.yMMMMd().format(DateTime.parse(jobDetailModel.endDate).toLocal())}";
     if (jobDetailModel.skipDates.length > 0)
       recurringText = _addSkipDays(jobDetailModel.skipDates, recurringText);
 
@@ -838,7 +840,6 @@ class _JobDetailPageState extends State<JobDetailPage> with WidgetsBindingObserv
         "JOB DETAIL: ${_jobDetail.nextStep} and NextStep: ${_jobDetail.isRecurring}");
     return Container(
       color: Colors.white,
-      height: mediaQueryData.size.height * 0.3,
       child: _providerLoading
           ? Center(
               child: CircularProgressIndicator(),
@@ -941,45 +942,45 @@ class _JobDetailPageState extends State<JobDetailPage> with WidgetsBindingObserv
                                           });
                                     },
                                     child: Flexible(
-                                      child: MontserratText("SKIP THIS WEEK",
-                                          17, Colors.black, FontWeight.w600),
-//                          child: Container(
-//                            height: 30,
-//                            width: mediaQueryData.size.width * 0.6,
-//                            margin: const EdgeInsets.only(
-//                                top: 16.0, bottom: 16.0),
-//                            child: MyLightButton(
-//                              "SKIP THIS WEEK",
-//                                  () {
-//                                showDialog(
-//                                    context: context,
-//                                    barrierDismissible:
-//                                    bool.fromEnvironment(
-//                                        "dismiss dialog"),
-//                                    builder:
-//                                        (BuildContext context) {
-//                                      return DialogYesNo(
-//                                          "Skip upcoming job service?",
-//                                          "Are you sure you want to skip this job.",
-//                                              () {
-//                                            DateTime dateTime =
-//                                            DateTime.parse(widget
-//                                                .generatedRecurringTime ??
-//                                                _jobDetail.when);
-//                                            _skipJob(
-//                                                _jobDetailModel
-//                                                    .detail.processId,
-//                                                dateTime);
-//                                          }, () {
-//                                        Navigator.pop(context);
-//                                      });
-//                                    });
-//                              },
-//                              textColor: Colors.black,
-//                              fontWeight: FontWeight.w600,
-//                              borderColor: Colors.black,
-//                            ),
-//                          ),
+//                                      child: MontserratText("SKIP THIS WEEK",
+//                                          17, Colors.black, FontWeight.w600),
+                          child: Container(
+                            height: 50,
+                            width: mediaQueryData.size.width * 0.6,
+                            margin: const EdgeInsets.only(
+                                top: 16.0, bottom: 16.0),
+                            child: MyLightButton(
+                              "SKIP THIS WEEK",
+                                  () {
+                                showDialog(
+                                    context: context,
+                                    barrierDismissible:
+                                    bool.fromEnvironment(
+                                        "dismiss dialog"),
+                                    builder:
+                                        (BuildContext context) {
+                                      return DialogYesNo(
+                                          "Skip upcoming job service?",
+                                          "Are you sure you want to skip this job.",
+                                              () {
+                                            DateTime dateTime =
+                                            DateTime.parse(widget
+                                                .generatedRecurringTime ??
+                                                _jobDetail.when);
+                                            _skipJob(
+                                                _jobDetailModel
+                                                    .detail.processId,
+                                                dateTime);
+                                          }, () {
+                                        Navigator.pop(context);
+                                      });
+                                    });
+                              },
+                              textColor: Colors.black,
+                              fontWeight: FontWeight.w600,
+                              borderColor: Colors.black,
+                            ),
+                          ),
                                     ),
                                   )
                                 : Container()
@@ -1055,7 +1056,7 @@ class _JobDetailPageState extends State<JobDetailPage> with WidgetsBindingObserv
                                 child: Container(
                                   height: 50,
                                   width: mediaQueryData.size.width * 0.6,
-                                  margin: const EdgeInsets.only(left: 16.0),
+                                  margin: const EdgeInsets.only(left: 16.0, bottom: 8.0),
                                   child: MyLightButton(
                                     "CANCEL",
                                     () {
@@ -1087,7 +1088,7 @@ class _JobDetailPageState extends State<JobDetailPage> with WidgetsBindingObserv
                                   height: 50,
                                   width: mediaQueryData.size.width * 0.6,
                                   margin: const EdgeInsets.only(
-                                      left: 8.0, right: 16.0),
+                                      left: 8.0, right: 16.0, bottom: 8.0),
                                   child: MyDarkButton(
                                     "RESCHEDULE",
                                     () {
@@ -1108,7 +1109,6 @@ class _JobDetailPageState extends State<JobDetailPage> with WidgetsBindingObserv
   Widget _providerSummary(MediaQueryData mediaQueryData) {
     return Container(
       color: Colors.white,
-      height: mediaQueryData.size.height * 0.4,
       child: (_completedJobLoading || _providerLoading)
           ? Center(
               child: CircularProgressIndicator(),
@@ -1228,7 +1228,7 @@ class _JobDetailPageState extends State<JobDetailPage> with WidgetsBindingObserv
                                 child: Container(
                                   height: 50,
                                   width: mediaQueryData.size.width * 0.6,
-                                  margin: const EdgeInsets.only(left: 16.0),
+                                  margin: const EdgeInsets.only(left: 16.0, bottom: 8.0),
                                   child: MyLightButton(
                                     "${_tipText(_completedJobModel.tipGiven, _completedJobModel.rated)}",
                                     () async {
@@ -1262,7 +1262,7 @@ class _JobDetailPageState extends State<JobDetailPage> with WidgetsBindingObserv
                             height: 50,
                             width: mediaQueryData.size.width * 0.6,
                             margin:
-                                const EdgeInsets.only(left: 8.0, right: 16.0),
+                                const EdgeInsets.only(left: 8.0, right: 16.0, bottom: 8.0),
                             child: MyDarkButton(
                               "SUMMARY",
                               () async {
@@ -1320,7 +1320,7 @@ class _JobDetailPageState extends State<JobDetailPage> with WidgetsBindingObserv
 
     Map<String, dynamic> map = {
       "process_id": "$processId",
-      "date": date.toIso8601String()
+      "date": "${DateFormat("E MMM d y HH:mm:ss", Locale(Intl.getCurrentLocale()).languageCode).format(date)} ${_gmtFormatter(date)}"
     };
     dioHelper
         .postRequest(BASE_URL + URL_SKIP_JOB, {"token": ""}, map)
@@ -1390,5 +1390,13 @@ class _JobDetailPageState extends State<JobDetailPage> with WidgetsBindingObserv
         MyToast("Unexpected Error!", context, position: 1);
       }
     });
+  }
+
+  String _gmtFormatter(DateTime dateTime) {
+    if (dateTime.timeZoneOffset.isNegative) {
+      return "GMT${dateTime.timeZoneOffset.inHours}00";
+    } else {
+      return "GMT+${dateTime.timeZoneOffset.inHours}00";
+    }
   }
 }

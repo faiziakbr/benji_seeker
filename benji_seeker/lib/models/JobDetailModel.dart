@@ -25,6 +25,7 @@ class Detail {
   String seekerId;
   String processId;
   String category;
+  String subCategoryId;
   String subCategory;
   String subCategoryImage;
   String when;
@@ -45,6 +46,7 @@ class Detail {
     seekerId = json['seeker_id'];
     processId = json['process_id'];
     category = json['category'];
+    subCategoryId = json['sub_category_id'];
     subCategory = json['sub_category'];
     subCategoryImage = json['sub_category_image'];
     when = json['when'];

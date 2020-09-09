@@ -9,6 +9,7 @@ import 'package:benji_seeker/custom_texts/MontserratText.dart';
 import 'package:benji_seeker/models/CreateJobModel.dart';
 import 'package:benji_seeker/models/JobDetailModel.dart';
 import 'package:benji_seeker/models/JustStatusModel.dart';
+import 'package:benji_seeker/models/PackageModel.dart';
 import 'package:benji_seeker/pages/MainPages/OrderSequence/RecurringOptions/RecurringOptionsPage.dart';
 import 'package:benji_seeker/utils/DioHelper.dart';
 import 'package:dio/dio.dart';
@@ -44,32 +45,44 @@ class _WhenState extends State<When> {
 
   //For rescheduling
   CreateJobModel _createJobModel;
+  DioHelper _dioHelper;
+
+  bool _isLoading = false;
+  bool _isError = false;
 
   @override
   void initState() {
+    _dioHelper = DioHelper.instance;
     if (widget.rescheduleJob) {
       _createJobModel = CreateJobModel();
       _createJobModel.jobTime = DateTime.parse(widget.jobDetail.when).toLocal();
       _setDateComplete = true;
       _setTimeComplete = true;
-      _removeRecurringOption = true;
+      if (widget.jobDetail.isRecurring) {
+        _isLoading = true;
+        _isError = false;
+        _createJobModel.endTime =
+            DateTime.parse(widget.jobDetail.endDate).toLocal();
+        _fetchPackageDetails(widget.jobDetail.subCategoryId);
+        _createJobModel.recurringText = "after ${widget.jobDetail.recurringDays} days";
+        _createJobModel.isRecurringSet = true;
+      } else {
+        _isLoading = true;
+        _isError = false;
+        _fetchPackageDetails(widget.jobDetail.subCategoryId);
+        _removeRecurringOption = false;
+      }
     } else {
       _createJobModel = widget.createJobModel;
       if (_createJobModel.isJobTimeSet) {
         _setDateComplete = true;
         _setTimeComplete = true;
       } else {
-        if (_createJobModel.createFromCalendar){
+        if (_createJobModel.createFromCalendar) {
           _setDateComplete = true;
         } else {
-          _createJobModel.jobTime = DateTime(DateTime
-              .now()
-              .year,
-              DateTime
-                  .now()
-                  .month, DateTime
-                  .now()
-                  .day, 5, 0, 0)
+          _createJobModel.jobTime = DateTime(DateTime.now().year,
+                  DateTime.now().month, DateTime.now().day, 5, 0, 0)
               .add(Duration(days: 7));
         }
       }
@@ -78,6 +91,49 @@ class _WhenState extends State<When> {
       }
     }
     super.initState();
+  }
+
+  void _fetchPackageDetails(String subCategoryId) {
+    _dioHelper.getRequest(BASE_URL + URL_SUB_CATRGORY_DETAIL(subCategoryId),
+        {"token": ""}).then((value) {
+      print("RESPONSE: ${value.data}");
+      PackageModel packageModel =
+          packageResponseFromJson(json.encode(value.data));
+
+      if (packageModel.status) {
+        setState(() {
+          _createJobModel.setRecurringOptions
+              .addAll(packageModel.recurringOptions);
+          _removeRecurringOption = false;
+        });
+      } else {
+        setState(() {
+          _isError = true;
+        });
+      }
+    }).catchError((error) {
+      try {
+        print("ERROR IS $error");
+        var err = error as DioError;
+        print("ERR RESPONSE: ${err.response.data}");
+        if (err.type == DioErrorType.RESPONSE) {
+          PackageModel response =
+              packageResponseFromJson(json.encode(err.response.data));
+          MyToast("${response.errors[0]}", context, position: 1);
+        } else {
+          MyToast("${err.message}", context, position: 1);
+        }
+      } catch (e) {
+        MyToast("Unexpected Error!", context, position: 1);
+      }
+      setState(() {
+        _isError = true;
+      });
+    }).whenComplete(() {
+      setState(() {
+        _isLoading = false;
+      });
+    });
   }
 
   @override
@@ -105,51 +161,63 @@ class _WhenState extends State<When> {
               _showDatePickerSheet = false;
             });
           },
-          child: Container(
-            margin: EdgeInsets.only(
-                top: mediaQueryData.size.height * 0.05,
-                left: mediaQueryData.size.width * 0.05,
-                right: mediaQueryData.size.width * 0.05),
-            child: SingleChildScrollView(
-              child: Column(
-                children: <Widget>[
-                  GestureDetector(
-                    onTap: () {
-                      print("Clicked");
-                      setState(() {
-                        _showDatePickerSheet = true;
-                        _type = "date";
-                      });
-                    },
-                    child: _customCard(
-                        mediaQueryData,
-                        context,
-                        "assets/calender_icon.png",
-                        "DATE",
-                        _setDateComplete
-                            ? "Start date: ${DateFormat.yMd().format(
-                            _createJobModel.jobTime)}"
-                            : "Select start date.",
-                        _setDateComplete),
+          child: _isLoading
+              ? Container(
+                  height: mediaQueryData.size.height,
+                  child: Center(
+                    child: CircularProgressIndicator(),
                   ),
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _showDatePickerSheet = true;
-                        _type = "time";
-                      });
-                    },
-                    child: _customCard(
-                        mediaQueryData,
-                        context,
-                        "assets/time_icon.png",
-                        "TIME",
-                        _setTimeComplete
-                            ? "Start time: ${DateFormat.jm().format(
-                            _createJobModel.jobTime)}"
-                            : "Set start time.",
-                        _setTimeComplete),
-                  ),
+                )
+              : _isError
+                  ? Container(
+                      height: mediaQueryData.size.height,
+                      child: Center(
+                        child: MontserratText("Error loading!", 18,
+                            separatorColor, FontWeight.normal),
+                      ),
+                    )
+                  : Container(
+                      margin: EdgeInsets.only(
+                          top: mediaQueryData.size.height * 0.05,
+                          left: mediaQueryData.size.width * 0.05,
+                          right: mediaQueryData.size.width * 0.05),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: <Widget>[
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _showDatePickerSheet = true;
+                                  _type = "date";
+                                });
+                              },
+                              child: _customCard(
+                                  mediaQueryData,
+                                  context,
+                                  "assets/calender_icon.png",
+                                  "DATE",
+                                  _setDateComplete
+                                      ? "Start date: ${DateFormat.yMd().format(_createJobModel.jobTime)}"
+                                      : "Select start date.",
+                                  _setDateComplete),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _showDatePickerSheet = true;
+                                  _type = "time";
+                                });
+                              },
+                              child: _customCard(
+                                  mediaQueryData,
+                                  context,
+                                  "assets/time_icon.png",
+                                  "TIME",
+                                  _setTimeComplete
+                                      ? "Start time: ${DateFormat.jm().format(_createJobModel.jobTime)}"
+                                      : "Set start time.",
+                                  _setTimeComplete),
+                            ),
 
 //                    child: _removeRecurringOption ? Container() : _customCard(
 //                        mediaQueryData,
@@ -160,115 +228,142 @@ class _WhenState extends State<When> {
 //                                widget.createJobModel.endTime != null)
 //                            ? "${widget.createJobModel.recurringText}\nEnd Data: ${DateFormat.yMd().format(widget.createJobModel.endTime)}"
 //                            : "Is this recurring?", _setRecurringComplete),
-                  _removeRecurringOption || _createJobModel.setRecurringOptions.length == 0
-                      ? Container()
-                      : Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      MontserratText(
-                        "Recurring?",
-                        18,
-                        Colors.black,
-                        FontWeight.bold,
-                        bottom: 8.0,
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          GestureDetector(
-                              onTap: () async {
-                                var result = await Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) =>
-                                            RecurringOptionsPage(
-                                                _createJobModel)));
-                                if (result != null) {
-                                  setState(() {
-                                    _setRecurringComplete = result;
-                                  });
-                                }
-                              },
-                              child: _recurringButtons(
-                                  mediaQueryData, "YES", _setRecurringComplete)),
-                          GestureDetector(
-                            onTap: (){
-                              _createJobModel.recurringText = "";
-                              _createJobModel.isRecurringID = "";
-                              _createJobModel.endTime = null;
-                              _createJobModel.isRecurringSet = false;
-                              setState(() {
-                                _setRecurringComplete = false;
-                              });
-                            },
-                              child: _recurringButtons(mediaQueryData, "NO", !_setRecurringComplete))
-                        ],
-                      ),
-                      _createJobModel.isRecurringSet ? MontserratText("Repeats ${_createJobModel.recurringText} till ${DateFormat.yMd().format(_createJobModel.endTime)}", 18, Colors.black, FontWeight.w600, bottom: 16.0,) : Container()
-                    ],
-                  ),
+                            _removeRecurringOption ||
+                                    _createJobModel
+                                            .setRecurringOptions.length ==
+                                        0
+                                ? Container()
+                                : Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      MontserratText(
+                                        "Recurring?",
+                                        18,
+                                        Colors.black,
+                                        FontWeight.bold,
+                                        bottom: 8.0,
+                                      ),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          GestureDetector(
+                                              onTap: () async {
+                                                var result = await Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            RecurringOptionsPage(
+                                                                _createJobModel)));
+                                                if (result != null) {
+                                                  setState(() {
+                                                    _setRecurringComplete =
+                                                        result;
+                                                  });
+                                                }
+                                              },
+                                              child: _recurringButtons(
+                                                  mediaQueryData,
+                                                  "YES",
+                                                  _setRecurringComplete)),
+                                          GestureDetector(
+                                              onTap: () {
+                                                _createJobModel.recurringText =
+                                                    "";
+                                                _createJobModel.isRecurringID =
+                                                    "";
+                                                _createJobModel.endTime = null;
+                                                _createJobModel.isRecurringSet =
+                                                    false;
+                                                setState(() {
+                                                  _setRecurringComplete = false;
+                                                });
+                                              },
+                                              child: _recurringButtons(
+                                                  mediaQueryData,
+                                                  "NO",
+                                                  !_setRecurringComplete))
+                                        ],
+                                      ),
+                                      _createJobModel.isRecurringSet
+                                          ? MontserratText(
+                                              "Repeats ${_createJobModel.recurringText} till ${DateFormat.yMd().format(_createJobModel.endTime)}",
+                                              18,
+                                              Colors.black,
+                                              FontWeight.w600,
+                                              bottom: 16.0,
+                                            )
+                                          : Container()
+                                    ],
+                                  ),
 
-                  Container(
-                    width: mediaQueryData.size.width * 0.9,
-                    height: 50,
-                    child: MyDarkButton(
-                        widget.rescheduleJob ? "Reschedule" : "Continue", () {
+                            Container(
+                              width: mediaQueryData.size.width * 0.9,
+                              height: 50,
+                              child: MyDarkButton(
+                                  widget.rescheduleJob
+                                      ? "Reschedule"
+                                      : "Continue", () {
 //                        ${DateFormat.MMMM().add_d().add_y().add_jm().add_EEEE().format(widget.createJobModel.jobTime)}
-                      print("JOB TIME: ${_createJobModel.jobTime}");
+                                print("JOB TIME: ${_createJobModel.jobTime}");
 
-                      if (_setDateComplete && _setTimeComplete) {
-                        if (widget.rescheduleJob) {
-                          if (_createJobModel.jobTime
-                              .difference(DateTime.now())
-                              .inMinutes >
-                              45) {
-                            _createJobModel.emailDateLabel =
-                            "${DateFormat.EEEE().format(
-                                _createJobModel.jobTime)}, ${DateFormat.MMMM()
-                                .add_d()
-                                .format(_createJobModel.jobTime)}, ${DateFormat
-                                .y().add_jm().format(
-                                _createJobModel.jobTime)} (Local)";
-                            _rescheduleJob(
-                                widget.jobDetail.id,
-                                _createJobModel.jobTime,
-                                _createJobModel.emailDateLabel);
-                            _createJobModel.isJobTimeSet = true;
-                          } else {
-                            MyToast("Can't set time under 45 minutes", context,
-                                position: 1);
-                          }
-                        } else {
-                          if (widget.createJobModel.jobTime
-                              .difference(DateTime.now())
-                              .inMinutes >
-                              45) {
-                            widget.createJobModel.jobTime =
-                                _createJobModel.jobTime;
-                            widget.createJobModel.emailDateLabel =
-                            "${DateFormat.EEEE().format(
-                                widget.createJobModel.jobTime)}, ${DateFormat
-                                .MMMM().add_d().format(
-                                widget.createJobModel.jobTime)}, ${DateFormat
-                                .y().add_jm().format(
-                                widget.createJobModel.jobTime)} (Local)";
-                            _createJobModel.isJobTimeSet = true;
-                            Navigator.pop(context, true);
-                          } else {
-                            MyToast("Can't set time under 45 minutes", context,
-                                position: 1);
-                          }
-                        }
-                      } else {
-                        MyToast("Date and Time are required!", context,
-                            position: 1);
-                      }
-                    }),
-                  ),
-                ],
-              ),
-            ),
-          ),
+                                if (_setDateComplete && _setTimeComplete) {
+                                  if (widget.rescheduleJob) {
+                                    if (_createJobModel.jobTime
+                                            .difference(DateTime.now())
+                                            .inMinutes >
+                                        45) {
+                                      _createJobModel.emailDateLabel =
+                                          "${DateFormat.EEEE().format(_createJobModel.jobTime)}, ${DateFormat.MMMM().add_d().format(_createJobModel.jobTime)}, ${DateFormat.y().add_jm().format(_createJobModel.jobTime)} (Local)";
+                                      if (widget.rescheduleJob) {
+                                        _rescheduleJob(
+                                            widget.jobDetail.id,
+                                            _createJobModel.jobTime,
+                                            _createJobModel.emailDateLabel,
+                                            recurring:
+                                                _createJobModel.recurringDays,
+                                            endTime: _createJobModel.endTime);
+                                      } else {
+                                        _rescheduleJob(
+                                            widget.jobDetail.id,
+                                            _createJobModel.jobTime,
+                                            _createJobModel.emailDateLabel);
+                                      }
+                                      _createJobModel.isJobTimeSet = true;
+                                    } else {
+                                      MyToast("Can't set time under 45 minutes",
+                                          context,
+                                          position: 1);
+                                    }
+                                  } else {
+                                    if (widget.createJobModel.jobTime
+                                            .difference(DateTime.now())
+                                            .inMinutes >
+                                        45) {
+                                      widget.createJobModel.jobTime =
+                                          _createJobModel.jobTime;
+                                      widget.createJobModel.emailDateLabel =
+                                          "${DateFormat.EEEE().format(widget.createJobModel.jobTime)}, ${DateFormat.MMMM().add_d().format(widget.createJobModel.jobTime)}, ${DateFormat.y().add_jm().format(widget.createJobModel.jobTime)} (Local)";
+                                      _createJobModel.isJobTimeSet = true;
+                                      Navigator.pop(context, true);
+                                    } else {
+                                      MyToast("Can't set time under 45 minutes",
+                                          context,
+                                          position: 1);
+                                    }
+                                  }
+                                } else {
+                                  MyToast(
+                                      "Date and Time are required!", context,
+                                      position: 1);
+                                }
+                              }),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
         ),
         bottomSheet: _showIOSStyleDatePicker(mediaQueryData, _type));
   }
@@ -292,37 +387,42 @@ class _WhenState extends State<When> {
             ),
             title: MontserratText(title, 16, Colors.black, FontWeight.bold),
             subtitle:
-            MontserratText(subTitle, 16, separatorColor, FontWeight.w300),
+                MontserratText(subTitle, 16, separatorColor, FontWeight.w300),
             trailing: isCompleted
                 ? Container(
-              width: mediaQueryData.size.width * 0.1,
-              height: mediaQueryData.size.height * 0.2,
-              margin: const EdgeInsets.only(right: 8.0),
-              child: Icon(
-                Icons.check,
-                color: accentColor,
-              ),
-            )
+                    width: mediaQueryData.size.width * 0.1,
+                    height: mediaQueryData.size.height * 0.2,
+                    margin: const EdgeInsets.only(right: 8.0),
+                    child: Icon(
+                      Icons.check,
+                      color: accentColor,
+                    ),
+                  )
                 : Container(
-              width: 0,
-              height: 0,
-            ),
+                    width: 0,
+                    height: 0,
+                  ),
           ),
         ],
       ),
     );
   }
 
-  Widget _recurringButtons(MediaQueryData mediaQueryData, String text,
-      bool selected) {
+  Widget _recurringButtons(
+      MediaQueryData mediaQueryData, String text, bool selected) {
     return Container(
         width: mediaQueryData.size.width * 0.45,
         margin: const EdgeInsets.only(bottom: 16.0),
         padding: const EdgeInsets.all(16.0),
-        decoration: BoxDecoration(border: Border.all(color: accentColor),
-            borderRadius: text == "YES" ? BorderRadius.only(
-                topLeft: Radius.circular(8.0), bottomLeft: Radius.circular(8.0)) : BorderRadius.only(
-                topRight: Radius.circular(8.0), bottomRight: Radius.circular(8.0))),
+        decoration: BoxDecoration(
+            border: Border.all(color: accentColor),
+            borderRadius: text == "YES"
+                ? BorderRadius.only(
+                    topLeft: Radius.circular(8.0),
+                    bottomLeft: Radius.circular(8.0))
+                : BorderRadius.only(
+                    topRight: Radius.circular(8.0),
+                    bottomRight: Radius.circular(8.0))),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -334,13 +434,13 @@ class _WhenState extends State<When> {
                 FontWeight.bold),
             selected
                 ? Icon(
-              Icons.check,
-              color: Colors.green,
-            )
+                    Icons.check,
+                    color: Colors.green,
+                  )
                 : SizedBox(
-              width: 20,
-              height: 20,
-            )
+                    width: 20,
+                    height: 20,
+                  )
           ],
         ));
   }
@@ -379,14 +479,8 @@ class _WhenState extends State<When> {
             Flexible(
               child: CupertinoDatePicker(
                 mode: CupertinoDatePickerMode.date,
-                minimumDate: DateTime(DateTime
-                    .now()
-                    .year, DateTime
-                    .now()
-                    .month,
-                    DateTime
-                        .now()
-                        .day),
+                minimumDate: DateTime(DateTime.now().year, DateTime.now().month,
+                    DateTime.now().day),
                 initialDateTime: DateTime.now().add(Duration(days: 7)),
                 onDateTimeChanged: (DateTime value) {
                   var time = _createJobModel.jobTime;
@@ -546,11 +640,25 @@ class _WhenState extends State<When> {
     MyLoadingDialog(context, "Rescheduling job");
     DioHelper dioHelper = DioHelper.instance;
 
-    Map<String, dynamic> map = {
-      "jobId": "$jobId",
-      "start_date": "${DateFormat("E MMM d y HH:mm:ss", Locale(Intl.getCurrentLocale()).languageCode).format(startTime)} ${_gmtFormatter(startTime)}",
-      "email_date_label": "$emailDateLabel"
-    };
+    Map<String, dynamic> map;
+    if (endTime == null || recurring == 0) {
+      map = {
+        "jobId": "$jobId",
+        "start_date":
+            "${DateFormat("E MMM d y HH:mm:ss", Locale(Intl.getCurrentLocale()).languageCode).format(startTime)} ${_gmtFormatter(startTime)}",
+        "email_date_label": "$emailDateLabel"
+      };
+    } else {
+      map = {
+        "jobId": "$jobId",
+        "start_date":
+            "${DateFormat("E MMM d y HH:mm:ss", Locale(Intl.getCurrentLocale()).languageCode).format(startTime)} ${_gmtFormatter(startTime)}",
+        "email_date_label": "$emailDateLabel",
+        "recurring": recurring,
+        "end_date":
+            "${DateFormat("E MMM d y HH:mm:ss", Locale(Intl.getCurrentLocale()).languageCode).format(endTime)} ${_gmtFormatter(startTime)}",
+      };
+    }
 
     print("RESCHEDULE REQUEST: $map");
 

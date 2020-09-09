@@ -172,7 +172,7 @@ class _OrderPage1State extends State<OrderPage1> {
           MyToast("${err.message}", context, position: 1);
         }
       } catch (e) {
-        MyToast("Unexpected Error!", context, position: 1);
+
       }
       setState(() {
         _isError = true;
