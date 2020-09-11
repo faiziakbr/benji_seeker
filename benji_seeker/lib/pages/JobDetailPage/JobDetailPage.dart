@@ -49,7 +49,8 @@ class JobDetailPage extends StatefulWidget {
   _JobDetailPageState createState() => _JobDetailPageState();
 }
 
-class _JobDetailPageState extends State<JobDetailPage> with WidgetsBindingObserver {
+class _JobDetailPageState extends State<JobDetailPage>
+    with WidgetsBindingObserver {
   DioHelper _dioHelper;
   var platform = MethodChannel('samples.flutter.dev/battery');
   bool _isLoading = true;
@@ -259,7 +260,7 @@ class _JobDetailPageState extends State<JobDetailPage> with WidgetsBindingObserv
         _biddersError = true;
       });
     }).whenComplete(() {
-      if(mounted) {
+      if (mounted) {
         setState(() {
           _biddersLoading = false;
         });
@@ -381,10 +382,19 @@ class _JobDetailPageState extends State<JobDetailPage> with WidgetsBindingObserv
                 )
               : _isError
                   ? Center(
-                      child: MontserratText("Job doesn't exists!", 18,
-                          Colors.black.withOpacity(0.4), FontWeight.normal,
-                          left: 16, right: 16),
-                    )
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          MontserratText("Job doesn't exists!", 18,
+                              Colors.black.withOpacity(0.4), FontWeight.normal,
+                              left: 16, right: 16),
+                          MyDarkButton("Go Back",(){
+                            Navigator.pop(context);
+                          })
+                        ],
+                      ),
+                  )
                   : _body(mediaQueryData),
 
           //optional
@@ -779,7 +789,7 @@ class _JobDetailPageState extends State<JobDetailPage> with WidgetsBindingObserv
       case "arrived_at_location":
         return _providerDetail(mediaQueryData);
       default:
-        return Container();
+        return Container(color: Colors.white,);
     }
   }
 
@@ -944,43 +954,43 @@ class _JobDetailPageState extends State<JobDetailPage> with WidgetsBindingObserv
                                     child: Flexible(
 //                                      child: MontserratText("SKIP THIS WEEK",
 //                                          17, Colors.black, FontWeight.w600),
-                          child: Container(
-                            height: 50,
-                            width: mediaQueryData.size.width * 0.6,
-                            margin: const EdgeInsets.only(
-                                top: 16.0, bottom: 16.0),
-                            child: MyLightButton(
-                              "SKIP THIS WEEK",
-                                  () {
-                                showDialog(
-                                    context: context,
-                                    barrierDismissible:
-                                    bool.fromEnvironment(
-                                        "dismiss dialog"),
-                                    builder:
-                                        (BuildContext context) {
-                                      return DialogYesNo(
-                                          "Skip upcoming job service?",
-                                          "Are you sure you want to skip this job.",
-                                              () {
-                                            DateTime dateTime =
-                                            DateTime.parse(widget
-                                                .generatedRecurringTime ??
-                                                _jobDetail.when);
-                                            _skipJob(
-                                                _jobDetailModel
-                                                    .detail.processId,
-                                                dateTime);
-                                          }, () {
-                                        Navigator.pop(context);
-                                      });
-                                    });
-                              },
-                              textColor: Colors.black,
-                              fontWeight: FontWeight.w600,
-                              borderColor: Colors.black,
-                            ),
-                          ),
+                                      child: Container(
+                                        height: 50,
+                                        width: mediaQueryData.size.width * 0.6,
+                                        margin: const EdgeInsets.only(
+                                            top: 16.0, bottom: 16.0),
+                                        child: MyLightButton(
+                                          "SKIP THIS WEEK",
+                                          () {
+                                            showDialog(
+                                                context: context,
+                                                barrierDismissible:
+                                                    bool.fromEnvironment(
+                                                        "dismiss dialog"),
+                                                builder:
+                                                    (BuildContext context) {
+                                                  return DialogYesNo(
+                                                      "Skip upcoming job service?",
+                                                      "Are you sure you want to skip this job.",
+                                                      () {
+                                                    DateTime dateTime =
+                                                        DateTime.parse(widget
+                                                                .generatedRecurringTime ??
+                                                            _jobDetail.when);
+                                                    _skipJob(
+                                                        _jobDetailModel
+                                                            .detail.processId,
+                                                        dateTime);
+                                                  }, () {
+                                                    Navigator.pop(context);
+                                                  });
+                                                });
+                                          },
+                                          textColor: Colors.black,
+                                          fontWeight: FontWeight.w600,
+                                          borderColor: Colors.black,
+                                        ),
+                                      ),
                                     ),
                                   )
                                 : Container()
@@ -1056,7 +1066,8 @@ class _JobDetailPageState extends State<JobDetailPage> with WidgetsBindingObserv
                                 child: Container(
                                   height: 50,
                                   width: mediaQueryData.size.width * 0.6,
-                                  margin: const EdgeInsets.only(left: 16.0, bottom: 8.0),
+                                  margin: const EdgeInsets.only(
+                                      left: 16.0, bottom: 8.0),
                                   child: MyLightButton(
                                     "CANCEL",
                                     () {
@@ -1228,7 +1239,8 @@ class _JobDetailPageState extends State<JobDetailPage> with WidgetsBindingObserv
                                 child: Container(
                                   height: 50,
                                   width: mediaQueryData.size.width * 0.6,
-                                  margin: const EdgeInsets.only(left: 16.0, bottom: 8.0),
+                                  margin: const EdgeInsets.only(
+                                      left: 16.0, bottom: 8.0),
                                   child: MyLightButton(
                                     "${_tipText(_completedJobModel.tipGiven, _completedJobModel.rated)}",
                                     () async {
@@ -1261,8 +1273,8 @@ class _JobDetailPageState extends State<JobDetailPage> with WidgetsBindingObserv
                           child: Container(
                             height: 50,
                             width: mediaQueryData.size.width * 0.6,
-                            margin:
-                                const EdgeInsets.only(left: 8.0, right: 16.0, bottom: 8.0),
+                            margin: const EdgeInsets.only(
+                                left: 8.0, right: 16.0, bottom: 8.0),
                             child: MyDarkButton(
                               "SUMMARY",
                               () async {
@@ -1320,7 +1332,8 @@ class _JobDetailPageState extends State<JobDetailPage> with WidgetsBindingObserv
 
     Map<String, dynamic> map = {
       "process_id": "$processId",
-      "date": "${DateFormat("E MMM d y HH:mm:ss", Locale(Intl.getCurrentLocale()).languageCode).format(date)} ${_gmtFormatter(date)}"
+      "date":
+          "${DateFormat("E MMM d y HH:mm:ss", Locale(Intl.getCurrentLocale()).languageCode).format(date)} ${_gmtFormatter(date)}"
     };
     dioHelper
         .postRequest(BASE_URL + URL_SKIP_JOB, {"token": ""}, map)

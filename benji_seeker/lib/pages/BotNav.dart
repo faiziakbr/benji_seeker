@@ -57,12 +57,6 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
     _dioHelper = DioHelper.instance;
     WidgetsBinding.instance.addObserver(this);
 
-    if (widget.fromNotifications) {
-      setState(() {
-        _currentPage = 3;
-      });
-    }
-
     _getUnReadCount();
     _firebaseCloudMessagingListeners();
     _initUniLinks();
@@ -71,6 +65,12 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
     savedData.getIntValue(BADGE).then((value) {
       if (value != null && value > 0) FlutterAppBadger.updateBadgeCount(value);
     });
+
+    if (widget.fromNotifications) {
+      setState(() {
+        _currentPage = 3;
+      });
+    }
 
     super.initState();
   }
@@ -595,7 +595,7 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
         return JustStatusModel(status: false);
       }
     } on DioError catch (e) {
-      print("FCM RESPONSE: ${e.response}");
+      print("ERROR FCM RESPONSE: ${e.response}");
 
       if (e.response != null) {
         return justStatusResponseFromJson(json.encode(e.response.data));

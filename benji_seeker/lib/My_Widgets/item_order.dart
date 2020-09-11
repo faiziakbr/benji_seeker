@@ -34,8 +34,7 @@ class ItemOrder extends StatelessWidget {
                     color: accentColor,
                     fit: BoxFit.contain,
                     placeholderBuilder: (BuildContext context) => Container(
-                        padding: const EdgeInsets.all(10.0),
-                        child: const CircularProgressIndicator()),
+                        child: CircleAvatar(child: CircularProgressIndicator(), backgroundColor: Colors.white,)),
                   ),
                   margin: EdgeInsets.all(5.0),
                 ),

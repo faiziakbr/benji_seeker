@@ -53,6 +53,8 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
   bool _loadFullScreen = false;
   Provider _provider;
 
+  bool _messageIsRepeating = true;
+
   @override
   void initState() {
     _dioHelper = DioHelper.instance;
@@ -69,10 +71,11 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
         if (_jobDetailModel.status) {
           _fetchProviderDetail(_jobDetailModel.detail.providerId);
           dateTime = DateTime.parse(_jobDetailModel.detail.when);
-
         } else {
           _jobDetailModel = jobDetailResponseFromJson(json.encode(result.data));
-
+          setState(() {
+            _isError = true;
+          });
         }
         if (_jobDetailModel.status) {
           _loadChat();
@@ -125,14 +128,19 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
                 processId: messageArray.messages[0].processId,
                 messageBody: messageArray.messages[0].messageBody);
 
-            setState(() {
-              _chat.add(itemChatModel);
-            });
-            Timer(const Duration(milliseconds: 100), () {
-              _scrollController
-                  .jumpTo(_scrollController.position.maxScrollExtent);
-              _controller.clear();
-            });
+            if (_messageIsRepeating) {
+              _messageIsRepeating = false;
+
+              setState(() {
+                _chat.add(itemChatModel);
+              });
+              Timer(const Duration(milliseconds: 100), () {
+                _messageIsRepeating = true;
+                _scrollController
+                    .jumpTo(_scrollController.position.maxScrollExtent);
+                _controller.clear();
+              });
+            }
           } else {
             var array = json.decode(data.toString());
             print("MESSAGE ARRAY: $array");
@@ -152,14 +160,18 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
                 processId: processId,
                 messageBody: messageBody);
 
-            setState(() {
-              _chat.add(itemChatModel);
-            });
-            Timer(const Duration(milliseconds: 100), () {
-              _scrollController
-                  .jumpTo(_scrollController.position.maxScrollExtent);
-              _controller.clear();
-            });
+            if (_messageIsRepeating) {
+              _messageIsRepeating = false;
+              setState(() {
+                _chat.add(itemChatModel);
+              });
+              Timer(const Duration(milliseconds: 100), () {
+                _messageIsRepeating = true;
+                _scrollController
+                    .jumpTo(_scrollController.position.maxScrollExtent);
+                _controller.clear();
+              });
+            }
           }
         } catch (e) {
           print("ERROR: $e");
