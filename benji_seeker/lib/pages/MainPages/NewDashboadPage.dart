@@ -159,6 +159,7 @@ class NewDashboardPageState extends State<NewDashboardPage> {
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(color: separatorColor)),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   GestureDetector(
@@ -169,8 +170,7 @@ class NewDashboardPageState extends State<NewDashboardPage> {
                           });
                         }
                       },
-                      child: _monthlyYearlyToggleButton("MONTH", true)),
-                  SizedBox(width: 5),
+                      child: _monthlyYearlyToggleButton(mediaQueryData, "MONTH", true)),
                   GestureDetector(
                       onTap: () {
                         if (_monthlyView) {
@@ -182,7 +182,7 @@ class NewDashboardPageState extends State<NewDashboardPage> {
 //                          });
                         }
                       },
-                      child: _monthlyYearlyToggleButton("YEAR", false))
+                      child: _monthlyYearlyToggleButton(mediaQueryData, "YEAR", false))
                 ],
               ),
             )),
@@ -245,14 +245,13 @@ class NewDashboardPageState extends State<NewDashboardPage> {
           height: mediaQueryData.size.height * 0.65,
           child: GridView.builder(
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 7, childAspectRatio: 0.7),
+                  crossAxisCount: 7, childAspectRatio: 0.7,crossAxisSpacing: 0.0, mainAxisSpacing: 0.0),
               itemCount: _daysInMonth + (date.weekday - 1),
               itemBuilder: (context, index) {
                 if (index < (date.weekday - 1)) {
                   return Container(
                     decoration: BoxDecoration(
-                        border: Border.all(
-                            color: Colors.black.withOpacity(0.2), width: 1)),
+                        border: Border.all(color: Colors.black.withOpacity(0.2), width: 1)),
                   );
                 } else {
                   startDay++;
@@ -291,8 +290,7 @@ class NewDashboardPageState extends State<NewDashboardPage> {
                       },
                       child: Container(
                         decoration: BoxDecoration(
-                            border: Border.all(
-                                color: Colors.black.withOpacity(0.2), width: 1),
+                            border: Border.all(color: Colors.black.withOpacity(0.2), width: 1),
                             color: isToday
                                 ? Colors.green.withOpacity(0.6)
                                 : Colors.white),
@@ -347,8 +345,7 @@ class NewDashboardPageState extends State<NewDashboardPage> {
                       },
                       child: Container(
                         decoration: BoxDecoration(
-                            border: Border.all(
-                                color: Colors.black.withOpacity(0.2), width: 1),
+                            border: Border.all(color: Colors.black.withOpacity(0.2), width: 1),
                             color: isToday
                                 ? Colors.green.withOpacity(0.6)
                                 : Colors.white),
@@ -367,8 +364,6 @@ class NewDashboardPageState extends State<NewDashboardPage> {
       ],
     );
   }
-
-
 
 //  String _gmtFormatter(DateTime dateTime) {
 //    if (dateTime.timeZoneOffset.isNegative) {
@@ -391,9 +386,11 @@ class NewDashboardPageState extends State<NewDashboardPage> {
     );
   }
 
-  Widget _monthlyYearlyToggleButton(String text, bool monthlyView) {
+  Widget _monthlyYearlyToggleButton(MediaQueryData mediaQueryData, String text, bool monthlyView) {
     return Container(
-        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+      alignment: Alignment.center,
+      width: mediaQueryData.size.width * 0.2475,
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
         decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
             color: _monthlyView == monthlyView
@@ -404,6 +401,7 @@ class NewDashboardPageState extends State<NewDashboardPage> {
           16,
           _monthlyView == monthlyView ? Colors.white : Colors.black,
           FontWeight.w600,
+          maxLines: 1,
         ));
   }
 
@@ -465,6 +463,7 @@ class NewDashboardPageState extends State<NewDashboardPage> {
     });
   }
 
+  //TODO SKIPS ARE REMAINING
   void _addRecursiveEvents(List<ItemJobModel> _list) {
     try {
       for (ItemJobModel item in _list) {
@@ -488,6 +487,10 @@ class NewDashboardPageState extends State<NewDashboardPage> {
             incrementedTime =
                 incrementedTime.add(Duration(days: item.recurrence));
 //            print("temp TIME 1: $incrementedTime");
+            DateTime justDate = DateTime(incrementedTime.year, incrementedTime.month, incrementedTime.day);
+            if(_skipDays(item.skipDates).contains(justDate)){
+              continue;
+            }
             if (incrementedTime.isBefore(endTime)) {
               item.when = incrementedTime.toIso8601String();
 //              ItemJobModel itemJobModel = item;
@@ -518,9 +521,21 @@ class NewDashboardPageState extends State<NewDashboardPage> {
           _itemJobModelList.add(itemJobModel);
         }
       }
-      print("TOTAL JOB AFTER RECURR ADDED: ${_itemJobModelList.length}");
+//      print("TOTAL JOB AFTER RECURR ADDED: ${_itemJobModelList.length}");
     } catch (e) {
       print("EXCEPTIOn :$e");
     }
+  }
+
+  List<DateTime> _skipDays(List<dynamic> dates) {
+    List<DateTime> skipDatesList = List();
+    if (dates.length > 0) {
+      List<dynamic> skipDates = dates;
+      for (int i = 0; i < skipDates.length; i++) {
+        DateTime day = DateTime.parse(skipDates[i]);
+        skipDatesList.add(DateTime(day.year, day.month, day.day));
+      }
+    }
+    return skipDatesList;
   }
 }

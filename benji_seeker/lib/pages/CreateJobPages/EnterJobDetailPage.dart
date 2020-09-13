@@ -499,7 +499,7 @@ class _EnterJobDetailPageState extends State<EnterJobDetailPage> {
                                 enabled: _showSomePicsComplete,
                                 controller: _controller,
                                 decoration:
-                                    InputDecoration(hintText: description),
+                                    InputDecoration(hintText: description, hintStyle: TextStyle(fontWeight: FontWeight.w400, color: disableTextColor, fontSize: 16)),
                               ))
                           : Container(
                               width: mediaQueryData.size.width * 0.8,

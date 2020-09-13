@@ -66,11 +66,14 @@ class _WhenState extends State<When> {
         _fetchPackageDetails(widget.jobDetail.subCategoryId);
         _createJobModel.recurringText = "after ${widget.jobDetail.recurringDays} days";
         _createJobModel.isRecurringSet = true;
+        _setRecurringComplete = true;
+        _createJobModel.recurringDays = widget.jobDetail.recurringDays;
       } else {
         _isLoading = true;
         _isError = false;
         _fetchPackageDetails(widget.jobDetail.subCategoryId);
         _removeRecurringOption = false;
+        _setRecurringComplete = false;
       }
     } else {
       _createJobModel = widget.createJobModel;
