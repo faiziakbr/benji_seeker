@@ -102,6 +102,7 @@ class _JobDetailPageState extends State<JobDetailPage>
     Timer(const Duration(seconds: 2), () {
       _connectSocket();
       _isSocketConnected();
+      _listenJobChanges(widget.jobId);
     });
   }
 
@@ -382,19 +383,19 @@ class _JobDetailPageState extends State<JobDetailPage>
                 )
               : _isError
                   ? Center(
-                    child: Column(
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           MontserratText("Job doesn't exists!", 18,
                               Colors.black.withOpacity(0.4), FontWeight.normal,
                               left: 16, right: 16),
-                          MyDarkButton("Go Back",(){
+                          MyDarkButton("Go Back", () {
                             Navigator.pop(context);
                           })
                         ],
                       ),
-                  )
+                    )
                   : _body(mediaQueryData),
 
           //optional
@@ -431,7 +432,10 @@ class _JobDetailPageState extends State<JobDetailPage>
           //This is the content of the bottom sheet which will be extendable by dragging.
           expandableContent: !_isLoading && !_isError
               ? _bottomSheet(mediaQueryData, _jobDetail.nextStep)
-              : Container(),
+              : Container(
+                  width: 0.0,
+                  height: 0.0,
+                ),
         ),
       ),
     );
@@ -440,7 +444,7 @@ class _JobDetailPageState extends State<JobDetailPage>
   double _contentHeight(MediaQueryData mediaQueryData) {
     if (_jobDetail != null && _jobDetail.nextStep != null) {
       if (_jobDetail.nextStep == "booking_accepted") {
-        return mediaQueryData.size.height * 0.35;
+        return mediaQueryData.size.height * 0.4;
       } else if (_jobDetail.nextStep == "summary") {
         return mediaQueryData.size.height * 0.4;
       } else if (_jobDetail.nextStep == "under_progress") {
@@ -789,7 +793,9 @@ class _JobDetailPageState extends State<JobDetailPage>
       case "arrived_at_location":
         return _providerDetail(mediaQueryData);
       default:
-        return Container(color: Colors.white,);
+        return Container(
+          color: Colors.white,
+        );
     }
   }
 
@@ -861,6 +867,7 @@ class _JobDetailPageState extends State<JobDetailPage>
                 )
               : Column(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
                     ListTile(
                       leading: ClipRRect(
@@ -920,134 +927,71 @@ class _JobDetailPageState extends State<JobDetailPage>
                         ],
                       ),
                     ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: <Widget>[
-                        (_jobDetail.nextStep == "under_progress" ||
-                                _jobDetail.nextStep == "arrived_at_location")
-                            ? Container()
-                            : _jobDetail.isRecurring
-                                ? InkWell(
-                                    onTap: () {
-                                      showDialog(
-                                          context: context,
-                                          barrierDismissible:
-                                              bool.fromEnvironment(
-                                                  "dismiss dialog"),
-                                          builder: (BuildContext context) {
-                                            return DialogYesNo(
-                                                "Skip upcoming job service?",
-                                                "Are you sure you want to skip this job.",
-                                                () {
-                                              DateTime dateTime = DateTime.parse(
-                                                  widget.generatedRecurringTime ??
-                                                      _jobDetail.when);
-                                              _skipJob(
-                                                  _jobDetailModel
-                                                      .detail.processId,
-                                                  dateTime);
-                                            }, () {
-                                              Navigator.pop(context);
+                    (_jobDetail.nextStep == "under_progress" ||
+                            _jobDetail.nextStep == "arrived_at_location")
+                        ? Container()
+                        : _jobDetail.isRecurring
+                            ? GestureDetector(
+                                onTap: () {
+                                  showDialog(
+                                      context: context,
+                                      barrierDismissible: bool.fromEnvironment(
+                                          "dismiss dialog"),
+                                      builder: (BuildContext context) {
+                                        return DialogYesNo(
+                                            "Skip upcoming job service?",
+                                            "Are you sure you want to skip this job.",
+                                            () {
+                                          DateTime dateTime = DateTime.parse(
+                                              widget.generatedRecurringTime ??
+                                                  _jobDetail.when);
+                                          _skipJob(
+                                              _jobDetailModel.detail.processId,
+                                              dateTime);
+                                        }, () {
+                                          Navigator.pop(context);
+                                        });
+                                      });
+                                },
+                                child: Container(
+                                    height: 50,
+                                    width: mediaQueryData.size.width * 0.6,
+                                    margin: const EdgeInsets.only(
+                                        top: 16.0, bottom: 16.0),
+                                    child: MyLightButton(
+                                      "SKIP THIS WEEK",
+                                      () {
+                                        showDialog(
+                                            context: context,
+                                            barrierDismissible:
+                                                bool.fromEnvironment(
+                                                    "dismiss dialog"),
+                                            builder: (BuildContext context) {
+                                              return DialogYesNo(
+                                                  "Skip upcoming job service?",
+                                                  "Are you sure you want to skip this job.",
+                                                  () {
+                                                DateTime dateTime =
+                                                    DateTime.parse(widget
+                                                            .generatedRecurringTime ??
+                                                        _jobDetail.when);
+                                                _skipJob(
+                                                    _jobDetailModel
+                                                        .detail.processId,
+                                                    dateTime);
+                                              }, () {
+                                                Navigator.pop(context);
+                                              });
                                             });
-                                          });
-                                    },
-                                    child: Flexible(
-//                                      child: MontserratText("SKIP THIS WEEK",
-//                                          17, Colors.black, FontWeight.w600),
-                                      child: Container(
-                                        height: 50,
-                                        width: mediaQueryData.size.width * 0.6,
-                                        margin: const EdgeInsets.only(
-                                            top: 16.0, bottom: 16.0),
-                                        child: MyLightButton(
-                                          "SKIP THIS WEEK",
-                                          () {
-                                            showDialog(
-                                                context: context,
-                                                barrierDismissible:
-                                                    bool.fromEnvironment(
-                                                        "dismiss dialog"),
-                                                builder:
-                                                    (BuildContext context) {
-                                                  return DialogYesNo(
-                                                      "Skip upcoming job service?",
-                                                      "Are you sure you want to skip this job.",
-                                                      () {
-                                                    DateTime dateTime =
-                                                        DateTime.parse(widget
-                                                                .generatedRecurringTime ??
-                                                            _jobDetail.when);
-                                                    _skipJob(
-                                                        _jobDetailModel
-                                                            .detail.processId,
-                                                        dateTime);
-                                                  }, () {
-                                                    Navigator.pop(context);
-                                                  });
-                                                });
-                                          },
-                                          textColor: Colors.black,
-                                          fontWeight: FontWeight.w600,
-                                          borderColor: Colors.black,
-                                        ),
-                                      ),
+                                      },
+                                      textColor: Colors.black,
+                                      fontWeight: FontWeight.w600,
+                                      borderColor: Colors.black,
                                     ),
-                                  )
-                                : Container()
-//              ClipRRect(
-//                borderRadius: BorderRadius.circular(8.0),
-//                child: Container(
-//                  width: 40,
-//                  height: 40,
-//                  color: Colors.black,
-//                  child: Icon(
-//                    Icons.phone,
-//                    color: Colors.white,
-//                    size: 20,
-//                  ),
-//                ),
-//              ),
-//                        GestureDetector(
-//                          onTap: () async {
-//                            var result = await Navigator.push(
-//                                context,
-//                                MaterialPageRoute(
-//                                    builder: (context) => ChatPage(
-//                                          widget.jobId,
-//                                          _jobDetailModel,
-//                                          providerName: _provider.nickName,
-//                                        )));
-//                            if (result == null) _reconnectSocket();
-//                          },
-//                          child: ClipRRect(
-//                            borderRadius: BorderRadius.circular(8.0),
-//                            child: Container(
-//                              width: 40,
-//                              height: 40,
-//                              color: Colors.black,
-//                              child: Icon(
-//                                Icons.message,
-//                                color: Colors.white,
-//                                size: 20,
-//                              ),
-//                            ),
-//                          ),
-//                        ),
-//                        ClipRRect(
-//                          borderRadius: BorderRadius.circular(8.0),
-//                          child: Container(
-//                            width: 40,
-//                            height: 40,
-//                            color: Colors.orange,
-//                            child: Icon(
-//                              Icons.close,
-//                              color: Colors.white,
-//                              size: 20,
-//                            ),
-//                          ),
-//                        ),
-                      ],
-                    ),
+                                  ),
+
+                              )
+                            : Container(),
                     (_jobDetail.nextStep == "under_progress" ||
                             _jobDetail.nextStep == "arrived_at_location")
                         ? Container()

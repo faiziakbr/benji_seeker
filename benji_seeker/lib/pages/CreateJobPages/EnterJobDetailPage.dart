@@ -36,6 +36,8 @@ class EnterJobDetailPage extends StatefulWidget {
 }
 
 class _EnterJobDetailPageState extends State<EnterJobDetailPage> {
+  FocusNode _textFieldFocus = FocusNode();
+
   bool _isKeyboardVisible = false;
   DioHelper _dioHelper;
   bool _showInfo = true;
@@ -55,14 +57,18 @@ class _EnterJobDetailPageState extends State<EnterJobDetailPage> {
   void initState() {
     _dioHelper = DioHelper.instance;
     _createJobModel = widget.createJobModel;
+    _textFieldFocus.addListener(() {
+      _isKeyboardVisible = _textFieldFocus.hasFocus;
+    });
     _initializeCamera();
-    KeyboardVisibilityNotification().addNewListener(
-      onChange: (bool visible) {
-        setState(() {
-          _isKeyboardVisible = visible;
-        });
-      },
-    );
+//    KeyboardVisibilityNotification().addNewListener(
+//      onChange: (bool visible) {
+//        print("KEYBOARD VISIBILITY: $visible");
+//        setState(() {
+//          _isKeyboardVisible = visible;
+//        });
+//      },
+//    );
     super.initState();
   }
 
@@ -496,6 +502,7 @@ class _EnterJobDetailPageState extends State<EnterJobDetailPage> {
                           ? Container(
                               width: mediaQueryData.size.width * 0.9,
                               child: TextField(
+                                focusNode: _textFieldFocus,
                                 enabled: _showSomePicsComplete,
                                 controller: _controller,
                                 decoration:
