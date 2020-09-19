@@ -1,4 +1,3 @@
-import 'package:benji_seeker/pages/PhotoViewPage.dart';
 import 'package:benji_seeker/pages/SplashScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -72,6 +71,7 @@ class MyApp extends StatelessWidget {
             accentColor: accentColor,
           ),
           home: SplashScreen(),
+//        home: TestPage()
         ),
       ),
     );
