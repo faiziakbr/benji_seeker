@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:convert';
 
 import 'package:benji_seeker/My_Widgets/MyToast.dart';
@@ -8,7 +7,6 @@ import 'package:benji_seeker/custom_texts/MontserratText.dart';
 import 'package:benji_seeker/custom_texts/QuicksandText.dart';
 import 'package:benji_seeker/models/CreateJobModel.dart';
 import 'package:benji_seeker/models/UpcomingJobModel.dart';
-import 'package:benji_seeker/pages/JobDetailPage/JobDetailPage.dart';
 import 'package:benji_seeker/pages/MainPages/CalendarTypes/MonthlyViewPage.dart';
 import 'package:benji_seeker/pages/MainPages/OrderSequence/OrderPage1.dart';
 import 'package:benji_seeker/utils/DioHelper.dart';
@@ -16,10 +14,7 @@ import 'package:date_util/date_util.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:indexed_list_view/indexed_list_view.dart';
-import 'package:intl/intl.dart';
-import 'package:scroll_to_index/scroll_to_index.dart';
 
 import '../ItemMonth.dart';
 
@@ -79,13 +74,11 @@ class NewDashboardPageState extends State<NewDashboardPage>
   int _jumpToPosition = 0;
   var dateUtil = DateUtil();
   TabController _tabController;
-  AutoScrollController _autoScrollController;
   IndexedScrollController _indexedScrollController;
 
   @override
   void initState() {
     _tabController = TabController(vsync: this, length: 2);
-    _autoScrollController = AutoScrollController();
     _dioHelper = DioHelper.instance;
     fetchUpcomingJobs();
 
@@ -149,8 +142,6 @@ class NewDashboardPageState extends State<NewDashboardPage>
         events.add(dateTime);
       }).toList();
     }
-
-    _autoScrollController.scrollToIndex(_jumpToPosition);
 
     MediaQueryData mediaQueryData = MediaQuery.of(context);
     return DefaultTabController(
