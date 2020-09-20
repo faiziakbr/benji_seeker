@@ -17,6 +17,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:indexed_list_view/indexed_list_view.dart';
 import 'package:intl/intl.dart';
 import 'package:scroll_to_index/scroll_to_index.dart';
 
@@ -79,6 +80,7 @@ class NewDashboardPageState extends State<NewDashboardPage>
   var dateUtil = DateUtil();
   TabController _tabController;
   AutoScrollController _autoScrollController;
+  IndexedScrollController _indexedScrollController;
 
   @override
   void initState() {
@@ -90,27 +92,29 @@ class NewDashboardPageState extends State<NewDashboardPage>
     //yealy View
     var index = 0;
     var currentDate = DateTime.now();
-    for (int i = currentDate.month; i < 13; i++){
+    for (int i = currentDate.month; i < 13; i++) {
 //      print("PREV DATE: ${DateTime(currentDate.year - 1, i)}");
       index += 1;
       yearlyView.add(DateTime(currentDate.year - 1, i));
     }
 
-    for (int i = 1; i < 13; i++){
+    for (int i = 1; i < 13; i++) {
 //      print("CURR Date: ${DateTime(currentDate.year, i)}");
       if (DateTime(currentDate.year, i) ==
-          DateTime(DateTime.now().year, DateTime.now().month)){
+          DateTime(DateTime.now().year, DateTime.now().month)) {
         _jumpToPosition = index;
       }
       yearlyView.add(DateTime(currentDate.year, i));
       index += 1;
     }
 
-    for(int i = 1; i <= currentDate.month; i++){
+    for (int i = 1; i <= currentDate.month; i++) {
 //      print("NEXT DATE: ${DateTime(currentDate.year + 1, i)}");
       index += 1;
       yearlyView.add(DateTime(currentDate.year + 1, i));
     }
+
+    _indexedScrollController = IndexedScrollController(initialIndex: _jumpToPosition);
 //    for (int year = currentDate.year - 1; year < currentDate.year + 2; year++) {
 //      for (int month = 1; month < 13; month++) {
 //        if (DateTime(year, month) ==
@@ -147,7 +151,6 @@ class NewDashboardPageState extends State<NewDashboardPage>
     }
 
     _autoScrollController.scrollToIndex(_jumpToPosition);
-
 
     MediaQueryData mediaQueryData = MediaQuery.of(context);
     return DefaultTabController(
@@ -432,19 +435,21 @@ class NewDashboardPageState extends State<NewDashboardPage>
 //  }
 
   Widget _yearlyViewWidget(MediaQueryData mediaQueryData) {
-
     return Container(
       width: mediaQueryData.size.width * 1,
 //      height: mediaQueryData.size.height * 0.7,
-      child: ListView.builder(
-          controller: _autoScrollController,
-          itemCount: yearlyView.length,
+      child: IndexedListView.builder(
+        controller: _indexedScrollController,
+//          shrinkWrap: true,
+//          controller: _autoScrollController,
+//          itemCount: yearlyView.length,
           itemBuilder: (context, index) {
-            return AutoScrollTag(
-                index: index,
-                key: ValueKey(index),
-                controller: _autoScrollController,
-                child: ItemMonth(yearlyView[index], events, _itemJobModelList));
+          return ItemMonth(yearlyView[index], events, _itemJobModelList);
+//            return AutoScrollTag(
+//                index: index,
+//                key: ValueKey(index),
+//                controller: _autoScrollController,
+//                child: ItemMonth(yearlyView[index], events, _itemJobModelList));
           }),
     );
   }
@@ -469,22 +474,22 @@ class NewDashboardPageState extends State<NewDashboardPage>
         ));
   }
 
-  Widget _jobImage(DateTime boxDay) {
-    String image = "";
-    for (var value in _itemJobModelList) {
-      DateTime dateTime = DateTime.parse(value.when).toLocal();
-      if (boxDay == DateTime(dateTime.year, dateTime.month, dateTime.day)) {
-        image = "$BASE_URL_CATEGORY${value.imageUrl}";
-      }
-    }
-    return SvgPicture.network(
-      "$image",
-      width: 40,
-      height: 40,
-      color: accentColor,
-      fit: BoxFit.contain,
-    );
-  }
+//  Widget _jobImage(DateTime boxDay) {
+//    String image = "";
+//    for (var value in _itemJobModelList) {
+//      DateTime dateTime = DateTime.parse(value.when).toLocal();
+//      if (boxDay == DateTime(dateTime.year, dateTime.month, dateTime.day)) {
+//        image = "$BASE_URL_CATEGORY${value.imageUrl}";
+//      }
+//    }
+//    return SvgPicture.network(
+//      "$image",
+//      width: 40,
+//      height: 40,
+//      color: accentColor,
+//      fit: BoxFit.contain,
+//    );
+//  }
 
   void fetchUpcomingJobs() {
     _dioHelper

@@ -289,7 +289,7 @@ class _EnterJobDetailPageState extends State<EnterJobDetailPage> {
           context: context,
           builder: (_) => DialogInfo(
             "assets/start_job.png",
-            "Congratulation",
+            "Congratulations!",
             "Task added to your Task Calendar.",
           ),
         );
