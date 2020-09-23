@@ -71,7 +71,7 @@ class NewDashboardPageState extends State<NewDashboardPage>
 
 //  ScrollController _scrollController;
 
-  int _jumpToPosition = 0;
+  int _jumpToPosition = 1;
   var dateUtil = DateUtil();
   TabController _tabController;
   IndexedScrollController _indexedScrollController;
@@ -107,7 +107,8 @@ class NewDashboardPageState extends State<NewDashboardPage>
       yearlyView.add(DateTime(currentDate.year + 1, i));
     }
 
-    _indexedScrollController = IndexedScrollController(initialIndex: _jumpToPosition);
+    _indexedScrollController =
+        IndexedScrollController(initialIndex: _jumpToPosition);
 //    for (int year = currentDate.year - 1; year < currentDate.year + 2; year++) {
 //      for (int month = 1; month < 13; month++) {
 //        if (DateTime(year, month) ==
@@ -270,178 +271,35 @@ class NewDashboardPageState extends State<NewDashboardPage>
     );
   }
 
-//  Widget _monthlyViewWidget(
-//      MediaQueryData mediaQueryData, DateTime date, int startDay) {
-//    return Column(
-//      children: <Widget>[
-//        Row(
-//          mainAxisAlignment: MainAxisAlignment.spaceAround,
-//          children: _weekdaysName
-//              .map((name) => MontserratText(
-//                    "$name",
-//                    14,
-//                    separatorColor,
-//                    FontWeight.w600,
-//                    top: 16.0,
-//                    bottom: 8.0,
-//                  ))
-//              .toList(),
-//        ),
-//        Container(
-//          height: mediaQueryData.size.height * 0.65,
-//          child: GridView.builder(
-//              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-//                  crossAxisCount: 7,
-//                  childAspectRatio: 0.7,
-//                  crossAxisSpacing: 0.0,
-//                  mainAxisSpacing: 0.0),
-//              itemCount: _daysInMonth + (date.weekday - 1),
-//              itemBuilder: (context, index) {
-//                if (index < (date.weekday - 1)) {
-//                  return Container(
-//                    decoration: BoxDecoration(
-//                        border: Border.all(
-//                            color: Colors.black.withOpacity(0.2), width: 1)),
-//                  );
-//                } else {
-//                  startDay++;
-//                  bool isToday = false;
-//
-//                  var boxDay = DateTime(
-//                      _selectedMonth.year, _selectedMonth.month, startDay);
-//
-//                  if (boxDay ==
-//                      DateTime(DateTime.now().year, DateTime.now().month,
-//                          DateTime.now().day)) {
-//                    isToday = true;
-//                  }
-//
-//                  if (events.contains(boxDay)) {
-//                    return GestureDetector(
-//                      onTap: () {
-//                        print("EVENT CLICKED: $boxDay ");
-//                        _itemJobModelList.forEach((element) {
-//                          DateTime dateTime =
-//                              DateTime.parse(element.when).toLocal();
-//                          if (boxDay ==
-//                              DateTime(dateTime.year, dateTime.month,
-//                                  dateTime.day)) {
-//                            Navigator.push(context,
-//                                MaterialPageRoute(builder: (context) {
-//                              if (element.isWhenDeterminedLocally)
-//                                return JobDetailPage(element.jobId,
-//                                    generatedRecurringTime: element.when);
-//                              else {
-//                                return JobDetailPage(element.jobId);
-//                              }
-//                            }));
-//                          }
-//                        });
-//                      },
-//                      child: Container(
-//                        decoration: BoxDecoration(
-//                            border: Border.all(
-//                                color: Colors.black.withOpacity(0.2), width: 1),
-//                            color: isToday
-//                                ? Colors.green.withOpacity(0.6)
-//                                : Colors.white),
-//                        child: Column(
-//                          crossAxisAlignment: CrossAxisAlignment.center,
-//                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                          children: <Widget>[
-//                            MontserratText(
-//                              "$startDay",
-//                              16,
-//                              isToday ? Colors.white : separatorColor,
-//                              FontWeight.bold,
-//                              textAlign: TextAlign.center,
-//                            ),
-//                            _jobImage(boxDay)
-//                          ],
-//                        ),
-//                      ),
-//                    );
-//                  } else
-//                    return GestureDetector(
-//                      onTap: () {
-//                        DateTime clickedBoxDate =
-//                            DateTime(boxDay.year, boxDay.month, boxDay.day);
-//                        DateTime today = DateTime(DateTime.now().year,
-//                            DateTime.now().month, DateTime.now().day);
-//
-////                        print(
-////                            "${DateFormat("E MMM d y HH:mm:ss", Locale(Intl.getCurrentLocale()).languageCode).format(DateTime.now())} GMT${DateTime.now().timeZoneOffset.inHours}00 ${_gmtFormatter(DateTime.now())}");
-//                        if (today.isBefore(clickedBoxDate) ||
-//                            today == clickedBoxDate) {
-//                          if (DateTime(boxDay.year, boxDay.month,
-//                                      boxDay.day + 1, 0, 0)
-//                                  .difference(DateTime.now())
-//                                  .inMinutes >
-//                              45) {
-//                            var createJobModel = CreateJobModel();
-//                            createJobModel.jobTime =
-//                                DateTime(boxDay.year, boxDay.month, boxDay.day);
-////                                        createJobModel.isJobTimeSet = true;
-//                            createJobModel.createFromCalendar = true;
-//                            Navigator.push(
-//                                context,
-//                                MaterialPageRoute(
-//                                    builder: (context) =>
-//                                        OrderPage1(createJobModel)));
-//                          } else {
-//                            MyToast("Can't set time under 45 minutes", context,
-//                                position: 1);
-//                          }
-//                        }
-//                      },
-//                      child: Container(
-//                        decoration: BoxDecoration(
-//                            border: Border.all(
-//                                color: Colors.black.withOpacity(0.2), width: 1),
-//                            color: isToday
-//                                ? Colors.green.withOpacity(0.6)
-//                                : Colors.white),
-//                        child: MontserratText(
-//                          "$startDay",
-//                          16,
-//                          isToday ? Colors.white : separatorColor,
-//                          FontWeight.bold,
-//                          textAlign: TextAlign.center,
-//                        ),
-//                      ),
-//                    );
-//                }
-//              }),
-//        ),
-//      ],
-//    );
-//  }
-
-//  String _gmtFormatter(DateTime dateTime) {
-//    if (dateTime.timeZoneOffset.isNegative) {
-//      return "GMT${dateTime.timeZoneOffset.inHours}00";
-//    } else {
-//      return "GMT+${dateTime.timeZoneOffset.inHours}00";
-//    }
-//  }
-
   Widget _yearlyViewWidget(MediaQueryData mediaQueryData) {
     return Container(
       width: mediaQueryData.size.width * 1,
 //      height: mediaQueryData.size.height * 0.7,
       child: IndexedListView.builder(
-        controller: _indexedScrollController,
+          controller: _indexedScrollController,
 //          shrinkWrap: true,
 //          controller: _autoScrollController,
 //          itemCount: yearlyView.length,
+          maxItemCount: yearlyView.length - 1,
+          minItemCount: 0,
           itemBuilder: (context, index) {
-          return ItemMonth(yearlyView[index], events, _itemJobModelList);
+            return ItemMonth(yearlyView[index], events, _itemJobModelList);
 //            return AutoScrollTag(
 //                index: index,
 //                key: ValueKey(index),
 //                controller: _autoScrollController,
 //                child: ItemMonth(yearlyView[index], events, _itemJobModelList));
-          }),
+          },
+        emptyItemBuilder: (context, index){
+            if(index < 0) {
+              _indexedScrollController.animateToIndex(0);
+            } else{
+              _indexedScrollController.animateToIndex(yearlyView.length - 1);
+              // _indexedScrollController.jumpTo(yearlyView.length - 1);
+            }
+            return Container(height: 5, width: 5);
+        },
+      ),
     );
   }
 
