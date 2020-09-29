@@ -31,3 +31,5 @@ const Color yellowColor = Color.fromRGBO(249, 195, 17, 1);
 const Color unselectedDotColor = Color.fromRGBO(187, 209, 235, 0.2);
 
 const Color redColor = Color.fromRGBO(255, 38, 0, 1);
+
+const Color borderColor = Color.fromRGBO(112, 112, 112, 0.5);

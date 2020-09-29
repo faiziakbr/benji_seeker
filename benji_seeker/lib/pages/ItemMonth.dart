@@ -2,6 +2,7 @@ import 'package:benji_seeker/My_Widgets/MyToast.dart';
 import 'package:benji_seeker/constants/MyColors.dart';
 import 'package:benji_seeker/constants/Urls.dart';
 import 'package:benji_seeker/custom_texts/MontserratText.dart';
+import 'package:benji_seeker/custom_texts/QuicksandText.dart';
 import 'package:benji_seeker/models/CreateJobModel.dart';
 import 'package:benji_seeker/models/UpcomingJobModel.dart';
 import 'package:date_util/date_util.dart';
@@ -28,13 +29,13 @@ class _ItemMonthState extends State<ItemMonth> {
   var _selectedMonth;
 
   List<String> _weekdaysName = [
-    "Mon",
-    "Tue",
-    "Wed",
-    "Thu",
-    "Fri",
-    "Sat",
-    "Sun"
+    "MON",
+    "TUE",
+    "WED",
+    "THU",
+    "FRI",
+    "SAT",
+    "SUN"
   ];
 
   List<DateTime> events = [];
@@ -55,45 +56,43 @@ class _ItemMonthState extends State<ItemMonth> {
     var date = DateTime(_selectedMonth.year, _selectedMonth.month);
     int startDay = 0;
     return Container(
+      color: Colors.white,
       child: Column(
         children: <Widget>[
           Align(
               alignment: Alignment.topLeft,
-              child: MontserratText(
+              child: QuicksandText(
                 "${DateFormat.MMMM().format(widget.dateTime)} ${DateFormat.y().format(widget.dateTime)}",
                 18,
-                Colors.black,
+                navBarColor,
                 FontWeight.bold,
-                left: 8.0, top: 8.0,
+                left: 8.0,
+                top: 8.0,
               )),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: _weekdaysName
                 .map((name) => MontserratText(
                       "$name",
-                      14,
-                      Colors.black,
-                      FontWeight.w600,
+                      12,
+                      separatorColor,
+                      FontWeight.w400,
                       top: 16.0,
                       bottom: 8.0,
                     ))
                 .toList(),
           ),
           Container(
-            height: 500,
+            height: 400,
             width: mediaQueryData.size.width * 1,
             child: GridView.builder(
                 physics: NeverScrollableScrollPhysics(),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 7, childAspectRatio: 0.7),
+                    crossAxisCount: 7, childAspectRatio: 0.85),
                 itemCount: _daysInMonth + (date.weekday - 1),
                 itemBuilder: (context, index) {
                   if (index < (date.weekday - 1)) {
-                    return Container(
-                      decoration: BoxDecoration(
-                          border: Border.all(
-                              color: Colors.black.withOpacity(0.2), width: 1)),
-                    );
+                    return Container();
                   } else {
                     startDay++;
                     bool isToday = false;
@@ -131,25 +130,19 @@ class _ItemMonthState extends State<ItemMonth> {
                         },
                         child: Container(
                           decoration: BoxDecoration(
+                              shape: BoxShape.circle,
                               border: Border.all(
-                                  color: Colors.black.withOpacity(0.2),
+                                  color: Colors.orange,
                                   width: 1),
-                              color: isToday
-                                  ? Colors.green.withOpacity(0.6)
-                                  : Colors.white),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: <Widget>[
-                              MontserratText(
-                                "$startDay",
-                                16,
-                                isToday ? Colors.white : Colors.black,
-                                FontWeight.bold,
-                                textAlign: TextAlign.center,
-                              ),
-                              _jobImage(boxDay)
-                            ],
+                          ),
+                          child: Center(
+                            child: MontserratText(
+                              "$startDay",
+                              16,
+                              Colors.orange,
+                              FontWeight.normal,
+                              textAlign: TextAlign.center,
+                            ),
                           ),
                         ),
                       );
@@ -187,18 +180,17 @@ class _ItemMonthState extends State<ItemMonth> {
                         },
                         child: Container(
                           decoration: BoxDecoration(
-                              border: Border.all(
-                                  color: Colors.black.withOpacity(0.2),
-                                  width: 1),
-                              color: isToday
-                                  ? Colors.green.withOpacity(0.6)
-                                  : Colors.white),
-                          child: MontserratText(
-                            "$startDay",
-                            16,
-                            isToday ? Colors.white : Colors.black,
-                            FontWeight.bold,
-                            textAlign: TextAlign.center,
+                            shape: BoxShape.circle,
+                            color: isToday ? accentColor : Colors.white,
+                          ),
+                          child: Center(
+                            child: MontserratText(
+                              "$startDay",
+                              16,
+                                isToday ? Colors.white : separatorColor,
+                              FontWeight.normal,
+                              textAlign: TextAlign.center,
+                            ),
                           ),
                         ),
                       );

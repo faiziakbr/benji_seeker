@@ -1,6 +1,8 @@
+import 'package:benji_seeker/pages/JobDetailPage/NewJobDetailPage.dart';
 import 'package:benji_seeker/pages/SplashScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:overlay_support/overlay_support.dart';
 
 import 'constants/MyColors.dart';
@@ -56,7 +58,7 @@ class MyApp extends StatelessWidget {
             FocusManager.instance.primaryFocus.unfocus();
           }
         },
-        child: MaterialApp(
+        child: GetMaterialApp(
           debugShowCheckedModeBanner: false,
           title: 'benji',
           builder: (context, child) {
@@ -71,7 +73,7 @@ class MyApp extends StatelessWidget {
             accentColor: accentColor,
           ),
           home: SplashScreen(),
-//        home: TestPage()
+       // home: NewJobPageDetailPage()
         ),
       ),
     );

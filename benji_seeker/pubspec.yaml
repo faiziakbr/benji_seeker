@@ -63,6 +63,7 @@ dependencies:
   flutter_cupertino_data_picker: ^0.8.6
   multi_image_picker: ^4.7.12
   indexed_list_view: ^1.1.5
+  get: ^3.11.1
 #  websafe_svg: ^1.1.1
 #  flutter_svg_provider: ^0.1.5
 #  svg_path_parser: ^0.1.1
@@ -133,6 +134,11 @@ flutter:
     - assets/speech_bubble.svg
     - assets/app_icon.png
     - assets/profile_submitted.png
+    - assets/zip_code.png
+    - assets/close_icon.png
+    - assets/reschedule_icon.png
+    - assets/question_icon.png
+    - assets/task_hint_icon.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

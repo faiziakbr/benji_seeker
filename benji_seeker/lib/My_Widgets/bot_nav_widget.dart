@@ -30,9 +30,9 @@ class BotNavWidget extends StatelessWidget {
                 Image.asset(
                   "$iconPath",
                   color:
-                  (selectedTab == index) ? Colors.white : navBarIconColor,
-                  width: mediaQueryData.size.width * 0.06,
-                  height: mediaQueryData.size.width * 0.06,
+                  (selectedTab == index) ? accentColor : Colors.black87,
+                  width: mediaQueryData.size.width * 0.07,
+                  height: mediaQueryData.size.width * 0.07,
                 ),
                 Padding(
                   padding: const EdgeInsets.only(top: 8.0),
@@ -40,10 +40,9 @@ class BotNavWidget extends StatelessWidget {
                     "$text",
                     maxLines: 1,
                     style: TextStyle(
-                        fontSize: mediaQueryData.size.width * 0.023,
+                        fontSize: 8,
                         color: (selectedTab == index)
-                            ? Colors.white
-                            : navBarIconColor, fontFamily: "Montserrat"),
+                            ? accentColor : Colors.black87, fontFamily: "Montserrat", fontWeight: FontWeight.w100),
                   ),
                 )
               ],

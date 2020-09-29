@@ -425,8 +425,16 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
       bottomNavigationBar: Container(
         height: MediaQuery.of(context).size.height * 0.1,
         decoration: BoxDecoration(
-            color: navBarColor,
+            color: Colors.white,
             shape: BoxShape.rectangle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black,
+                spreadRadius: 5,
+                blurRadius: 5,
+                offset: Offset(0,7)
+              )
+            ],
             borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(10.0),
                 topRight: Radius.circular(10.0))),
@@ -444,7 +452,7 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
                 count: 0,
               ),
             ),
-            separator(mediaQueryData),
+            // separator(mediaQueryData),
             Expanded(
               flex: 1,
               child: BotNavWidget(
@@ -456,7 +464,7 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
                 count: 0,
               ),
             ),
-            separator(mediaQueryData),
+            // separator(mediaQueryData),
             Expanded(
               flex: 1,
               child: BotNavWidget(
@@ -468,19 +476,19 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
                 count: _chatCount,
               ),
             ),
-            separator(mediaQueryData),
+            // separator(mediaQueryData),
             Expanded(
               flex: 1,
               child: BotNavWidget(
                 "assets/notification_icon.png",
-                "Notification",
+                "Notifications",
                 _currentPage,
                 navBarItemClickListener,
                 3,
                 count: _notificationCount,
               ),
             ),
-            separator(mediaQueryData),
+            // separator(mediaQueryData),
             Expanded(
               flex: 1,
               child: BotNavWidget("assets/more_icon.png", "More", _currentPage,

@@ -1,6 +1,8 @@
 import 'dart:convert';
 
+import 'package:benji_seeker/My_Widgets/InfoDialog.dart';
 import 'package:benji_seeker/My_Widgets/MyToast.dart';
+import 'package:benji_seeker/My_Widgets/ZipCodeDialog.dart';
 import 'package:benji_seeker/constants/MyColors.dart';
 import 'package:benji_seeker/constants/Urls.dart';
 import 'package:benji_seeker/custom_texts/MontserratText.dart';
@@ -14,6 +16,7 @@ import 'package:date_util/date_util.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:indexed_list_view/indexed_list_view.dart';
 
 import '../ItemMonth.dart';
@@ -35,64 +38,30 @@ class NewDashboardPageState extends State<NewDashboardPage>
   DioHelper _dioHelper;
   bool _monthlyView = true;
 
-  var _selectedMonth = DateTime(DateTime.now().year,
-      DateTime.now().month); // it should be a selected month
-  int _daysInMonth = 0;
-
   List<DateTime> events = [];
   var dateTime = DateTime.now();
 
-  List<String> _weekdaysName = [
-    "Mon",
-    "Tue",
-    "Wed",
-    "Thu",
-    "Fri",
-    "Sat",
-    "Sun"
-  ];
-
-  List<String> _months = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December"
-  ];
+  List<String> _locationNames = ["NY 10001 USA", "Denvor CO, USA"];
 
   List<DateTime> yearlyView = [];
 
-//  ScrollController _scrollController;
-
   int _jumpToPosition = 1;
   var dateUtil = DateUtil();
-  TabController _tabController;
   IndexedScrollController _indexedScrollController;
 
   @override
   void initState() {
-    _tabController = TabController(vsync: this, length: 2);
     _dioHelper = DioHelper.instance;
     fetchUpcomingJobs();
 
-    //yealy View
     var index = 0;
     var currentDate = DateTime.now();
     for (int i = currentDate.month; i < 13; i++) {
-//      print("PREV DATE: ${DateTime(currentDate.year - 1, i)}");
       index += 1;
       yearlyView.add(DateTime(currentDate.year - 1, i));
     }
 
     for (int i = 1; i < 13; i++) {
-//      print("CURR Date: ${DateTime(currentDate.year, i)}");
       if (DateTime(currentDate.year, i) ==
           DateTime(DateTime.now().year, DateTime.now().month)) {
         _jumpToPosition = index;
@@ -102,37 +71,18 @@ class NewDashboardPageState extends State<NewDashboardPage>
     }
 
     for (int i = 1; i <= currentDate.month; i++) {
-//      print("NEXT DATE: ${DateTime(currentDate.year + 1, i)}");
       index += 1;
       yearlyView.add(DateTime(currentDate.year + 1, i));
     }
 
     _indexedScrollController =
         IndexedScrollController(initialIndex: _jumpToPosition);
-//    for (int year = currentDate.year - 1; year < currentDate.year + 2; year++) {
-//      for (int month = 1; month < 13; month++) {
-//        if (DateTime(year, month) ==
-//            DateTime(DateTime.now().year, DateTime.now().month)) {
-//          _jumpToPosition = index;
-////          _scrollController =
-////              ScrollController(initialScrollOffset: _jumpToPosition * 560.0);
-////          print("JUMP TO POS: $_jumpToPosition");
-//        }
-//        yearlyView.add(DateTime(year, month));
-//        index += 1;
-//      }
-//    }
 
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    //Monthly View
-    _daysInMonth =
-        dateUtil.daysInMonth(_selectedMonth.month, _selectedMonth.year);
-//    var date = DateTime(_selectedMonth.year, _selectedMonth.month);
-//    int startDay = 0;
     events.clear();
     if (!_isLoading) {
       _itemJobModelList.map((e) {
@@ -145,87 +95,90 @@ class NewDashboardPageState extends State<NewDashboardPage>
     }
 
     MediaQueryData mediaQueryData = MediaQuery.of(context);
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
+    return Scaffold(
         appBar: AppBar(
           centerTitle: false,
           flexibleSpace: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                  stops: [0.4, 0.8],
-                  colors: [Colors.white, Colors.green[100]],
-                  begin: Alignment.topLeft,
-                  end: Alignment.topRight),
-            ),
+            color: Colors.white,
+            // decoration: BoxDecoration(
+            //   gradient: LinearGradient(
+            //       stops: [0.4, 0.8],
+            //       colors: [Colors.white, Colors.green[100]],
+            //       begin: Alignment.topLeft,
+            //       end: Alignment.topRight),
+            // ),
           ),
           automaticallyImplyLeading: false,
           title:
               QuicksandText("Task Calendar", 22, accentColor, FontWeight.bold),
           actions: [
-            _monthlyView
-                ? DropdownButtonHideUnderline(
-                    child: DropdownButton(
-                      value: _months.elementAt(_selectedMonth.month - 1),
-                      items: _months.map((location) {
-                        return DropdownMenuItem(
-                          child: new MontserratText(
-                              location, 16, Colors.black, FontWeight.bold),
-                          value: location,
-                        );
-                      }).toList(),
-                      onChanged: (String value) {
-                        setState(() {
-                          _selectedMonth = DateTime(
-                              DateTime.now().year, _months.indexOf(value) + 1);
-                        });
-                      },
-                    ),
-                  )
-                : Container()
-          ],
-          bottom: PreferredSize(
-              preferredSize: const Size.fromHeight(34.0),
+            GestureDetector(
+              onTap: (){
+                Get.dialog(ZipCodeDialog());
+              },
+                child: _iconWithDay()),
+            GestureDetector(
+              onTap: (){
+                Get.dialog(InfoDialog());
+              },
               child: Container(
-                margin: const EdgeInsets.only(bottom: 4.0),
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: separatorColor)),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    GestureDetector(
-                        onTap: () {
-                          if (_monthlyView == false) {
-                            setState(() {
-                              _monthlyView = true;
-                              _tabController.index = 0;
-                            });
-                          }
-                        },
-                        child: _monthlyYearlyToggleButton(
-                            mediaQueryData, "MONTH", true)),
-                    GestureDetector(
-                        onTap: () {
-                          if (_monthlyView) {
-                            setState(() {
-                              _monthlyView = false;
-                              _tabController.index = 1;
-//                              _autoScrollController.scrollToIndex(
-//                                _jumpToPosition,
-//                              );
-                            });
-//                          Timer(const Duration(milliseconds: 50), () {
-//                            _scrollController.jumpTo(_jumpToPosition * 560.0);
-//                          });
-                          }
-                        },
-                        child: _monthlyYearlyToggleButton(
-                            mediaQueryData, "YEAR", false))
-                  ],
-                ),
+                margin: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: Image.asset(
+                "assets/question_icon.png",
+                width: 22,
+                height: 22,
               )),
+            )
+          ],
+          // bottom: PreferredSize(
+          //     preferredSize: const Size.fromHeight(34.0),
+          //     child: Container(
+          //       margin: const EdgeInsets.only(left: 8.0, right: 8.0),
+          //       child: Row(
+          //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          //         children: [
+          //           Row(
+          //             children: [
+          //               Icon(
+          //                 Icons.location_on,
+          //                 size: 18,
+          //                 color: separatorColor,
+          //               ),
+          //               SizedBox(
+          //                 width: 8.0,
+          //               ),
+          //               DropdownButtonHideUnderline(
+          //                 child: DropdownButton(
+          //                   value: _locationNames[1],
+          //                   items: _locationNames.map((location) {
+          //                     return DropdownMenuItem(
+          //                       child: new MontserratText(location, 12,
+          //                           separatorColor, FontWeight.normal),
+          //                       value: location,
+          //                     );
+          //                   }).toList(),
+          //                   onChanged: (String value) {
+          //                     // setState(() {
+          //                     //   _selectedMonth = DateTime(
+          //                     //       DateTime.now().year, _locationNames.indexOf(value) + 1);
+          //                     // });
+          //                   },
+          //                 ),
+          //               )
+          //             ],
+          //           ),
+          //           IconButton(
+          //             onPressed: () {
+          //               Get.dialog(ZipCodeDialog());
+          //             },
+          //             icon: Icon(
+          //               Icons.calendar_today,
+          //               size: 18,
+          //             ),
+          //           )
+          //         ],
+          //       ),
+          //     )),
         ),
         floatingActionButton: FloatingActionButton(
           shape: RoundedRectangleBorder(
@@ -244,12 +197,14 @@ class NewDashboardPageState extends State<NewDashboardPage>
         body: _isLoading
             ? Container(
                 height: mediaQueryData.size.height * 0.75,
+                color: Colors.white,
                 child: Center(
                   child: CircularProgressIndicator(),
                 ),
               )
             : _isError
                 ? Container(
+                    color: Colors.white,
                     height: mediaQueryData.size.height * 0.75,
                     child: Center(
                       child: MontserratText("Error loading jobs.", 18,
@@ -259,14 +214,28 @@ class NewDashboardPageState extends State<NewDashboardPage>
 //                  : _monthlyView
 //                      ? _monthlyViewWidget(mediaQueryData, date, startDay)
 //                      : _yearlyViewWidget(mediaQueryData),
-                : TabBarView(
-                    controller: _tabController,
-                    children: [
-                      MonthlyViewPage(_weekdaysName, _daysInMonth,
-                          _selectedMonth, events, _itemJobModelList),
-                      _yearlyViewWidget(mediaQueryData)
-                    ],
-                  ),
+                : _yearlyViewWidget(mediaQueryData));
+  }
+
+  Widget _iconWithDay() {
+    return Align(
+      alignment: Alignment.center,
+      child: Stack(
+        overflow: Overflow.visible,
+        alignment: AlignmentDirectional.center,
+        children: [
+          Icon(
+            Icons.calendar_today,
+            color: Colors.black,
+            size: 22,
+          ),
+          Positioned(
+            bottom: 2.0,
+            child: Text("${DateTime.now().day}",
+                style: TextStyle(color: Colors.black, fontSize: 10),
+                textAlign: TextAlign.left),
+          ),
+        ],
       ),
     );
   }
@@ -274,30 +243,21 @@ class NewDashboardPageState extends State<NewDashboardPage>
   Widget _yearlyViewWidget(MediaQueryData mediaQueryData) {
     return Container(
       width: mediaQueryData.size.width * 1,
-//      height: mediaQueryData.size.height * 0.7,
+      color: Colors.white,
       child: IndexedListView.builder(
-          controller: _indexedScrollController,
-//          shrinkWrap: true,
-//          controller: _autoScrollController,
-//          itemCount: yearlyView.length,
-          maxItemCount: yearlyView.length - 1,
-          minItemCount: 0,
-          itemBuilder: (context, index) {
-            return ItemMonth(yearlyView[index], events, _itemJobModelList);
-//            return AutoScrollTag(
-//                index: index,
-//                key: ValueKey(index),
-//                controller: _autoScrollController,
-//                child: ItemMonth(yearlyView[index], events, _itemJobModelList));
-          },
-        emptyItemBuilder: (context, index){
-            if(index < 0) {
-              _indexedScrollController.animateToIndex(0);
-            } else{
-              _indexedScrollController.animateToIndex(yearlyView.length - 1);
-              // _indexedScrollController.jumpTo(yearlyView.length - 1);
-            }
-            return Container(height: 5, width: 5);
+        controller: _indexedScrollController,
+        maxItemCount: yearlyView.length - 1,
+        minItemCount: 0,
+        itemBuilder: (context, index) {
+          return ItemMonth(yearlyView[index], events, _itemJobModelList);
+        },
+        emptyItemBuilder: (context, index) {
+          if (index < 0) {
+            _indexedScrollController.animateToIndex(0);
+          } else {
+            _indexedScrollController.animateToIndex(yearlyView.length - 1);
+          }
+          return Container(height: 5, width: 5);
         },
       ),
     );
@@ -323,34 +283,13 @@ class NewDashboardPageState extends State<NewDashboardPage>
         ));
   }
 
-//  Widget _jobImage(DateTime boxDay) {
-//    String image = "";
-//    for (var value in _itemJobModelList) {
-//      DateTime dateTime = DateTime.parse(value.when).toLocal();
-//      if (boxDay == DateTime(dateTime.year, dateTime.month, dateTime.day)) {
-//        image = "$BASE_URL_CATEGORY${value.imageUrl}";
-//      }
-//    }
-//    return SvgPicture.network(
-//      "$image",
-//      width: 40,
-//      height: 40,
-//      color: accentColor,
-//      fit: BoxFit.contain,
-//    );
-//  }
-
   void fetchUpcomingJobs() {
     _dioHelper
         .getRequest(BASE_URL + URL_UPCOMING_JOBS, {"token": ""}).then((value) {
-      print("UPCOMING JOBS: ${value}");
       UpcomingJobsModel upcomingJobModel =
           upcomingJobsModelResponseFromJson(json.encode(value.data));
-
+      print("UPCOMING JOBS: $value");
       if (upcomingJobModel.status) {
-//          _itemJobModelList.addAll(upcomingJobModel.upcomingJobs);
-//          _itemJobModelList = upcomingJobModel.upcomingJobs;
-//        _addRecursiveEvents(_itemJobModelList);
         _addRecursiveEvents(upcomingJobModel.upcomingJobs);
       } else {
         setState(() {
@@ -359,7 +298,6 @@ class NewDashboardPageState extends State<NewDashboardPage>
       }
     }).catchError((error) {
       try {
-        print("FETCH JOBS: $error");
         var err = error as DioError;
         if (err.type == DioErrorType.RESPONSE) {
           UpcomingJobsModel categoryModel =
@@ -381,7 +319,6 @@ class NewDashboardPageState extends State<NewDashboardPage>
     });
   }
 
-  //TODO SKIPS ARE REMAINING
   void _addRecursiveEvents(List<ItemJobModel> _list) {
     try {
       for (ItemJobModel item in _list) {

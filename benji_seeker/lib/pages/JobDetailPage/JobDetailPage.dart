@@ -20,7 +20,6 @@ import 'package:benji_seeker/models/CompletedJobModel.dart';
 import 'package:benji_seeker/models/JobDetailModel.dart';
 import 'package:benji_seeker/models/JustStatusModel.dart';
 import 'package:benji_seeker/models/ProviderDetail.dart';
-import 'package:benji_seeker/models/UpcomingJobModel.dart';
 import 'package:benji_seeker/pages/Chat/ChatPage.dart';
 import 'package:benji_seeker/pages/MainPages/OrderSequence/Calender/When.dart';
 import 'package:benji_seeker/pages/PaymentSequence/SummaryPage.dart';
