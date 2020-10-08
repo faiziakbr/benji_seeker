@@ -1,4 +1,3 @@
-import 'package:benji_seeker/pages/JobDetailPage/NewJobDetailPage.dart';
 import 'package:benji_seeker/pages/SplashScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

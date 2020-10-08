@@ -14,6 +14,7 @@ import 'package:benji_seeker/pages/ServiceProviders/TabsServiceProviders/Overvie
 import 'package:benji_seeker/utils/DioHelper.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import 'TabsServiceProviders/AboutMeTab.dart';
 import 'TabsServiceProviders/ReviewsTab.dart';
@@ -321,7 +322,7 @@ class _ServiceProviderDetailState extends State<ServiceProviderDetail>
           Navigator.pop(context);
         }
         Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => BotNavPage()));
+            context, MaterialPageRoute(builder: (context) => BotNavPage(pageIndex: 1,)));
       } else {
         Navigator.pop(context);
         MyToast("${justStatusModel.errors[0]}", context);

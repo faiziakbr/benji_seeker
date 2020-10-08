@@ -2,14 +2,13 @@ import 'dart:convert';
 
 import 'package:benji_seeker/My_Widgets/InfoDialog.dart';
 import 'package:benji_seeker/My_Widgets/MyToast.dart';
-import 'package:benji_seeker/My_Widgets/ZipCodeDialog.dart';
+import 'package:benji_seeker/My_Widgets/ScheduledJobDailog.dart';
 import 'package:benji_seeker/constants/MyColors.dart';
 import 'package:benji_seeker/constants/Urls.dart';
 import 'package:benji_seeker/custom_texts/MontserratText.dart';
 import 'package:benji_seeker/custom_texts/QuicksandText.dart';
 import 'package:benji_seeker/models/CreateJobModel.dart';
 import 'package:benji_seeker/models/UpcomingJobModel.dart';
-import 'package:benji_seeker/pages/MainPages/CalendarTypes/MonthlyViewPage.dart';
 import 'package:benji_seeker/pages/MainPages/OrderSequence/OrderPage1.dart';
 import 'package:benji_seeker/utils/DioHelper.dart';
 import 'package:date_util/date_util.dart';
@@ -36,12 +35,13 @@ class NewDashboardPageState extends State<NewDashboardPage>
   bool _isError = false;
   List<ItemJobModel> _itemJobModelList = [];
   DioHelper _dioHelper;
-  bool _monthlyView = true;
+
+  // bool _monthlyView = true;
 
   List<DateTime> events = [];
   var dateTime = DateTime.now();
 
-  List<String> _locationNames = ["NY 10001 USA", "Denvor CO, USA"];
+  // List<String> _locationNames = ["NY 10001 USA", "Denvor CO, USA"];
 
   List<DateTime> yearlyView = [];
 
@@ -81,6 +81,7 @@ class NewDashboardPageState extends State<NewDashboardPage>
     super.initState();
   }
 
+
   @override
   Widget build(BuildContext context) {
     events.clear();
@@ -96,125 +97,183 @@ class NewDashboardPageState extends State<NewDashboardPage>
 
     MediaQueryData mediaQueryData = MediaQuery.of(context);
     return Scaffold(
-        appBar: AppBar(
-          centerTitle: false,
-          flexibleSpace: Container(
-            color: Colors.white,
-            // decoration: BoxDecoration(
-            //   gradient: LinearGradient(
-            //       stops: [0.4, 0.8],
-            //       colors: [Colors.white, Colors.green[100]],
-            //       begin: Alignment.topLeft,
-            //       end: Alignment.topRight),
-            // ),
-          ),
-          automaticallyImplyLeading: false,
-          title:
-              QuicksandText("Task Calendar", 22, accentColor, FontWeight.bold),
-          actions: [
-            GestureDetector(
-              onTap: (){
-                Get.dialog(ZipCodeDialog());
+      appBar: AppBar(
+        centerTitle: false,
+        flexibleSpace: Container(
+          color: Colors.white,
+          // decoration: BoxDecoration(
+          //   gradient: LinearGradient(
+          //       stops: [0.4, 0.8],
+          //       colors: [Colors.white, Colors.green[100]],
+          //       begin: Alignment.topLeft,
+          //       end: Alignment.topRight),
+          // ),
+        ),
+        automaticallyImplyLeading: false,
+        title: QuicksandText("Task Calendar", 22, accentColor, FontWeight.bold),
+        actions: [
+          GestureDetector(
+              onTap: () {
+                _indexedScrollController.animateToIndex(_jumpToPosition);
               },
-                child: _iconWithDay()),
-            GestureDetector(
-              onTap: (){
-                Get.dialog(InfoDialog());
-              },
-              child: Container(
+              child: _iconWithDay()),
+          GestureDetector(
+            onTap: () {
+              Get.dialog(InfoDialog());
+            },
+            child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Image.asset(
-                "assets/question_icon.png",
-                width: 22,
-                height: 22,
-              )),
+                child: Image.asset(
+                  "assets/question_icon.png",
+                  width: 22,
+                  height: 22,
+                )),
+          )
+        ],
+        // bottom: PreferredSize(
+        //     preferredSize: const Size.fromHeight(34.0),
+        //     child: Container(
+        //       margin: const EdgeInsets.only(left: 8.0, right: 8.0),
+        //       child: Row(
+        //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        //         children: [
+        //           Row(
+        //             children: [
+        //               Icon(
+        //                 Icons.location_on,
+        //                 size: 18,
+        //                 color: separatorColor,
+        //               ),
+        //               SizedBox(
+        //                 width: 8.0,
+        //               ),
+        //               DropdownButtonHideUnderline(
+        //                 child: DropdownButton(
+        //                   value: _locationNames[1],
+        //                   items: _locationNames.map((location) {
+        //                     return DropdownMenuItem(
+        //                       child: new MontserratText(location, 12,
+        //                           separatorColor, FontWeight.normal),
+        //                       value: location,
+        //                     );
+        //                   }).toList(),
+        //                   onChanged: (String value) {
+        //                     // setState(() {
+        //                     //   _selectedMonth = DateTime(
+        //                     //       DateTime.now().year, _locationNames.indexOf(value) + 1);
+        //                     // });
+        //                   },
+        //                 ),
+        //               )
+        //             ],
+        //           ),
+        //           IconButton(
+        //             onPressed: () {
+        //               Get.dialog(ZipCodeDialog());
+        //             },
+        //             icon: Icon(
+        //               Icons.calendar_today,
+        //               size: 18,
+        //             ),
+        //           )
+        //         ],
+        //       ),
+        //     )),
+      ),
+      floatingActionButton: FloatingActionButton(
+        shape: RoundedRectangleBorder(
+            side: BorderSide(width: 1, color: orangeColor),
+            borderRadius: BorderRadius.circular(10)),
+        backgroundColor: orangeColor,
+        child: Icon(Icons.add),
+        onPressed: () {
+          CreateJobModel createJobModel = CreateJobModel();
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => OrderPage1(createJobModel)));
+        },
+      ),
+      body: _isLoading
+          ? Container(
+              height: mediaQueryData.size.height * 0.75,
+              color: Colors.white,
+              child: Center(
+                child: CircularProgressIndicator(),
+              ),
             )
-          ],
-          // bottom: PreferredSize(
-          //     preferredSize: const Size.fromHeight(34.0),
-          //     child: Container(
-          //       margin: const EdgeInsets.only(left: 8.0, right: 8.0),
-          //       child: Row(
-          //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          //         children: [
-          //           Row(
-          //             children: [
-          //               Icon(
-          //                 Icons.location_on,
-          //                 size: 18,
-          //                 color: separatorColor,
-          //               ),
-          //               SizedBox(
-          //                 width: 8.0,
-          //               ),
-          //               DropdownButtonHideUnderline(
-          //                 child: DropdownButton(
-          //                   value: _locationNames[1],
-          //                   items: _locationNames.map((location) {
-          //                     return DropdownMenuItem(
-          //                       child: new MontserratText(location, 12,
-          //                           separatorColor, FontWeight.normal),
-          //                       value: location,
-          //                     );
-          //                   }).toList(),
-          //                   onChanged: (String value) {
-          //                     // setState(() {
-          //                     //   _selectedMonth = DateTime(
-          //                     //       DateTime.now().year, _locationNames.indexOf(value) + 1);
-          //                     // });
-          //                   },
-          //                 ),
-          //               )
-          //             ],
-          //           ),
-          //           IconButton(
-          //             onPressed: () {
-          //               Get.dialog(ZipCodeDialog());
-          //             },
-          //             icon: Icon(
-          //               Icons.calendar_today,
-          //               size: 18,
-          //             ),
-          //           )
-          //         ],
-          //       ),
-          //     )),
-        ),
-        floatingActionButton: FloatingActionButton(
-          shape: RoundedRectangleBorder(
-              side: BorderSide(width: 1, color: orangeColor),
-              borderRadius: BorderRadius.circular(10)),
-          backgroundColor: orangeColor,
-          child: Icon(Icons.add),
-          onPressed: () {
-            CreateJobModel createJobModel = CreateJobModel();
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => OrderPage1(createJobModel)));
-          },
-        ),
-        body: _isLoading
-            ? Container(
-                height: mediaQueryData.size.height * 0.75,
-                color: Colors.white,
-                child: Center(
-                  child: CircularProgressIndicator(),
-                ),
-              )
-            : _isError
-                ? Container(
-                    color: Colors.white,
-                    height: mediaQueryData.size.height * 0.75,
-                    child: Center(
-                      child: MontserratText("Error loading jobs.", 18,
-                          Colors.black.withOpacity(0.4), FontWeight.normal),
-                    ),
-                  )
+          : _isError
+              ? Container(
+                  color: Colors.white,
+                  height: mediaQueryData.size.height * 0.75,
+                  child: Center(
+                    child: MontserratText("Error loading jobs.", 18,
+                        Colors.black.withOpacity(0.4), FontWeight.normal),
+                  ),
+                )
 //                  : _monthlyView
 //                      ? _monthlyViewWidget(mediaQueryData, date, startDay)
 //                      : _yearlyViewWidget(mediaQueryData),
-                : _yearlyViewWidget(mediaQueryData));
+              : _yearlyViewWidget(mediaQueryData),
+      // bottomSheet: Card(
+      //   color: Colors.white,
+      //   child: Container(
+      //     child: Column(
+      //       mainAxisSize: MainAxisSize.min,
+      //       children: [
+      //         Align(
+      //           alignment: Alignment.topRight,
+      //           child: IconButton(
+      //             onPressed: () {},
+      //             icon: Icon(Icons.close),
+      //           ),
+      //         ),
+      //         Container(
+      //           height: mediaQueryData.size.height * 0.4,
+      //           width: mediaQueryData.size.width,
+      //           child: ListView.builder(
+      //             itemCount: _scheduledList.length,
+      //             itemBuilder: (context, index){
+      //               return Container(
+      //                 height: 10,
+      //                 // margin: const EdgeInsets.only(bottom: 8.0),
+      //                 // decoration: BoxDecoration(
+      //                 //     borderRadius: BorderRadius.circular(12.0),
+      //                 //     shape: BoxShape.rectangle,
+      //                 //     border: Border.all(color: accentColor, width: 1)),
+      //                 // child: InkWell(
+      //                 //   onTap: () {
+      //                 //     // Navigator.push(context, MaterialPageRoute(builder: (context) => JobDetailPage(itemCompletedModel.processId)));
+      //                 //   },
+      //                 //   child: ListTile(
+      //                 //     leading: Container(
+      //                 //       width: mediaQueryData.size.width * 0.13,
+      //                 //       height: mediaQueryData.size.width * 0.1,
+      //                 //       child: SvgPicture.network(
+      //                 //         "$BASE_URL_CATEGORY${_scheduledList[index].imageUrl}",
+      //                 //         color: accentColor,
+      //                 //         fit: BoxFit.contain,
+      //                 //       ),
+      //                 //       margin: EdgeInsets.all(5.0),
+      //                 //     ),
+      //                 //     title: MontserratText("${_scheduledList[index].title}", 16,
+      //                 //         Colors.black, FontWeight.bold),
+      //                 //     subtitle: MontserratText(
+      //                 //         "${DateFormat.yMMMd().add_jm().format(DateTime.parse(_scheduledList[index].when).toLocal())}",
+      //                 //         14,
+      //                 //         lightTextColor,
+      //                 //         FontWeight.normal),
+      //                 //   ),
+      //                 // ),
+      //               );
+      //             }
+      //           ),
+      //         )
+      //       ],
+      //     ),
+      //   ),
+      // ),
+    );
   }
 
   Widget _iconWithDay() {
@@ -232,7 +291,7 @@ class NewDashboardPageState extends State<NewDashboardPage>
           Positioned(
             bottom: 2.0,
             child: Text("${DateTime.now().day}",
-                style: TextStyle(color: Colors.black, fontSize: 10),
+                style: TextStyle(color: accentColor, fontSize: 10),
                 textAlign: TextAlign.left),
           ),
         ],
@@ -242,50 +301,81 @@ class NewDashboardPageState extends State<NewDashboardPage>
 
   Widget _yearlyViewWidget(MediaQueryData mediaQueryData) {
     return Container(
-      width: mediaQueryData.size.width * 1,
-      color: Colors.white,
-      child: IndexedListView.builder(
-        controller: _indexedScrollController,
-        maxItemCount: yearlyView.length - 1,
-        minItemCount: 0,
-        itemBuilder: (context, index) {
-          return ItemMonth(yearlyView[index], events, _itemJobModelList);
-        },
-        emptyItemBuilder: (context, index) {
-          if (index < 0) {
-            _indexedScrollController.animateToIndex(0);
-          } else {
-            _indexedScrollController.animateToIndex(yearlyView.length - 1);
-          }
-          return Container(height: 5, width: 5);
-        },
-      ),
-    );
+        width: mediaQueryData.size.width * 1,
+        color: Colors.white,
+        child: IndexedListView.builder(
+          controller: _indexedScrollController,
+          maxItemCount: yearlyView.length - 1,
+          minItemCount: 0,
+          itemBuilder: (context, index) {
+            return ItemMonth(
+                yearlyView[index], events, _itemJobModelList, _itemClick);
+          },
+          emptyItemBuilder: (context, index) {
+            if (index < 0) {
+              _indexedScrollController.animateToIndex(0);
+            } else {
+              _indexedScrollController.animateToIndex(yearlyView.length - 1);
+            }
+            return Container(height: 5, width: 5);
+          },
+        ),
+        );
   }
 
-  Widget _monthlyYearlyToggleButton(
-      MediaQueryData mediaQueryData, String text, bool monthlyView) {
-    return Container(
-        alignment: Alignment.center,
-        width: mediaQueryData.size.width * 0.2475,
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            color: _monthlyView == monthlyView
-                ? separatorColor
-                : Colors.transparent),
-        child: MontserratText(
-          "$text",
-          16,
-          _monthlyView == monthlyView ? Colors.white : Colors.black,
-          FontWeight.w600,
-          maxLines: 1,
-        ));
+  void _itemClick(List<ItemJobModel> data, DateTime date) {
+    // print("${data.length}");
+    // List<ItemJobModel> _recurrenceJobList = List();
+    // if (data.length > 1) {
+    Get.dialog(ScheduledJobDialog(data, date, _itemJobModelList));
+    // } else if (data.length == 1) {
+    //   Navigator.push(context, MaterialPageRoute(builder: (context) {
+    //     if (data[0].recurrence != null && data[0].recurrence != 0) {
+    //       _itemJobModelList.forEach((element) {
+    //         if (element.jobId == data[0].jobId) {
+    //           _recurrenceJobList.add(element);
+    //         }
+    //       });
+    //     }
+    //     if (data[0].isWhenDeterminedLocally)
+    //       return NewJobPageDetailPage(
+    //         data[0].jobId,
+    //         generatedRecurringTime: data[0].when,
+    //         recurrenceJobList: _recurrenceJobList,
+    //       );
+    //     else {
+    //       return NewJobPageDetailPage(
+    //         data[0].jobId,
+    //         recurrenceJobList: _recurrenceJobList,
+    //       );
+    //     }
+    //   }));
+    // }
   }
+
+  // Widget _monthlyYearlyToggleButton(
+  //     MediaQueryData mediaQueryData, String text, bool monthlyView) {
+  //   return Container(
+  //       alignment: Alignment.center,
+  //       width: mediaQueryData.size.width * 0.2475,
+  //       padding: const EdgeInsets.symmetric(vertical: 8.0),
+  //       decoration: BoxDecoration(
+  //           borderRadius: BorderRadius.circular(20),
+  //           color: _monthlyView == monthlyView
+  //               ? separatorColor
+  //               : Colors.transparent),
+  //       child: MontserratText(
+  //         "$text",
+  //         16,
+  //         _monthlyView == monthlyView ? Colors.white : Colors.black,
+  //         FontWeight.w600,
+  //         maxLines: 1,
+  //       ));
+  // }
 
   void fetchUpcomingJobs() {
-    _dioHelper
-        .getRequest(BASE_URL + URL_UPCOMING_JOBS, {"token": ""}).then((value) {
+    _dioHelper.getRequest(BASE_URL + URL_UPCOMING("2020"), {"token": ""}).then(
+        (value) {
       UpcomingJobsModel upcomingJobModel =
           upcomingJobsModelResponseFromJson(json.encode(value.data));
       print("UPCOMING JOBS: $value");
@@ -313,9 +403,11 @@ class NewDashboardPageState extends State<NewDashboardPage>
         _isError = true;
       });
     }).whenComplete(() {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     });
   }
 
@@ -331,7 +423,9 @@ class NewDashboardPageState extends State<NewDashboardPage>
               item.recurrence,
               item.jobId,
               item.skipDates,
-              item.imageUrl);
+              item.imageUrl,
+              item.subCategory,
+              item.status);
           _itemJobModelList.add(itemJobModel);
 //          print("ADDED 1 ${itemJobModel.toString()}");
           DateTime incrementedTime = DateTime.parse(item.when);
@@ -358,6 +452,8 @@ class NewDashboardPageState extends State<NewDashboardPage>
                   item.jobId,
                   item.skipDates,
                   item.imageUrl,
+                  item.subCategory,
+                  item.status,
                   isWhenDeterminedLocally: true);
 //              print("ADDED 2 ${itemJobModel.toString()}");
               _itemJobModelList.add(itemJobModel);
@@ -372,6 +468,8 @@ class NewDashboardPageState extends State<NewDashboardPage>
             item.jobId,
             item.skipDates,
             item.imageUrl,
+            item.subCategory,
+            item.status,
           );
 //          print("ADDED 3 ${itemJobModel.toString()}");
           _itemJobModelList.add(itemJobModel);

@@ -1,6 +1,9 @@
 import 'dart:convert';
 
+import 'package:benji_seeker/My_Widgets/EmailNotifyDialog.dart';
+import 'package:benji_seeker/My_Widgets/MyLoadingDialog.dart';
 import 'package:benji_seeker/My_Widgets/MyToast.dart';
+import 'package:benji_seeker/My_Widgets/ZipCodeDialog.dart';
 import 'package:benji_seeker/My_Widgets/item_order.dart';
 import 'package:benji_seeker/constants/MyColors.dart';
 import 'package:benji_seeker/constants/Urls.dart';
@@ -8,11 +11,13 @@ import 'package:benji_seeker/custom_texts/MontserratText.dart';
 import 'package:benji_seeker/custom_texts/QuicksandText.dart';
 import 'package:benji_seeker/models/CategoryModel.dart';
 import 'package:benji_seeker/models/CreateJobModel.dart';
+import 'package:benji_seeker/models/JustStatusModel.dart';
 import 'package:benji_seeker/pages/BotNav.dart';
 import 'package:benji_seeker/pages/CreateJobPages/PackageSelection/PackageSelectionPage.dart';
 import 'package:benji_seeker/utils/DioHelper.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class OrderPage1 extends StatefulWidget {
   final CreateJobModel createJobModel;
@@ -63,10 +68,11 @@ class _OrderPage1State extends State<OrderPage1> {
                 alignment: Alignment.topRight,
                 child: IconButton(
                   onPressed: () {
-                    while(Navigator.canPop(context)){
+                    while (Navigator.canPop(context)) {
                       Navigator.pop(context);
                     }
-                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => BotNavPage()));
+                    Navigator.pushReplacement(context,
+                        MaterialPageRoute(builder: (context) => BotNavPage()));
                   },
                   icon: Icon(Icons.close),
                 ),
@@ -110,12 +116,16 @@ class _OrderPage1State extends State<OrderPage1> {
                                 ),
                                 _itemCategories.length == 0
                                     ? Container(
-                                    height: mediaQueryData.size.height * 0.5,
-                                      child: Center(
-                                        child: MontserratText("No categories!", 18,
-                                            separatorColor, FontWeight.normal),
-                                      ),
-                                    )
+                                        height:
+                                            mediaQueryData.size.height * 0.5,
+                                        child: Center(
+                                          child: MontserratText(
+                                              "No categories!",
+                                              18,
+                                              separatorColor,
+                                              FontWeight.normal),
+                                        ),
+                                      )
                                     : Expanded(
                                         child: ListView.builder(
                                             physics: BouncingScrollPhysics(),
@@ -142,10 +152,73 @@ class _OrderPage1State extends State<OrderPage1> {
   }
 
   void itemClick(BuildContext context, String categoryId, String text) {
-    print("CATEGORY ID: $categoryId");
-    widget.createJobModel.categoryId = categoryId;
-    Navigator.push(context,
-        MaterialPageRoute(builder: (context) => PackageSelectionPage(widget.createJobModel, text)));
+    // print("CATEGORY ID: $categoryId");
+    Get.dialog(ZipCodeDialog((value) {
+      if(value.isNotEmpty && value.toString().isNumericOnly){
+        _checkZipCodeRequest(value, categoryId, text);
+      } else {
+        MyToast("Enter valid Zip Code", context);
+      }
+    }));
+    // widget.createJobModel.categoryId = categoryId;
+    // Navigator.push(context,
+    //     MaterialPageRoute(builder: (context) => PackageSelectionPage(widget.createJobModel, text)));
+  }
+
+  void _checkZipCodeRequest(String zipCode, String categoryId, String text){
+    MyLoadingDialog(context, "Checking...");
+    _dioHelper.getRequest(BASE_URL + URL_CHECK_ZIP_CODE(zipCode), {"token":""}).then((value){
+      Navigator.pop(context);//pop dialog
+      print("ZIP $value");
+      JustStatusModel justStatusModel = justStatusResponseFromJson(json.encode(value.data));
+
+      if(justStatusModel.status){
+        widget.createJobModel.categoryId = categoryId;
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => PackageSelectionPage(widget.createJobModel, text)));
+      }
+
+    }).catchError((error){
+      Navigator.pop(context);//pop dialog
+      try {
+        var err = error as DioError;
+        if (err.type == DioErrorType.RESPONSE) {
+          JustStatusModel response =
+          justStatusResponseFromJson(json.encode(err.response.data));
+          MyToast("${response.errors[0]}", context);
+          _notifyOfUnServeZipCode(zipCode);
+        } else {
+          MyToast("${err.message}", context);
+        }
+      } catch (e) {}
+    });
+  }
+
+  void _notifyOfUnServeZipCode(String zipCode){
+    MyLoadingDialog(context, "Notifying Admin...");
+
+    _dioHelper.postRequest(BASE_URL + URL_NOTIFY_OF_ZIP_CODE, {"token":""}, {"zip": zipCode}).then((value){
+      Navigator.pop(context);//pop dialog
+      JustStatusModel justStatusModel = justStatusResponseFromJson(json.encode(value.data));
+
+      if(justStatusModel.status){
+        Navigator.pop(context);
+        Get.dialog(EmailNotifyDialog());
+      }
+
+    }).catchError((error){
+      Navigator.pop(context);//pop dialog
+      try {
+        var err = error as DioError;
+        if (err.type == DioErrorType.RESPONSE) {
+          JustStatusModel response =
+          justStatusResponseFromJson(json.encode(err.response.data));
+          MyToast("${response.errors[0]}", context);
+        } else {
+          MyToast("${err.message}", context);
+        }
+      } catch (e) {}
+    });
   }
 
   void _fetchCategories() {
@@ -171,16 +244,16 @@ class _OrderPage1State extends State<OrderPage1> {
         } else {
           MyToast("${err.message}", context, position: 1);
         }
-      } catch (e) {
-
-      }
+      } catch (e) {}
       setState(() {
         _isError = true;
       });
     }).whenComplete(() {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     });
   }
 }

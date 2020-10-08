@@ -30,9 +30,10 @@ import 'MainPages/Notifications/NotificationsPage.dart';
 import 'MainPages/OrderSequence/OrderPage1.dart';
 
 class BotNavPage extends StatefulWidget {
-  bool fromNotifications;
+  final bool fromNotifications;
+  final int pageIndex;
 
-  BotNavPage({this.fromNotifications = false});
+  BotNavPage({this.fromNotifications = false, this.pageIndex = 0});
 
   @override
   _BotNavPageState createState() => _BotNavPageState();
@@ -56,6 +57,8 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
   void initState() {
     _dioHelper = DioHelper.instance;
     WidgetsBinding.instance.addObserver(this);
+
+    _currentPage = widget.pageIndex;
 
     _getUnReadCount();
     _firebaseCloudMessagingListeners();
@@ -429,11 +432,10 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
             shape: BoxShape.rectangle,
             boxShadow: [
               BoxShadow(
-                color: Colors.black,
-                spreadRadius: 5,
-                blurRadius: 5,
-                offset: Offset(0,7)
-              )
+                  color: Colors.black,
+                  spreadRadius: 5,
+                  blurRadius: 5,
+                  offset: Offset(0, 7))
             ],
             borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(10.0),
@@ -441,23 +443,23 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: <Widget>[
-            Expanded(
-              flex: 1,
-              child: BotNavWidget(
-                "assets/task_icon.png",
-                "Task Calendar",
-                _currentPage,
-                navBarItemClickListener,
-                0,
-                count: 0,
-              ),
-            ),
             // separator(mediaQueryData),
             Expanded(
               flex: 1,
               child: BotNavWidget(
                 "assets/schedule_task_icon.png",
                 "Order Now",
+                _currentPage,
+                navBarItemClickListener,
+                0,
+                count: 0,
+              ),
+            ),
+            Expanded(
+              flex: 1,
+              child: BotNavWidget(
+                "assets/task_icon.png",
+                "Task Calendar",
                 _currentPage,
                 navBarItemClickListener,
                 1,
@@ -558,11 +560,11 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
   }
 
   Widget _showInBody() {
-    if (_currentPage == 0)
-      return NewDashboardPage(_newDashboardKey);
-    else if (_currentPage == 1) {
+    if (_currentPage == 0) {
       _createJobModel = CreateJobModel();
       return OrderPage1(_createJobModel);
+    } else if (_currentPage == 1) {
+      return NewDashboardPage(_newDashboardKey);
     } else if (_currentPage == 2) {
       return IndividualChatPage(
         _chatChildKey,

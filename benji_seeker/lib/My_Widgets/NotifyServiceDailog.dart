@@ -5,17 +5,13 @@ import 'package:get/get.dart';
 
 import 'MyDarkButton.dart';
 
-class ZipCodeDialog extends StatefulWidget {
+
+class NotifyServiceDialog extends StatelessWidget {
   final Function onComplete;
 
-  ZipCodeDialog(this.onComplete);
+  NotifyServiceDialog(this.onComplete);
 
-  @override
-  _ZipCodeDialogState createState() => _ZipCodeDialogState();
-}
-
-class _ZipCodeDialogState extends State<ZipCodeDialog> {
-  TextEditingController _textEditingController = TextEditingController();
+  final TextEditingController _textEditingController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +31,7 @@ class _ZipCodeDialogState extends State<ZipCodeDialog> {
                 child: GestureDetector(onTap: () => Get.back(),child: Icon(Icons.close)),
               ),
               Image.asset(
-                "assets/zip_code.png",
+                "assets/warning_icon.png",
                 width: mediaQueryData.size.width * 0.55,
                 height: 150,
                 fit: BoxFit.cover,
@@ -43,7 +39,7 @@ class _ZipCodeDialogState extends State<ZipCodeDialog> {
               SizedBox(
                 width: mediaQueryData.size.width * 0.55,
                 child: MontserratText(
-                  "Please provide us with your the Zip Code",
+                  "Unfortunately, we don't serve in your area right now. Please provide us with your Email ID",
                   18,
                   navBarColor,
                   FontWeight.normal,
@@ -65,7 +61,7 @@ class _ZipCodeDialogState extends State<ZipCodeDialog> {
                   style: TextStyle(color: separatorColor),
                   enableSuggestions: false,
                   decoration: InputDecoration(
-                      hintText: "Zip Code",
+                      hintText: "Email Id",
                       contentPadding: const EdgeInsets.all(4.0),
                       hintStyle: TextStyle(color: lightTextColor),
                       border: OutlineInputBorder(
@@ -74,11 +70,11 @@ class _ZipCodeDialogState extends State<ZipCodeDialog> {
                 ),
               ),
               Container(
-                width: mediaQueryData.size.width * 0.55,
+                  width: mediaQueryData.size.width * 0.55,
                   height: 45,
                   margin: EdgeInsets.only(top: 16.0),
-                  child: MyDarkButton("CONTINUE", (){
-                    widget.onComplete(_textEditingController.text.toString());
+                  child: MyDarkButton("NOTIFY ME", (){
+                    onComplete(_textEditingController.text.toString());
                   }))
             ],
           ),

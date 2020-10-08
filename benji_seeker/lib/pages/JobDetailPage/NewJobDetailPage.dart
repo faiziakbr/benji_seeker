@@ -3,11 +3,13 @@ import 'dart:convert';
 
 import 'package:benji_seeker/My_Widgets/DescriptionTextWidget.dart';
 import 'package:benji_seeker/My_Widgets/DialogYesNo.dart';
+import 'package:benji_seeker/My_Widgets/LocationAndDescriptionDialog.dart';
 import 'package:benji_seeker/My_Widgets/MyDarkButton.dart';
 import 'package:benji_seeker/My_Widgets/MyLightButton.dart';
 import 'package:benji_seeker/My_Widgets/MyLoadingDialog.dart';
 import 'package:benji_seeker/My_Widgets/MyToast.dart';
 import 'package:benji_seeker/My_Widgets/Separator.dart';
+import 'package:benji_seeker/My_Widgets/SortingDialog.dart';
 import 'package:benji_seeker/My_Widgets/TransparentRoute.dart';
 import 'package:benji_seeker/SharedPref/SavedData.dart';
 import 'package:benji_seeker/constants/Constants.dart';
@@ -20,6 +22,7 @@ import 'package:benji_seeker/models/CompletedJobModel.dart';
 import 'package:benji_seeker/models/JobDetailModel.dart';
 import 'package:benji_seeker/models/JustStatusModel.dart';
 import 'package:benji_seeker/models/ProviderDetail.dart';
+import 'package:benji_seeker/models/UpcomingJobModel.dart';
 import 'package:benji_seeker/pages/Chat/ChatPage.dart';
 import 'package:benji_seeker/pages/MainPages/OrderSequence/Calender/When.dart';
 import 'package:benji_seeker/pages/PaymentSequence/SummaryPage.dart';
@@ -31,22 +34,30 @@ import 'package:dio/dio.dart';
 import 'package:expandable_bottom_sheet/expandable_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+
+import '../BotNav.dart';
 
 class NewJobPageDetailPage extends StatefulWidget {
   final String jobId;
   final String generatedRecurringTime;
   final bool fromNotification;
+  final List<ItemJobModel> recurrenceJobList;
+  final bool jobChanged;
 
-  NewJobPageDetailPage(
-      this.jobId, this.generatedRecurringTime, this.fromNotification);
+  NewJobPageDetailPage(this.jobId,
+      {this.generatedRecurringTime,
+      this.fromNotification = false,
+      this.recurrenceJobList,
+      this.jobChanged = false});
 
   @override
   _NewJobPageDetailPageState createState() => _NewJobPageDetailPageState();
 }
 
-class _NewJobPageDetailPageState extends State<NewJobPageDetailPage> with WidgetsBindingObserver {
-
+class _NewJobPageDetailPageState extends State<NewJobPageDetailPage>
+    with WidgetsBindingObserver {
   DioHelper _dioHelper;
   var platform = MethodChannel('samples.flutter.dev/battery');
   bool _isLoading = true;
@@ -67,10 +78,14 @@ class _NewJobPageDetailPageState extends State<NewJobPageDetailPage> with Widget
   Detail _jobDetail;
   JobDetailModel _jobDetailModel;
 
+  bool _jobChanged = false;
+
   @override
   void initState() {
     _dioHelper = DioHelper.instance;
     WidgetsBinding.instance.addObserver(this);
+
+    _jobChanged = widget.jobChanged;
 
     _connectSocket();
     _isSocketConnected();
@@ -163,41 +178,41 @@ class _NewJobPageDetailPageState extends State<NewJobPageDetailPage> with Widget
 
   void _fetchData(String jobId) {
     _dioHelper.getRequest(BASE_URL + URL_JOB_DETAIL(jobId), {"token": {}}).then(
-            (value) {
-          print("JOB DETAIL RESPONSE: $value");
-          JobDetailModel jobDetailModel =
+        (value) {
+      print("JOB DETAIL RESPONSE: $value");
+      JobDetailModel jobDetailModel =
           jobDetailResponseFromJson(json.encode(value.data));
-          if (jobDetailModel.status) {
-            _jobDetailModel = jobDetailModel;
-            _jobDetail = jobDetailModel.detail;
-            if (_jobDetail.nextStep == "active") {
-              _fetchBiddersInfo();
-            } else if (_jobDetail.nextStep == "booking_accepted") {
-              if (_jobDetail.providerId != null) {
-                _fetchProviderDetail(_jobDetail.providerId);
-              }
-            } else if (_jobDetail.nextStep == "summary") {
-              _fetchCompletedJobInfo();
-            } else if (_jobDetail.nextStep == "under_progress") {
-              _fetchProviderDetail(_jobDetail.providerId);
-            } else if (_jobDetail.nextStep == "arrived_at_location") {
-              _fetchProviderDetail(_jobDetail.providerId);
-            }
-          } else {
-            MyToast("${jobDetailModel.errors[0]}", context, position: 1);
-            if (mounted) {
-              setState(() {
-                _isError = true;
-              });
-            }
+      if (jobDetailModel.status) {
+        _jobDetailModel = jobDetailModel;
+        _jobDetail = jobDetailModel.detail;
+        if (_jobDetail.nextStep == "active") {
+          _fetchBiddersInfo();
+        } else if (_jobDetail.nextStep == "booking_accepted") {
+          if (_jobDetail.providerId != null) {
+            _fetchProviderDetail(_jobDetail.providerId);
           }
-        }).catchError((error) {
+        } else if (_jobDetail.nextStep == "summary") {
+          _fetchCompletedJobInfo();
+        } else if (_jobDetail.nextStep == "under_progress") {
+          _fetchProviderDetail(_jobDetail.providerId);
+        } else if (_jobDetail.nextStep == "arrived_at_location") {
+          _fetchProviderDetail(_jobDetail.providerId);
+        }
+      } else {
+        MyToast("${jobDetailModel.errors[0]}", context, position: 1);
+        if (mounted) {
+          setState(() {
+            _isError = true;
+          });
+        }
+      }
+    }).catchError((error) {
       try {
         var err = error as DioError;
         print("ERROR JOB DETAIl: ${err.response.data}");
         if (err.type == DioErrorType.RESPONSE) {
           JobDetailModel jobDetailModel =
-          jobDetailResponseFromJson(json.encode(err.response.data));
+              jobDetailResponseFromJson(json.encode(err.response.data));
           MyToast("${jobDetailModel.errors[0]}", context, position: 1);
         } else {
           MyToast("${err.message}", context, position: 1);
@@ -224,7 +239,7 @@ class _NewJobPageDetailPageState extends State<NewJobPageDetailPage> with Widget
         BASE_URL + URL_JOB_BIDS(widget.jobId), {"token": ""}).then((value) {
       print("BIDDER RESPONSE: $value");
       BiddersModel bidderModel =
-      bidderResponseFromJson(json.encode(value.data));
+          bidderResponseFromJson(json.encode(value.data));
 
       if (bidderModel.status) {
         _biddersList = bidderModel.bidders;
@@ -240,7 +255,7 @@ class _NewJobPageDetailPageState extends State<NewJobPageDetailPage> with Widget
         print("BIDDER RESPONSE: $err");
         if (err.type == DioErrorType.RESPONSE) {
           BiddersModel bidderModel =
-          bidderResponseFromJson(json.encode(err.response.data));
+              bidderResponseFromJson(json.encode(err.response.data));
           MyToast("${bidderModel.errors[0]}", context, position: 1);
         } else {
           MyToast("${err.message}", context, position: 1);
@@ -264,7 +279,7 @@ class _NewJobPageDetailPageState extends State<NewJobPageDetailPage> with Widget
     _dioHelper.getRequest(BASE_URL + URL_PROVIDER_DETAIL(providerId),
         {"token": ""}).then((value) {
       ProviderDetail providerDetail =
-      providerDetailResponseFromJson(json.encode(value.data));
+          providerDetailResponseFromJson(json.encode(value.data));
       if (providerDetail.status) {
         _provider = providerDetail.provider;
       } else {
@@ -279,7 +294,7 @@ class _NewJobPageDetailPageState extends State<NewJobPageDetailPage> with Widget
         var err = error as DioError;
         if (err.type == DioErrorType.RESPONSE) {
           ProviderDetail providerDetail =
-          providerDetailResponseFromJson(json.encode(err.response.data));
+              providerDetailResponseFromJson(json.encode(err.response.data));
           MyToast("${providerDetail.errors[0]}", context, position: 1);
         } else {
           MyToast("${err.message}", context, position: 1);
@@ -291,9 +306,11 @@ class _NewJobPageDetailPageState extends State<NewJobPageDetailPage> with Widget
         _providerError = true;
       });
     }).whenComplete(() {
-      setState(() {
-        _providerLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _providerLoading = false;
+        });
+      }
     });
   }
 
@@ -301,7 +318,7 @@ class _NewJobPageDetailPageState extends State<NewJobPageDetailPage> with Widget
     _dioHelper.getRequest(BASE_URL + URL_COMPLETED_JOB(widget.jobId),
         {"token": ""}).then((value) {
       var completedJobModel =
-      completedJobModelResponseFromJson(json.encode(value.data));
+          completedJobModelResponseFromJson(json.encode(value.data));
       if (completedJobModel.status) {
         _completedJobModel = completedJobModel;
         _fetchProviderDetail(_completedJobModel.providerId);
@@ -314,10 +331,9 @@ class _NewJobPageDetailPageState extends State<NewJobPageDetailPage> with Widget
     }).catchError((error) {
       try {
         var err = error as DioError;
-        print("ERROR JOB DETAIl: ${err.response.data}");
         if (err.type == DioErrorType.RESPONSE) {
           JobDetailModel jobDetailModel =
-          jobDetailResponseFromJson(json.encode(err.response.data));
+              jobDetailResponseFromJson(json.encode(err.response.data));
           MyToast("${jobDetailModel.errors[0]}", context, position: 1);
         } else {
           MyToast("${err.message}", context, position: 1);
@@ -338,139 +354,938 @@ class _NewJobPageDetailPageState extends State<NewJobPageDetailPage> with Widget
   @override
   Widget build(BuildContext context) {
     MediaQueryData mediaQueryData = MediaQuery.of(context);
-    return Scaffold(
-      body: SafeArea(
-        child: Container(
-          width: mediaQueryData.size.width,
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Image.asset(
-                        "assets/background_summary.png",
-                        width: mediaQueryData.size.width * 0.25,
-                        height: mediaQueryData.size.height * 0.11,
-                        fit: BoxFit.cover,
+    DateTime dateTimee;
+    if (_isLoading == false && _isError == false) {
+      dateTimee =
+          DateTime.parse(widget.generatedRecurringTime ?? _jobDetail.when);
+    }
+
+    // List<NetworkImage> networkImages = [];
+    // for (String image in _jobDetail.images) {
+    //   networkImages.add(NetworkImage("$BASE_JOB_IMAGE_URL$image"));
+    // }
+    return WillPopScope(
+      onWillPop: () async {
+        Get.offAll(BotNavPage(
+          pageIndex: 1,
+        ));
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: () => Get.offAll(BotNavPage(
+              pageIndex: 1,
+            )),
+          ),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+        ),
+        body: SafeArea(
+          child: _isLoading
+              ? Center(
+                  child: CircularProgressIndicator(),
+                )
+              : _isError
+                  ? Center(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          MontserratText("Job doesn't exists!", 18,
+                              Colors.black.withOpacity(0.4), FontWeight.normal,
+                              left: 16, right: 16),
+                          MyDarkButton("Go Back", () {
+                            Navigator.pop(context);
+                          })
+                        ],
                       ),
-                      MontserratText(
-                          "3 photos", 10, separatorColor, FontWeight.normal)
-                    ],
-                  ),
-                  Container(
-                    margin: const EdgeInsets.only(left: 8.0, right: 8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
+                    )
+                  : SingleChildScrollView(
+                      child: Container(
+                        width: mediaQueryData.size.width,
+                        height: mediaQueryData.size.height * 0.9,
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
                           children: [
-                            MontserratText(
-                              "Lawn Mowing",
-                              22,
-                              accentColor,
-                              FontWeight.bold,
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                GestureDetector(
+                                  onTap: () {
+                                    List<NetworkImage> networkImages = [];
+                                    for (String image in _jobDetail.images) {
+                                      networkImages.add(NetworkImage(
+                                          "$BASE_JOB_IMAGE_URL$image"));
+                                    }
+                                    Navigator.of(context).push(TransparentRoute(
+                                        builder: (BuildContext context) =>
+                                            PhotoViewPage(networkImages, 0)));
+                                  },
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius:
+                                            BorderRadius.circular(10.0),
+                                        child: Image.network(
+                                          "$BASE_JOB_IMAGE_URL${_jobDetail.images[0]}",
+                                          width:
+                                              mediaQueryData.size.width * 0.25,
+                                          height:
+                                              mediaQueryData.size.height * 0.11,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                      MontserratText(
+                                        "${_jobDetail.images.length} photos",
+                                        10,
+                                        accentColor,
+                                        FontWeight.normal,
+                                        underline: true,
+                                        top: 4.0,
+                                      )
+                                    ],
+                                  ),
+                                ),
+                                Flexible(
+                                  child: Container(
+                                    margin: const EdgeInsets.only(
+                                        left: 8.0, right: 8.0),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.end,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            MontserratText(
+                                              "${_jobDetail.category}",
+                                              20,
+                                              accentColor,
+                                              FontWeight.bold,
+                                            ),
+                                            Flexible(
+                                              child: MontserratText(
+                                                "\$${_jobDetail.estimatedIncome.toStringAsFixed(1)}",
+                                                15,
+                                                orangeColor,
+                                                FontWeight.w500,
+                                                left: 8.0,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        Container(
+                                          margin:
+                                              const EdgeInsets.only(top: 16.0),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.center,
+                                            children: [
+                                              _textWithIcon(
+                                                  "assets/task_icon.png",
+                                                  "${DateFormat.yMMMd().format(dateTimee.toLocal())}",
+                                                  iconColor: accentColor,
+                                                  fontWeight: _jobChanged
+                                                      ? FontWeight.bold
+                                                      : FontWeight.normal),
+                                              _separator(mediaQueryData),
+                                              MontserratText(
+                                                "${DateFormat.jm().format(dateTimee.toLocal())}",
+                                                14,
+                                                separatorColor,
+                                                FontWeight.normal,
+                                                left: 8.0,
+                                              )
+                                            ],
+                                          ),
+                                        ),
+                                        Stack(
+                                          alignment: Alignment.centerLeft,
+                                          children: [
+                                            Container(
+                                              margin: const EdgeInsets.only(
+                                                  top: 16.0, left: 4.0),
+                                              child: GestureDetector(
+                                                onTap: () => Get.dialog(
+                                                    LocationAndDescriptionDialog(
+                                                        _jobDetail.where,
+                                                        _jobDetail
+                                                            .description)),
+                                                child: MontserratText(
+                                                  "View location and description",
+                                                  10,
+                                                  accentColor,
+                                                  FontWeight.normal,
+                                                  underline: true,
+                                                ),
+                                              ),
+                                            ),
+                                            _jobChanged
+                                                ? Card(
+                                                    margin:
+                                                        const EdgeInsets.only(
+                                                            top: 8.0),
+                                                    child: Container(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              8.0),
+                                                      child: Row(
+                                                        mainAxisSize:
+                                                            MainAxisSize.min,
+                                                        children: [
+                                                          MontserratText(
+                                                              "Date has been changed.",
+                                                              12,
+                                                              separatorColor,
+                                                              FontWeight.w500),
+                                                          GestureDetector(
+                                                              onTap: () {
+                                                                setState(() {
+                                                                  _jobChanged =
+                                                                      false;
+                                                                });
+                                                              },
+                                                              child:
+                                                                  MontserratText(
+                                                                      "OK",
+                                                                      12,
+                                                                      orangeColor,
+                                                                      FontWeight
+                                                                          .bold,
+                                                                      left:
+                                                                          8.0))
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  )
+                                                : Container()
+                                          ],
+                                        ),
+                                        _jobDetail.isRecurring
+                                            ? Container(
+                                                margin: const EdgeInsets.only(
+                                                    top: 16.0),
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.center,
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    _textWithHintAndIcon(
+                                                        true,
+                                                        "Recurring",
+                                                        "${_jobDetail.recurringDays} days"),
+                                                    Container(
+                                                        margin: const EdgeInsets
+                                                                .only(
+                                                            left: 8.0,
+                                                            right: 8.0),
+                                                        child: _separator(
+                                                            mediaQueryData)),
+                                                    _textWithHintAndIcon(
+                                                        false,
+                                                        "End Date",
+                                                        "${DateFormat.yMMMd().format(DateTime.parse(_jobDetail.endDate).toLocal())}")
+                                                  ],
+                                                ),
+                                              )
+                                            : Container()
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                            MontserratText(
-                              "\$50",
-                              16,
-                              orangeColor,
-                              FontWeight.w500,
-                              left: 8.0,
-                            ),
+                            _jobDetail.nextStep == "summary"
+                                ? Container()
+                                : Container(
+                                    margin: const EdgeInsets.symmetric(
+                                        vertical: 16.0),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        _button(
+                                            "assets/close_icon.png",
+                                            Colors.black,
+                                            borderColor,
+                                            "Cancel",
+                                            _cancelThisJob,
+                                            marginRight: 4.0),
+                                        _button(
+                                            "assets/reschedule_icon.png",
+                                            accentColor,
+                                            accentColor.withOpacity(0.5),
+                                            "Reschedule",
+                                            _rescheduleThisJob,
+                                            marginLeft: 4.0),
+                                        _jobDetail.isRecurring
+                                            ? _button(
+                                                "assets/skip_icon.png",
+                                                Colors.black,
+                                                borderColor,
+                                                "Skip this Job",
+                                                _skipThisWeek,
+                                                marginLeft: 8.0)
+                                            : Container()
+                                      ],
+                                    ),
+                                  ),
+                            Expanded(
+                                child: _providerInfo(
+                                    mediaQueryData, _jobDetail.nextStep))
                           ],
                         ),
-                        Container(
-                          margin: const EdgeInsets.only(top: 16.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              _textWithIcon(
-                                  "assets/task_icon.png", "Mar 5, 2019"),
-                              _separator(mediaQueryData),
-                              MontserratText(
-                                "7:30 AM",
-                                14,
-                                separatorColor,
-                                FontWeight.normal,
-                                left: 8.0,
-                              )
-                            ],
-                          ),
-                        ),
-                        Container(
-                          margin: const EdgeInsets.only(top: 16.0),
-                          child: _textWithIcon(
-                              "assets/location_orange_icon.png",
-                              "Grandpa's Home"),
-                        ),
-                        Container(
-                          margin: const EdgeInsets.only(top: 16.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              _textWithHintAndIcon(
-                                  true, "Recurring", "14 days"),
-                              Container(
-                                  margin: const EdgeInsets.only(
-                                      left: 16.0, right: 8.0),
-                                  child: _separator(mediaQueryData)),
-                              _textWithHintAndIcon(
-                                  false, "End Date", "Nov, 28, 2020")
-                            ],
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              Container(
-                margin: const EdgeInsets.symmetric(vertical: 16.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _button("assets/close_icon.png", Colors.black, borderColor,
-                        "Cancel"),
-                    _button("assets/reschedule_icon.png", accentColor,
-                        accentColor.withOpacity(0.5), "Reschedule"),
-                    _button("assets/close_icon.png", Colors.black, borderColor,
-                        "Skip this Job"),
-                  ],
-                ),
-              )
-            ],
-          ),
         ),
       ),
     );
   }
 
-  Widget _textWithIcon(String image, String text) {
+  _skipThisWeek() {
+    Get.dialog(DialogYesNo(
+      "Skip this job?",
+      "",
+      () {
+        DateTime dateTime =
+            DateTime.parse(widget.generatedRecurringTime ?? _jobDetail.when);
+        widget.recurrenceJobList
+            .removeWhere((element) => DateTime.parse(element.when) == dateTime);
+        _skipJob(_jobDetailModel.detail.processId, dateTime);
+      },
+      () {
+        Get.back();
+      },
+      useRichText: true,
+      richText: _richText(),
+    ));
+  }
+
+  Widget _richText() {
+    return RichText(
+      textAlign: TextAlign.center,
+      text: TextSpan(
+          text: "Are you sure you want to skip ",
+          style: TextStyle(
+            fontSize: 15,
+            color: navBarColor,
+            fontWeight: FontWeight.normal,
+            fontFamily: "Montserrat",
+          ),
+          children: [
+            TextSpan(
+                text: "${_jobDetail.subCategory}",
+                style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: "Montserrat")),
+            TextSpan(text: " for "),
+            TextSpan(
+                text:
+                    "${DateFormat.yMMMd().format(DateTime.parse(widget.generatedRecurringTime ?? _jobDetail.when))}",
+                style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: "Montserrat"))
+          ]),
+    );
+  }
+
+  _rescheduleThisJob() {
+    _rescheduleJob();
+  }
+
+  _cancelThisJob() {
+    Get.dialog(DialogYesNo(
+        "Cancel this service?", "Are you sure you want to cancel this service.",
+        () {
+      _cancelJob(_jobDetail.processId);
+    }, () {
+      Get.back();
+    }));
+  }
+
+  _chatPage() async {
+    print("HREE");
+    var result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => ChatPage(
+                  widget.jobId,
+                  _jobDetailModel,
+                  providerName: _provider.nickName,
+                )));
+    if (result == null) _reconnectSocket();
+  }
+
+  _summaryPage() async {
+    var result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => SummaryPage(_jobDetail.processId)));
+    if (result == null) {
+      setState(() {
+        _isLoading = true;
+        _isError = false;
+      });
+      _reconnectSocket();
+      _fetchData(widget.jobId);
+    }
+  }
+
+  _ratePage() async {
+    var result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => SummaryPage(
+                  _jobDetail.processId,
+                  rateAndTip: true,
+                )));
+    print("RESULT ON BACK: $result");
+    if (result == null) {
+      setState(() {
+        _isLoading = true;
+        _isError = false;
+      });
+      _reconnectSocket();
+      _fetchData(widget.jobId);
+    }
+  }
+
+  Widget _providerInfo(MediaQueryData mediaQueryData, String jobNextStep) {
+    print("JOB NEXT STEP: $jobNextStep");
+    switch (jobNextStep) {
+      case "active":
+        return _browseProviders(mediaQueryData);
+      case "booking_accepted":
+        return _providerDetail(mediaQueryData);
+      case "summary":
+        return _providerSummary(mediaQueryData);
+      case "under_progress":
+        return _providerDetail(mediaQueryData);
+      case "arrived_at_location":
+        return _providerDetail(mediaQueryData);
+      default:
+        return Container(
+          color: Colors.white,
+        );
+    }
+  }
+
+  Widget _browseProviders(MediaQueryData mediaQueryData) {
+    return Container(
+      width: mediaQueryData.size.width,
+      child: _biddersLoading
+          ? Container(
+              height: 100,
+              child: Center(
+                child: CircularProgressIndicator(),
+              ),
+            )
+          : _biddersError
+              ? Center(
+                  child: MontserratText("Error loading bidders!", 18,
+                      Colors.black.withOpacity(0.4), FontWeight.normal),
+                )
+              : _biddersList.length > 0
+                  ? Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            MontserratText(
+                              "${_biddersList.length} Providers Available",
+                              18,
+                              Colors.black,
+                              FontWeight.bold,
+                              bottom: 8.0,
+                            ),
+                            GestureDetector(
+                              onTap: () async {
+                                var result = await Get.dialog(SortingDialog());
+                                if (result != null) {
+                                  if (result == 0) {
+                                    setState(() {
+                                      _biddersList.sort((a, b) {
+                                        return a.rating.compareTo(b.rating);
+                                      });
+                                    });
+                                  } else if (result == 1) {
+                                    setState(() {
+                                      _biddersList.sort((a, b) {
+                                        return b.rating.compareTo(a.rating);
+                                      });
+                                    });
+                                  }
+                                }
+                              },
+                              child: Container(
+                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(color: borderColor)),
+                                padding: const EdgeInsets.all(4.0),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    MontserratText("Sort by", 14, navBarColor,
+                                        FontWeight.normal),
+                                    Icon(
+                                      Icons.keyboard_arrow_down,
+                                      size: 20,
+                                    )
+                                  ],
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
+                        Expanded(
+                          child: ListView.builder(
+                              itemCount: _biddersList.length,
+                              itemBuilder: (context, index) {
+                                return ItemServiceProvider(
+                                    _biddersList[index], widget.jobId);
+                              }),
+                        ),
+                      ],
+                    )
+                  : Container(
+                      margin: const EdgeInsets.only(top: 16.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Image.asset(
+                                "assets/standing_person_icon.png",
+                                width: 50,
+                                height: 120,
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 8.0),
+                                child: Image.asset(
+                                  "assets/warning_icon.png",
+                                  width: 50,
+                                  height: 50,
+                                ),
+                              )
+                            ],
+                          ),
+                          MontserratText(
+                              "Unfortunately, we don't have any professionals available to serve you right now",
+                              14,
+                              navBarColor,
+                              FontWeight.w600,
+                              textAlign: TextAlign.center,
+                              top: 8.0)
+                        ],
+                      ),
+                    ),
+    );
+  }
+
+  Widget _providerDetail(MediaQueryData mediaQueryData) {
+    return Container(
+      width: mediaQueryData.size.width,
+      child: _providerLoading
+          ? Center(
+              child: CircularProgressIndicator(),
+            )
+          : _providerError
+              ? Center(
+                  child: MontserratText("Error loading provider.", 18,
+                      Colors.black.withOpacity(0.4), FontWeight.normal),
+                )
+              : Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    MontserratText(
+                      "Provider Available",
+                      18,
+                      Colors.black,
+                      FontWeight.bold,
+                      bottom: 8.0,
+                    ),
+                    _textWithIcon("${_icon(_jobDetail.nextStep)}",
+                        "${_nextStepTextFormatter(_jobDetail.nextStep)}",
+                        iconColor: _jobDetail.nextStep == "under_progress"
+                            ? orangeColor
+                            : _jobDetail.nextStep == "booking_accepted"
+                                ? null
+                                : accentColor,
+                        textColor: _jobDetail.nextStep == "under_progress"
+                            ? orangeColor
+                            : accentColor,
+                        fontWeight: FontWeight.bold),
+                    Container(
+                      margin: const EdgeInsets.only(top: 16.0),
+                      child: Row(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8.0),
+                            child: FadeInImage(
+                              fit: BoxFit.cover,
+                              width: 70,
+                              height: 70,
+                              placeholder: AssetImage("assets/placeholder.png"),
+                              image: NetworkImage(
+                                  "$BASE_PROFILE_URL${_provider.profilePic}"),
+                            ),
+                          ),
+                          Flexible(
+                            child: Container(
+                              margin: const EdgeInsets.only(left: 16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      MontserratText(
+                                        "${_provider.nickName}",
+                                        16,
+                                        Colors.black,
+                                        FontWeight.bold,
+                                        right: 8.0,
+                                        bottom: 8.0,
+                                      ),
+                                      _separator(mediaQueryData),
+                                      MontserratText(
+                                        _provider.rating != null
+                                            ? "${_provider.rating.toStringAsFixed(1)}"
+                                            : "0.0",
+                                        16,
+                                        Colors.black,
+                                        FontWeight.bold,
+                                        left: 8.0,
+                                        bottom: 8.0,
+                                      ),
+                                      Icon(
+                                        Icons.star,
+                                        color: Colors.orange,
+                                        size: 18,
+                                      ),
+                                    ],
+                                  ),
+                                  _textWithIcon(
+                                      "assets/location_orange_icon.png",
+                                      "${_provider.address}",
+                                      iconColor: accentColor)
+                                ],
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                    Align(
+                      alignment: Alignment.topCenter,
+                      child: Container(
+                        width: 110,
+                        height: 70,
+                        margin: const EdgeInsets.only(top: 16.0),
+                        child: Row(
+                          children: [
+                            _button("assets/message_icon.png", separatorColor,
+                                borderColor, "Message", () {
+                              _chatPage();
+                            }),
+                          ],
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+    );
+  }
+
+  Widget _providerSummary(MediaQueryData mediaQueryData) {
+    return Container(
+      width: mediaQueryData.size.width,
+      child: (_completedJobLoading || _providerLoading)
+          ? Center(
+              child: CircularProgressIndicator(),
+            )
+          : (_completedJobError || _providerError)
+              ? Center(
+                  child: MontserratText("Error loading provider.", 18,
+                      Colors.black.withOpacity(0.4), FontWeight.normal),
+                )
+              : Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    MontserratText(
+                      "Provider Available",
+                      18,
+                      Colors.black,
+                      FontWeight.bold,
+                      top: 4.0,
+                      bottom: 8.0,
+                    ),
+                    _textWithIcon("${_icon(_jobDetail.nextStep)}",
+                        "${_nextStepTextFormatter(_jobDetail.nextStep)}",
+                        iconColor: _jobDetail.nextStep == "under_progress"
+                            ? orangeColor
+                            : _jobDetail.nextStep == "summary"
+                                ? null
+                                : accentColor,
+                        textColor: _jobDetail.nextStep == "under_progress"
+                            ? orangeColor
+                            : accentColor,
+                        fontWeight: FontWeight.bold),
+                    Container(
+                      margin: const EdgeInsets.only(top: 16.0),
+                      child: Row(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8.0),
+                            child: FadeInImage(
+                              fit: BoxFit.cover,
+                              width: 70,
+                              height: 70,
+                              placeholder: AssetImage("assets/placeholder.png"),
+                              image: NetworkImage(
+                                  "$BASE_PROFILE_URL${_provider.profilePic}"),
+                            ),
+                          ),
+                          Flexible(
+                            child: Container(
+                              margin: const EdgeInsets.only(left: 16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      MontserratText(
+                                        "${_provider.nickName}",
+                                        16,
+                                        Colors.black,
+                                        FontWeight.bold,
+                                        right: 8.0,
+                                        bottom: 8.0,
+                                      ),
+                                      _separator(mediaQueryData),
+                                      MontserratText(
+                                        _provider.rating != null
+                                            ? "${_provider.rating.toStringAsFixed(1)}"
+                                            : "0.0",
+                                        16,
+                                        Colors.black,
+                                        FontWeight.bold,
+                                        left: 8.0,
+                                        bottom: 8.0,
+                                      ),
+                                      Icon(
+                                        Icons.star,
+                                        color: Colors.orange,
+                                        size: 18,
+                                      ),
+                                    ],
+                                  ),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: <Widget>[
+                                      MontserratText("Estimate Amount", 12,
+                                          lightTextColor, FontWeight.normal),
+                                      MontserratText(
+                                          "\$${_completedJobModel.estimatedWage.toStringAsFixed(1)}",
+                                          12,
+                                          lightTextColor,
+                                          FontWeight.bold),
+                                    ],
+                                  ),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: <Widget>[
+                                      MontserratText(
+                                          "Time Spend (in minutes)",
+                                          12,
+                                          lightTextColor,
+                                          FontWeight.normal),
+                                      MontserratText(
+                                          "${_completedJobModel.timeInMinutes}",
+                                          12,
+                                          lightTextColor,
+                                          FontWeight.bold),
+                                    ],
+                                  ),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: <Widget>[
+                                      MontserratText(
+                                          "Amount paid (incl. of Tax)",
+                                          12,
+                                          lightTextColor,
+                                          FontWeight.normal),
+                                      MontserratText(
+                                          "\$${_completedJobModel.amountPaid}",
+                                          12,
+                                          lightTextColor,
+                                          FontWeight.bold),
+                                    ],
+                                  ),
+                                  // _textWithIcon(
+                                  //     "assets/location_orange_icon.png",
+                                  //     "${_provider.address}",
+                                  //     iconColor: accentColor)
+                                ],
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        !_completedJobModel.rated ||
+                                !_completedJobModel.tipGiven
+                            ? Flexible(
+                                flex: 1,
+                                child: Container(
+                                  width: 120,
+                                  height: 60,
+                                  margin: const EdgeInsets.only(top: 16.0),
+                                  child: Row(
+                                    children: [
+                                      _button(
+                                          "assets/rate_icon.png",
+                                          separatorColor,
+                                          borderColor,
+                                          "${_tipText(_completedJobModel.tipGiven, _completedJobModel.rated)}",
+                                          () {
+                                        _ratePage();
+                                      }, marginRight: 4.0),
+                                    ],
+                                  ),
+                                ),
+                              )
+                            : Container(),
+                        Flexible(
+                          flex: 1,
+                          child: Container(
+                            width: 120,
+                            height: 60,
+                            margin: const EdgeInsets.only(top: 16.0),
+                            child: Row(
+                              children: [
+                                _button("assets/summary_icon.png",
+                                    separatorColor, borderColor, "SUMMARY", () {
+                                  _summaryPage();
+                                }, marginLeft: 4.0),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  ],
+                ),
+    );
+  }
+
+  String _icon(String nextStep) {
+    switch (nextStep) {
+      case "booking_accepted":
+        return "assets/booking_accepted_icon.png";
+      case "summary":
+        return "assets/booking_accepted_icon.png";
+      case "under_progress":
+        return "assets/under_progress_icon.png";
+      case "arrived_at_location":
+        return "assets/location_orange_icon.png";
+      default:
+        return "";
+    }
+  }
+
+  String _nextStepTextFormatter(String nextStep) {
+    switch (nextStep) {
+      case "active":
+        return "Active";
+      case "booking_accepted":
+        return "Booking Accepted";
+      case "summary":
+        return "All Done!";
+      case "under_progress":
+        return "Under Progress";
+      case "arrived_at_location":
+        return "Arrived at Location";
+      default:
+        return "";
+    }
+  }
+
+  Widget _textWithIcon(String image, String text,
+      {Color textColor = separatorColor,
+      FontWeight fontWeight = FontWeight.normal,
+      Color iconColor}) {
     return Container(
       child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Image.asset(
             "$image",
-            color: accentColor,
+            color: iconColor,
             width: 18,
             height: 18,
           ),
-          MontserratText(
-            "$text",
-            14,
-            separatorColor,
-            FontWeight.normal,
-            left: 8.0,
-            right: 8.0,
+          // Flexible(
+          //     child: Text(
+          //   "$text",
+          //   style: TextStyle(
+          //       color: textColor,
+          //       fontSize: 10,
+          //       fontWeight: fontWeight,
+          //       fontFamily: "Montserrat"),
+          //   maxLines: 1,
+          //       overflow: TextOverflow.ellipsis,
+          // ))
+          Flexible(
+            child: MontserratText(
+              "$text",
+              14,
+              textColor,
+              fontWeight,
+              left: 8.0,
+              right: 8.0,
+            ),
           )
         ],
       ),
@@ -513,24 +1328,41 @@ class _NewJobPageDetailPageState extends State<NewJobPageDetailPage> with Widget
     );
   }
 
-  Widget _button(
-      String image, Color imageColor, Color borderColor, String text) {
+  Widget _button(String image, Color imageColor, Color borderColor, String text,
+      Function onClick,
+      {double marginLeft = 0.0, double marginRight = 0.0}) {
     return Flexible(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-        margin: const EdgeInsets.only(left: 8.0, right: 8.0),
-        decoration: BoxDecoration(
-          shape: BoxShape.rectangle,
-          border: Border.all(color: borderColor),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        alignment: Alignment.center,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Image.asset("$image", color: imageColor, width: 24, height: 24),
-            MontserratText("$text", 12, separatorColor, FontWeight.normal)
-          ],
+      child: GestureDetector(
+        onTap: onClick,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+          margin: EdgeInsets.only(left: marginLeft, right: marginRight),
+          decoration: BoxDecoration(
+            shape: BoxShape.rectangle,
+            border: Border.all(color: borderColor),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          alignment: Alignment.center,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset("$image", color: imageColor, width: 24, height: 24),
+              // MontserratText("$text", 12, separatorColor, FontWeight.normal)
+              Container(
+                margin: const EdgeInsets.only(top: 4.0),
+                child: Text(
+                  "$text",
+                  style: TextStyle(
+                      color: separatorColor,
+                      fontSize: 10,
+                      fontWeight: FontWeight.normal,
+                      fontFamily: "Montserrat"),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              )
+            ],
+          ),
         ),
       ),
     );
@@ -544,5 +1376,133 @@ class _NewJobPageDetailPageState extends State<NewJobPageDetailPage> with Widget
         color: Colors.black12,
       ),
     );
+  }
+
+  void _rescheduleJob() async {
+    var result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) =>
+                When(null, rescheduleJob: true, jobDetail: _jobDetail)));
+    if (result == null) _reconnectSocket();
+  }
+
+  void _skipJob(String processId, DateTime date) {
+    Navigator.pop(context); //popping DialogYesNo
+    MyLoadingDialog(context, "Skipping job...");
+    DioHelper dioHelper = DioHelper.instance;
+
+    //DateTime.now is used for timezoneOffset
+    Map<String, dynamic> map = {
+      "process_id": "$processId",
+      "date":
+          "${DateFormat("E MMM d y HH:mm:ss", Locale(Intl.getCurrentLocale()).languageCode).format(date)} ${_gmtFormatter(DateTime.now())}"
+    };
+
+    print("MAP: $map");
+
+    dioHelper
+        .postRequest(BASE_URL + URL_SKIP_JOB, {"token": ""}, map)
+        .then((value) {
+      JustStatusModel justStatusModel =
+          justStatusResponseFromJson(json.encode(value.data));
+      if (justStatusModel.status) {
+        if (widget.recurrenceJobList.length > 0) {
+          Navigator.pop(context);
+          Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => NewJobPageDetailPage(
+                        widget.jobId,
+                        generatedRecurringTime:
+                            widget.recurrenceJobList[0].when,
+                        recurrenceJobList: widget.recurrenceJobList,
+                        jobChanged: true,
+                      )));
+        } else {
+          while (Navigator.canPop(context)) {
+            Navigator.pop(context);
+          }
+          Navigator.pushReplacement(
+              context, MaterialPageRoute(builder: (context) => BotNavPage()));
+        }
+      } else {
+        Navigator.pop(context);
+        MyToast("${justStatusModel.errors[0]}", context);
+      }
+    }).catchError((error) {
+      try {
+        Navigator.pop(context);
+        var err = error as DioError;
+        if (err.type == DioErrorType.RESPONSE) {
+          JustStatusModel justModel =
+              justStatusResponseFromJson(json.encode(err.response.data));
+          MyToast("${justModel.errors[0]}", context, position: 1);
+        } else {
+          MyToast("${err.message}", context, position: 1);
+        }
+      } catch (e) {
+        MyToast("Unexpected Error!", context, position: 1);
+      }
+    });
+  }
+
+  void _cancelJob(String jobId) {
+    Navigator.pop(context); //popping DialogYesNo
+    MyLoadingDialog(context, "Cancelling job...");
+    DioHelper dioHelper = DioHelper.instance;
+
+    dioHelper.postRequest(BASE_URL + URL_CANCEL_JOB, {"token": ""},
+        {"process_id": "$jobId"}).then((value) {
+      print("CANCEL JOB RESPONSE: $value");
+      JustStatusModel justStatusModel =
+          justStatusResponseFromJson(json.encode(value.data));
+      if (justStatusModel.status) {
+        while (Navigator.canPop(context)) {
+          Navigator.pop(context);
+        }
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (context) => BotNavPage()));
+      } else {
+        Navigator.pop(context);
+        MyToast("${justStatusModel.errors[0]}", context);
+      }
+    }).catchError((error) {
+      try {
+        print("CANCEL JOB ERROR: $error");
+        Navigator.pop(context);
+        var err = error as DioError;
+        if (err.type == DioErrorType.RESPONSE) {
+          JustStatusModel justModel =
+              justStatusResponseFromJson(json.encode(err.response.data));
+          MyToast("${justModel.errors[0]}", context, position: 1);
+        } else {
+          MyToast("${err.message}", context, position: 1);
+        }
+      } catch (e) {
+        MyToast("Unexpected Error!", context, position: 1);
+      }
+    });
+  }
+
+  String _gmtFormatter(DateTime dateTime) {
+    print("GMT: ${dateTime.timeZoneOffset.inHours}");
+    if (dateTime.timeZoneOffset.isNegative) {
+      return "GMT${dateTime.timeZoneOffset.inHours}00";
+    } else {
+      return "GMT+${dateTime.timeZoneOffset.inHours}00";
+    }
+  }
+
+  String _tipText(bool tipGiven, bool rated) {
+    if (!tipGiven && !rated) {
+      return "Rate & Tip";
+    } else if (!tipGiven) {
+      return "Tip ${_provider.nickName}";
+    } else if (!rated) {
+      return "Rate ${_provider.nickName}";
+    } else {
+      return "";
+    }
   }
 }

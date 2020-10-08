@@ -7,16 +7,18 @@ class DialogYesNo extends StatelessWidget {
   final String secondaryText;
   final Function positiveButton;
   final Function negativeButton;
+  final RichText richText;
+  final bool useRichText;
 
   DialogYesNo(this.mainText, this.secondaryText, this.positiveButton,
-      this.negativeButton);
+      this.negativeButton, {this.richText, this.useRichText = false} );
 
   @override
   Widget build(BuildContext context) {
     MediaQueryData mediaQueryData = MediaQuery.of(context);
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-      backgroundColor: dialogBackgroundColor,
+      backgroundColor: Colors.white,
       child: Container(
         padding: const EdgeInsets.all(15.0),
         width: mediaQueryData.size.width * 0.8,
@@ -24,9 +26,9 @@ class DialogYesNo extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: <Widget>[
-            MontserratText(mainText, 20.0, Colors.white, FontWeight.bold,
+            MontserratText(mainText, 20.0, navBarColor, FontWeight.bold,
                 textAlign: TextAlign.center),
-            MontserratText(secondaryText, 16.0, Colors.white, FontWeight.normal,
+            useRichText ? richText : MontserratText(secondaryText, 16.0, navBarColor, FontWeight.normal,
                 textAlign: TextAlign.center),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,

@@ -42,6 +42,11 @@ const String URL_DEVICE_TOKEN = "user/update/device-token";
 const String URL_UNREAD_COUNTS = "app/header-info";
 const String URL_FORGOT_PASSWORD = "user/forgot-password";
 const String URL_SKIP_JOB = "job/skip";
+const String URL_NOTIFY_OF_ZIP_CODE = "service-location-request/add";
+
+String URL_UPCOMING(String year){
+  return "job/upcoming/$year";
+}
 
 
 String URL_SUB_CATRGORY_DETAIL(String subCategoryID){
@@ -70,4 +75,8 @@ String URL_SUMMARY(String id){
 
 String URL_MESSAGES(String processId){
   return "message/$processId/all";
+}
+
+String URL_CHECK_ZIP_CODE(String zipCode){
+  return "service-location/$zipCode";
 }

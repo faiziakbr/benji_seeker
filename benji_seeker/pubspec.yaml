@@ -64,9 +64,9 @@ dependencies:
   multi_image_picker: ^4.7.12
   indexed_list_view: ^1.1.5
   get: ^3.11.1
-#  websafe_svg: ^1.1.1
-#  flutter_svg_provider: ^0.1.5
-#  svg_path_parser: ^0.1.1
+#  this is useless
+#  scrollable_positioned_list: ^0.1.7
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -139,6 +139,16 @@ flutter:
     - assets/reschedule_icon.png
     - assets/question_icon.png
     - assets/task_hint_icon.png
+    - assets/description_icon.png
+    - assets/skip_icon.png
+    - assets/under_progress_icon.png
+    - assets/booking_accepted_icon.png
+    - assets/awaiting_confirmation_icon.png
+    - assets/warning_icon.png
+    - assets/standing_person_icon.png
+    - assets/message_icon.png
+    - assets/rate_icon.png
+    - assets/summary_icon.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

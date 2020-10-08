@@ -10,15 +10,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
 
-import 'JobDetailPage/JobDetailPage.dart';
 import 'MainPages/OrderSequence/OrderPage1.dart';
 
 class ItemMonth extends StatefulWidget {
   final DateTime dateTime;
   final List<DateTime> events;
   final List<ItemJobModel> itemJobList;
+  final Function onClick;
 
-  ItemMonth(this.dateTime, this.events, this.itemJobList);
+  ItemMonth(this.dateTime, this.events, this.itemJobList, this.onClick);
 
   @override
   _ItemMonthState createState() => _ItemMonthState();
@@ -58,164 +58,185 @@ class _ItemMonthState extends State<ItemMonth> {
     return Container(
       color: Colors.white,
       child: Column(
-        children: <Widget>[
-          Align(
-              alignment: Alignment.topLeft,
-              child: QuicksandText(
-                "${DateFormat.MMMM().format(widget.dateTime)} ${DateFormat.y().format(widget.dateTime)}",
-                18,
-                navBarColor,
-                FontWeight.bold,
-                left: 8.0,
-                top: 8.0,
-              )),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: _weekdaysName
-                .map((name) => MontserratText(
-                      "$name",
-                      12,
-                      separatorColor,
-                      FontWeight.w400,
-                      top: 16.0,
-                      bottom: 8.0,
-                    ))
-                .toList(),
-          ),
-          Container(
-            height: 400,
-            width: mediaQueryData.size.width * 1,
-            child: GridView.builder(
-                physics: NeverScrollableScrollPhysics(),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 7, childAspectRatio: 0.85),
-                itemCount: _daysInMonth + (date.weekday - 1),
-                itemBuilder: (context, index) {
-                  if (index < (date.weekday - 1)) {
-                    return Container();
-                  } else {
-                    startDay++;
-                    bool isToday = false;
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Align(
+                alignment: Alignment.topLeft,
+                child: QuicksandText(
+                  "${DateFormat.MMMM().format(widget.dateTime)} ${DateFormat.y().format(widget.dateTime)}",
+                  18,
+                  navBarColor,
+                  FontWeight.bold,
+                  left: 8.0,
+                  top: 8.0,
+                )),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: _weekdaysName
+                  .map((name) => MontserratText(
+                        "$name",
+                        12,
+                        separatorColor,
+                        FontWeight.w400,
+                        top: 16.0,
+                        bottom: 8.0,
+                      ))
+                  .toList(),
+            ),
+             Flexible(
+                child: GridView.builder(
+                  shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 7, childAspectRatio: 0.95),
+                    itemCount: _daysInMonth + (date.weekday - 1),
+                    itemBuilder: (context, index) {
+                      if (index < (date.weekday - 1)) {
+                        return Container();
+                      } else {
+                        startDay++;
+                        bool isToday = false;
 
-                    var boxDay = DateTime(
-                        _selectedMonth.year, _selectedMonth.month, startDay);
+                        var boxDay = DateTime(
+                            _selectedMonth.year, _selectedMonth.month, startDay);
 
-                    if (boxDay ==
-                        DateTime(DateTime.now().year, DateTime.now().month,
-                            DateTime.now().day)) {
-                      isToday = true;
-                    }
+                        if (boxDay ==
+                            DateTime(DateTime.now().year, DateTime.now().month,
+                                DateTime.now().day)) {
+                          isToday = true;
+                        }
 
-                    if (events.contains(boxDay)) {
-                      return GestureDetector(
-                        onTap: () {
-                          print("EVENT CLICKED: $boxDay ");
-                          widget.itemJobList.forEach((element) {
-                            DateTime dateTime =
-                                DateTime.parse(element.when).toLocal();
-                            if (boxDay ==
-                                DateTime(dateTime.year, dateTime.month,
-                                    dateTime.day)) {
-                              Navigator.push(context,
-                                  MaterialPageRoute(builder: (context) {
-                                if (element.isWhenDeterminedLocally)
-                                  return JobDetailPage(element.jobId,
-                                      generatedRecurringTime: element.when);
-                                else {
-                                  return JobDetailPage(element.jobId);
+                        if (events.contains(boxDay)) {
+                          return GestureDetector(
+                            onTap: () {
+                              print("EVENT CLICKED: $boxDay ");
+                              List<ItemJobModel> _itemList = List();
+                              widget.itemJobList.forEach((element) {
+                                DateTime dateTime =
+                                    DateTime.parse(element.when).toLocal();
+                                if (boxDay ==
+                                    DateTime(dateTime.year, dateTime.month,
+                                        dateTime.day)) {
+                                  print("${element.jobId}");
+                                  _itemList.add(element);
                                 }
-                              }));
-                            }
-                          });
-                        },
-                        child: Container(
-                          decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                  color: Colors.orange,
-                                  width: 1),
-                          ),
-                          child: Center(
-                            child: MontserratText(
-                              "$startDay",
-                              16,
-                              Colors.orange,
-                              FontWeight.normal,
-                              textAlign: TextAlign.center,
+                              });
+                              widget.onClick(_itemList, boxDay);
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.all(4.0),
+                              decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: _jobColors(boxDay)["color"],
+                                  border: Border.all(
+                                      color: _jobColors(boxDay)["border_color"],
+                                      width: 1),
+                              ),
+                              child: Center(
+                                child: MontserratText(
+                                  "$startDay",
+                                  16,
+                                  _jobColors(boxDay)["text_color"],
+                                  FontWeight.normal,
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                      );
-                    } else
-                      return GestureDetector(
-                        onTap: () {
-                          DateTime clickedBoxDate =
-                              DateTime(boxDay.year, boxDay.month, boxDay.day);
-                          DateTime today = DateTime(DateTime.now().year,
-                              DateTime.now().month, DateTime.now().day);
+                          );
+                        } else
+                          return GestureDetector(
+                            onTap: () {
+                              DateTime clickedBoxDate =
+                                  DateTime(boxDay.year, boxDay.month, boxDay.day);
+                              DateTime today = DateTime(DateTime.now().year,
+                                  DateTime.now().month, DateTime.now().day);
 
-                          if (today.isBefore(clickedBoxDate) ||
-                              today == clickedBoxDate) {
-                            if (DateTime(boxDay.year, boxDay.month,
-                                        boxDay.day + 1, 0, 0)
-                                    .difference(DateTime.now())
-                                    .inMinutes >
-                                45) {
-                              var createJobModel = CreateJobModel();
-                              createJobModel.jobTime = DateTime(
-                                  boxDay.year, boxDay.month, boxDay.day);
+                              if (today.isBefore(clickedBoxDate) ||
+                                  today == clickedBoxDate) {
+                                if (DateTime(boxDay.year, boxDay.month,
+                                            boxDay.day + 1, 0, 0)
+                                        .difference(DateTime.now())
+                                        .inMinutes >
+                                    45) {
+                                  var createJobModel = CreateJobModel();
+                                  createJobModel.jobTime = DateTime(
+                                      boxDay.year, boxDay.month, boxDay.day);
 //                                        createJobModel.isJobTimeSet = true;
-                              createJobModel.createFromCalendar = true;
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          OrderPage1(createJobModel)));
-                            } else {
-                              MyToast(
-                                  "Can't set time under 45 minutes", context,
-                                  position: 1);
-                            }
-                          }
-                        },
-                        child: Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: isToday ? accentColor : Colors.white,
-                          ),
-                          child: Center(
-                            child: MontserratText(
-                              "$startDay",
-                              16,
-                                isToday ? Colors.white : separatorColor,
-                              FontWeight.normal,
-                              textAlign: TextAlign.center,
+                                  createJobModel.createFromCalendar = true;
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              OrderPage1(createJobModel)));
+                                } else {
+                                  MyToast(
+                                      "Can't set time under 45 minutes", context,
+                                      position: 1);
+                                }
+                              }
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.all(4.0),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: isToday ? accentColor : Colors.white,
+                              ),
+                              child: Center(
+                                child: MontserratText(
+                                  "$startDay",
+                                  16,
+                                    isToday ? Colors.white : separatorColor,
+                                  FontWeight.normal,
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                      );
-                  }
-                }),
-          ),
-        ],
-      ),
+                          );
+                      }
+                    }),
+              ),
+
+          ],
+        ),
+
     );
   }
 
-  Widget _jobImage(DateTime boxDay) {
-    String image = "";
-    for (var value in widget.itemJobList) {
-      DateTime dateTime = DateTime.parse(value.when).toLocal();
-      if (boxDay == DateTime(dateTime.year, dateTime.month, dateTime.day)) {
-        image = "$BASE_URL_CATEGORY${value.imageUrl}";
-      }
+  Map<String, Color> _jobColors(DateTime boxDate){
+    if (DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day) == boxDate || DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day).isBefore(boxDate)){
+      Map<String, Color> map = {
+        "text_color":accentColor,
+        "border_color":accentColor,
+        "color":Colors.transparent
+      };
+      return map;
+    } else {
+      Map<String, Color> map = {
+        "text_color":Colors.white,
+        "border_color":Colors.grey,
+        "color":Colors.grey
+      };
+      return map;
     }
-    return SvgPicture.network(
-      "$image",
-      width: 40,
-      height: 40,
-      color: accentColor,
-      fit: BoxFit.contain,
-    );
   }
+
+
+
+
+  // Widget _jobImage(DateTime boxDay) {
+  //   String image = "";
+  //   for (var value in widget.itemJobList) {
+  //     DateTime dateTime = DateTime.parse(value.when).toLocal();
+  //     if (boxDay == DateTime(dateTime.year, dateTime.month, dateTime.day)) {
+  //       image = "$BASE_URL_CATEGORY${value.imageUrl}";
+  //     }
+  //   }
+  //   return SvgPicture.network(
+  //     "$image",
+  //     width: 40,
+  //     height: 40,
+  //     color: accentColor,
+  //     fit: BoxFit.contain,
+  //   );
+  // }
 }
