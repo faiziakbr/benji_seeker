@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:benji_seeker/My_Widgets/InfoDialog.dart';
 import 'package:benji_seeker/My_Widgets/MyToast.dart';
 import 'package:benji_seeker/My_Widgets/ScheduledJobDailog.dart';
+import 'package:benji_seeker/SharedPref/SavedData.dart';
+import 'package:benji_seeker/constants/Constants.dart';
 import 'package:benji_seeker/constants/MyColors.dart';
 import 'package:benji_seeker/constants/Urls.dart';
 import 'package:benji_seeker/custom_texts/MontserratText.dart';
@@ -48,11 +50,13 @@ class NewDashboardPageState extends State<NewDashboardPage>
   int _jumpToPosition = 1;
   var dateUtil = DateUtil();
   IndexedScrollController _indexedScrollController;
+  List<int> _yearList = List();
 
   @override
   void initState() {
     _dioHelper = DioHelper.instance;
-    fetchUpcomingJobs();
+    fetchUpcomingJobs(DateTime.now().year.toString());
+    _yearList.add(DateTime.now().year);
 
     var index = 0;
     var currentDate = DateTime.now();
@@ -78,9 +82,16 @@ class NewDashboardPageState extends State<NewDashboardPage>
     _indexedScrollController =
         IndexedScrollController(initialIndex: _jumpToPosition);
 
+    SavedData savedData = SavedData();
+    savedData.getBoolValue(FIRST_TIME_DASHBOARD).then((value) {
+      if (value != null && value) {
+        Get.dialog(InfoDialog());
+        savedData.setBoolValue(FIRST_TIME_DASHBOARD, false);
+      }
+    });
+
     super.initState();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -301,26 +312,26 @@ class NewDashboardPageState extends State<NewDashboardPage>
 
   Widget _yearlyViewWidget(MediaQueryData mediaQueryData) {
     return Container(
-        width: mediaQueryData.size.width * 1,
-        color: Colors.white,
-        child: IndexedListView.builder(
-          controller: _indexedScrollController,
-          maxItemCount: yearlyView.length - 1,
-          minItemCount: 0,
-          itemBuilder: (context, index) {
-            return ItemMonth(
-                yearlyView[index], events, _itemJobModelList, _itemClick);
-          },
-          emptyItemBuilder: (context, index) {
-            if (index < 0) {
-              _indexedScrollController.animateToIndex(0);
-            } else {
-              _indexedScrollController.animateToIndex(yearlyView.length - 1);
-            }
-            return Container(height: 5, width: 5);
-          },
-        ),
-        );
+      width: mediaQueryData.size.width * 1,
+      color: Colors.white,
+      child: IndexedListView.builder(
+        controller: _indexedScrollController,
+        maxItemCount: yearlyView.length - 1,
+        minItemCount: 0,
+        itemBuilder: (context, index) {
+          return ItemMonth(yearlyView[index], events, _itemJobModelList,
+              _itemClick, _itemPositionListener);
+        },
+        emptyItemBuilder: (context, index) {
+          if (index < 0) {
+            _indexedScrollController.animateToIndex(0);
+          } else {
+            _indexedScrollController.animateToIndex(yearlyView.length - 1);
+          }
+          return Container(height: 5, width: 5);
+        },
+      ),
+    );
   }
 
   void _itemClick(List<ItemJobModel> data, DateTime date) {
@@ -353,6 +364,13 @@ class NewDashboardPageState extends State<NewDashboardPage>
     // }
   }
 
+  void _itemPositionListener(DateTime dateTime) {
+    if (!_yearList.contains(dateTime.year)) {
+      _yearList.add(dateTime.year);
+      fetchUpcomingJobs(dateTime.year.toString());
+    }
+  }
+
   // Widget _monthlyYearlyToggleButton(
   //     MediaQueryData mediaQueryData, String text, bool monthlyView) {
   //   return Container(
@@ -373,12 +391,13 @@ class NewDashboardPageState extends State<NewDashboardPage>
   //       ));
   // }
 
-  void fetchUpcomingJobs() {
-    _dioHelper.getRequest(BASE_URL + URL_UPCOMING("2020"), {"token": ""}).then(
+  void fetchUpcomingJobs(String year) {
+    DioHelper dioHelper = DioHelper.instance;
+    dioHelper.getRequest(BASE_URL + URL_UPCOMING("$year"), {"token": ""}).then(
         (value) {
       UpcomingJobsModel upcomingJobModel =
           upcomingJobsModelResponseFromJson(json.encode(value.data));
-      print("UPCOMING JOBS: $value");
+      print("UPCOMING JOBS $year: $value");
       if (upcomingJobModel.status) {
         _addRecursiveEvents(upcomingJobModel.upcomingJobs);
       } else {
@@ -397,6 +416,7 @@ class NewDashboardPageState extends State<NewDashboardPage>
           MyToast("${err.message}", context, position: 1);
         }
       } catch (e) {
+        print("ERROR: ${e.toString()}");
         MyToast("Unexpected Error!", context, position: 1);
       }
       setState(() {
@@ -425,7 +445,9 @@ class NewDashboardPageState extends State<NewDashboardPage>
               item.skipDates,
               item.imageUrl,
               item.subCategory,
-              item.status);
+              item.status,
+              item.package,
+              item.hours);
           _itemJobModelList.add(itemJobModel);
 //          print("ADDED 1 ${itemJobModel.toString()}");
           DateTime incrementedTime = DateTime.parse(item.when);
@@ -454,6 +476,8 @@ class NewDashboardPageState extends State<NewDashboardPage>
                   item.imageUrl,
                   item.subCategory,
                   item.status,
+                  item.package,
+                  item.hours,
                   isWhenDeterminedLocally: true);
 //              print("ADDED 2 ${itemJobModel.toString()}");
               _itemJobModelList.add(itemJobModel);
@@ -461,16 +485,17 @@ class NewDashboardPageState extends State<NewDashboardPage>
           }
         } else {
           ItemJobModel itemJobModel = ItemJobModel(
-            item.title,
-            item.when,
-            item.endDate,
-            item.recurrence,
-            item.jobId,
-            item.skipDates,
-            item.imageUrl,
-            item.subCategory,
-            item.status,
-          );
+              item.title,
+              item.when,
+              item.endDate,
+              item.recurrence,
+              item.jobId,
+              item.skipDates,
+              item.imageUrl,
+              item.subCategory,
+              item.status,
+              item.package,
+              item.hours);
 //          print("ADDED 3 ${itemJobModel.toString()}");
           _itemJobModelList.add(itemJobModel);
         }

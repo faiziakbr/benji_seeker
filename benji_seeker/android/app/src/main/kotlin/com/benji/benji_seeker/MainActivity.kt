@@ -83,6 +83,10 @@ class MainActivity: FlutterActivity() {
                     aJobBidChanged(processId!!)
                     result.success(true)
                 }
+                "amount_refunded" -> {
+                    amountRefunded()
+                    result.success(true)
+                }
                 "connectSocket" -> {
                     connectSocket()
                     result.success(true);
@@ -176,6 +180,14 @@ class MainActivity: FlutterActivity() {
         socket?.on("CHECK_CURRENT_JOBS") { args ->
             runOnUiThread {
                 channel?.invokeMethod("updateAllJobs", true)
+            }
+        }
+    }
+
+    private fun amountRefunded(){
+        socket?.on("amount_refunded") { args ->
+            runOnUiThread{
+                channel?.invokeMethod("amount_refunded_called", true)
             }
         }
     }

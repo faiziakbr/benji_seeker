@@ -40,6 +40,8 @@ class Detail {
   List<dynamic> skipDates = [];
   List<String> images = [];
   String providerId;
+  bool transactionPending = false;
+  String transactionError;
 
   Detail.fromJson(Map<String, dynamic> json) {
     id = json["_id"];
@@ -74,6 +76,11 @@ class Detail {
     images = _temp;
 
     nextStep = json['job_next_step'];
+
+    if(json["transaction_pending"] != null){
+      transactionPending = json["transaction_pending"];
+      transactionError = json["transaction_error"];
+    }
 
     if (json['skip'] != null) {
       skipDates = json['skip'];

@@ -18,6 +18,7 @@ import 'package:benji_seeker/utils/DioHelper.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:rating_bar/rating_bar.dart';
 
 class SummaryPage extends StatefulWidget {
@@ -33,6 +34,8 @@ class SummaryPage extends StatefulWidget {
 
 class _SummaryPageState extends State<SummaryPage> {
   DioHelper _dioHelper;
+  var platform = MethodChannel('samples.flutter.dev/battery');
+
   bool _isLoading = true;
   bool _isError = false;
 
@@ -49,8 +52,51 @@ class _SummaryPageState extends State<SummaryPage> {
 //    _showTip = widget.completedJobModel.tipGiven;
 //    _hasGivenReview = widget.completedJobModel.rated;
 
+    // _connectSocket();
+    // _isSocketConnected();
+
+    // _checkForSummaryChange().then((value) {
+    //   _listenSummaryChanges();
+    // });
+
     _fetchSummary();
     super.initState();
+  }
+
+  Future<void> _connectSocket() async {
+    try {
+      await platform.invokeMethod('connectSocket');
+    } on PlatformException catch (e) {
+      print("Failed to connect ${e.toString()}");
+    }
+  }
+
+  Future<void> _isSocketConnected() async {
+    try {
+      await platform.invokeMethod('isSocketConnected');
+    } on PlatformException catch (e) {
+      print("Failed ${e.toString()}");
+    }
+  }
+
+  Future<bool> _checkForSummaryChange() async {
+    try {
+      return await platform.invokeMethod("amount_refunded");
+    } on PlatformException catch (e) {
+      print("Failed ${e.toString()}");
+      return false;
+    }
+  }
+
+  void _listenSummaryChanges() {
+    platform.setMethodCallHandler((call) {
+      if (call.method == "amount_refunded_called") {
+        _fetchSummary();
+      } else {
+        print("METHOD CALLED: ${call.method}");
+      }
+      return;
+    });
   }
 
   _fetchSummary() {
@@ -63,12 +109,14 @@ class _SummaryPageState extends State<SummaryPage> {
       if (summaryModel.status) {
         _summaryModel = summaryModel;
 
-        print("CAN GIVE TIP: ${_summaryModel.canGiveTip} AND RATE: ${_summaryModel.canRateProvider}");
-        if(widget.rateAndTip) {
+        print(
+            "CAN GIVE TIP: ${_summaryModel.canGiveTip} AND RATE: ${_summaryModel.canRateProvider}");
+        if (widget.rateAndTip) {
           if (_summaryModel.canGiveTip != null && _summaryModel.canGiveTip) {
             _addTipButtonClick();
           }
-          if (_summaryModel.canRateProvider != null && _summaryModel.canRateProvider) {
+          if (_summaryModel.canRateProvider != null &&
+              _summaryModel.canRateProvider) {
             _rateButtonClick();
           }
         }
@@ -122,8 +170,7 @@ class _SummaryPageState extends State<SummaryPage> {
         Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-                builder: (context) => SummaryPage(
-                    widget.processId)));
+                builder: (context) => SummaryPage(widget.processId)));
       } else {
         MyToast("${justStatusModel.errors[0]}", context, position: 1);
       }
@@ -144,37 +191,38 @@ class _SummaryPageState extends State<SummaryPage> {
     });
   }
 
-  _postAddReview(double rating, String review){
+  _postAddReview(double rating, String review) {
     MyLoadingDialog(context, "Giving rating...");
     Map<String, dynamic> data = {
-      "process_id":"${widget.processId}",
-      "rating":rating,
-      "review":"$review"
+      "process_id": "${widget.processId}",
+      "rating": rating,
+      "review": "$review"
     };
 
-    _dioHelper.postRequest(BASE_URL + URL_REVIEW, {"token":""}, data).then((value) {
+    _dioHelper
+        .postRequest(BASE_URL + URL_REVIEW, {"token": ""}, data)
+        .then((value) {
       Navigator.pop(context);
       print("UPCOMING JOBS: ${value.data}");
       JustStatusModel justStatusModel =
-      justStatusResponseFromJson(json.encode(value.data));
+          justStatusResponseFromJson(json.encode(value.data));
 
       if (justStatusModel.status) {
         MyToast("Rated successfully", context, position: 1);
         Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-                builder: (context) => SummaryPage(
-                    widget.processId)));
+                builder: (context) => SummaryPage(widget.processId)));
       } else {
         MyToast("${justStatusModel.errors[0]}", context, position: 1);
       }
-    }).catchError((error){
+    }).catchError((error) {
       Navigator.pop(context);
       try {
         var err = error as DioError;
         if (err.type == DioErrorType.RESPONSE) {
           JustStatusModel justModel =
-          justStatusResponseFromJson(json.encode(err.response.data));
+              justStatusResponseFromJson(json.encode(err.response.data));
           MyToast("${justModel.errors[0]}", context, position: 1);
         } else {
           MyToast("${err.message}", context, position: 1);
@@ -250,20 +298,53 @@ class _SummaryPageState extends State<SummaryPage> {
                                   )
                                 ],
                               ),
-                              amountDetails(
-                                  "Actual Wage", "\$${_summaryModel.amount.toStringAsFixed(2)}"),
+                              amountDetails("Actual Wage",
+                                  "\$${_summaryModel.amount.toStringAsFixed(2)}"),
                               amountDetails("Payment Processing Fee",
                                   "\$${_summaryModel.applicationFee.toStringAsFixed(2)}"),
-                              Separator(
-                                topMargin: 8.0,
-                              ),
+                              _summaryModel.amountRefunded != null
+                                  ? Container()
+                                  : Separator(
+                                      topMargin: 16.0,
+                                    ),
                               Container(
-                                  margin: const EdgeInsets.only(bottom: 8.0),
-                                  child: amountDetails("Total",
+                                  margin: EdgeInsets.only(bottom: _summaryModel.amountRefunded != null ? 0.0 : 8.0),
+                                  child: amountDetails(
+                                      _summaryModel.amountRefunded != null
+                                          ? "Sub-total"
+                                          : "Total",
                                       "\$${_summaryModel.amount + _summaryModel.applicationFee}",
-                                      size: 22,
-                                      fontWeight: FontWeight.bold,
-                                      fontType: false)),
+                                      size: _summaryModel.amountRefunded != null
+                                          ? 18
+                                          : 22,
+                                      fontWeight:
+                                          _summaryModel.amountRefunded != null
+                                              ? FontWeight.normal
+                                              : FontWeight.bold,
+                                      fontType:
+                                          _summaryModel.amountRefunded != null
+                                              ? true
+                                              : false)),
+                              _summaryModel.amountRefunded != null
+                                  ? Container(
+                                      child: amountDetails("Amount Refunded",
+                                          "\$${_summaryModel.amountRefunded.toStringAsFixed(2)}",
+                                          fontWeight: FontWeight.normal,
+                                          fontType: true))
+                                  : Container(),
+                              _summaryModel.amountRefunded == null
+                                  ? Container()
+                                  : Separator(
+                                      topMargin: 16.0,
+                                    ),
+                              _summaryModel.amountRefunded != null
+                                  ? Container(
+                                      child: amountDetails("Total",
+                                          "\$${((_summaryModel.amount + _summaryModel.applicationFee) - _summaryModel.amountRefunded).toStringAsFixed(2)}",
+                                          size: 22,
+                                          fontWeight: FontWeight.bold,
+                                          fontType: false))
+                                  : Container(),
 //                    Container(
 //                      decoration: BoxDecoration(
 //                          borderRadius: BorderRadius.circular(12.0),
@@ -290,20 +371,26 @@ class _SummaryPageState extends State<SummaryPage> {
                                       children: <Widget>[
                                         Separator(),
                                         amountDetails(
-                                            "Tip", _summaryModel.tip != null ? "${_summaryModel.tip.toStringAsFixed(2)}" : "0.0",
+                                            "Tip",
+                                            _summaryModel.tip != null
+                                                ? "${_summaryModel.tip.toStringAsFixed(2)}"
+                                                : "0.0",
                                             fontWeight: FontWeight.bold,
                                             size: 22,
                                             fontType: false),
                                         Separator(),
                                         amountDetails(
-                                            "Total", _summaryModel.total != null ? "\$${_summaryModel.total}" : "0.0",
+                                            "Total",
+                                            _summaryModel.total != null
+                                                ? "\$${_summaryModel.total}"
+                                                : "0.0",
                                             size: 22,
                                             fontWeight: FontWeight.bold,
                                             fontType: false)
                                       ],
                                     )
                                   : Container(),
-                               _summaryModel.rating != null
+                              _summaryModel.rating != null
                                   ? Container(
                                       margin: const EdgeInsets.only(top: 16.0),
                                       child: Column(
@@ -325,14 +412,17 @@ class _SummaryPageState extends State<SummaryPage> {
                                                 halfFilledColor: accentColor,
                                                 initialRating:
                                                     _summaryModel.rating != null
-                                                        ? _summaryModel.rating.toDouble()
+                                                        ? _summaryModel.rating
+                                                            .toDouble()
                                                         : 0.0,
                                                 size: 20,
                                               ),
                                             ],
                                           ),
                                           MontserratText(
-                                              _summaryModel.review != null ? "${_summaryModel.review}" : "",
+                                              _summaryModel.review != null
+                                                  ? "${_summaryModel.review}"
+                                                  : "",
                                               14,
                                               lightTextColor,
                                               FontWeight.normal),
@@ -416,7 +506,6 @@ class _SummaryPageState extends State<SummaryPage> {
       _postAddReview(_rating, _review);
     }
   }
-
 
   Widget amountDetails(String title, String amount,
       {double size = 16,

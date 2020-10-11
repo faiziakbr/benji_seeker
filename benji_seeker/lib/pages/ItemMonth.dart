@@ -17,8 +17,9 @@ class ItemMonth extends StatefulWidget {
   final List<DateTime> events;
   final List<ItemJobModel> itemJobList;
   final Function onClick;
+  final Function onItemListener;
 
-  ItemMonth(this.dateTime, this.events, this.itemJobList, this.onClick);
+  ItemMonth(this.dateTime, this.events, this.itemJobList, this.onClick, this.onItemListener);
 
   @override
   _ItemMonthState createState() => _ItemMonthState();
@@ -50,7 +51,9 @@ class _ItemMonthState extends State<ItemMonth> {
 
   @override
   Widget build(BuildContext context) {
-    MediaQueryData mediaQueryData = MediaQuery.of(context);
+    // MediaQueryData mediaQueryData = MediaQuery.of(context);
+    // print("MONTH NOW: ${DateFormat.MMMM().format(widget.dateTime)} ${DateFormat.y().format(widget.dateTime)}");
+    widget.onItemListener(widget.dateTime);
     _daysInMonth =
         dateUtil.daysInMonth(_selectedMonth.month, _selectedMonth.year);
     var date = DateTime(_selectedMonth.year, _selectedMonth.month);

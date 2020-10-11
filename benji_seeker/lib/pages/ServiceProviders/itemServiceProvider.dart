@@ -61,7 +61,7 @@ class ItemServiceProvider extends StatelessWidget {
                             left: 8.0,
                           ),
                           MontserratText(
-                              "", 14, lightTextColor, FontWeight.w200,
+                              "${bidder.distance.toStringAsFixed(2)} ml away", 14, lightTextColor, FontWeight.w200,
                               bottom: 8.0, left: 8.0),
                           Container(
                             margin: const EdgeInsets.only(bottom: 8.0, left: 8.0),

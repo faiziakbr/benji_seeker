@@ -10,6 +10,7 @@ import 'package:benji_seeker/custom_texts/QuicksandText.dart';
 import 'package:benji_seeker/models/JobDetailModel.dart';
 import 'package:benji_seeker/models/NotificationModel.dart';
 import 'package:benji_seeker/pages/JobDetailPage/JobDetailPage.dart';
+import 'package:benji_seeker/pages/JobDetailPage/NewJobDetailPage.dart';
 import 'package:benji_seeker/pages/PaymentSequence/SummaryPage.dart';
 import 'package:benji_seeker/utils/DioHelper.dart';
 import 'package:dio/dio.dart';
@@ -156,7 +157,7 @@ class NotificationsPageState extends State<NotificationsPage> {
                                             context,
                                             MaterialPageRoute(
                                                 builder: (context) =>
-                                                    JobDetailPage(uri
+                                                    NewJobDetailPage(uri
                                                         .pathSegments.last, fromNotification: true,)));
                                       } else if(uri.pathSegments.first == "job-summary"){
                                         Navigator.push(context, MaterialPageRoute(builder: (context) => SummaryPage(uri

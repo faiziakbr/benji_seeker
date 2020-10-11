@@ -3,6 +3,7 @@ import 'package:benji_seeker/constants/Urls.dart';
 import 'package:benji_seeker/custom_texts/MontserratText.dart';
 import 'package:benji_seeker/models/CompleteJobModel.dart';
 import 'package:benji_seeker/pages/JobDetailPage/JobDetailPage.dart';
+import 'package:benji_seeker/pages/JobDetailPage/NewJobDetailPage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
@@ -24,7 +25,7 @@ class ItemWorkHistory extends StatelessWidget {
           border: Border.all(color: accentColor, width: 1)),
       child: InkWell(
         onTap: () {
-          Navigator.push(context, MaterialPageRoute(builder: (context) => JobDetailPage(itemCompletedModel.processId)));
+          Navigator.push(context, MaterialPageRoute(builder: (context) => NewJobDetailPage(itemCompletedModel.processId)));
         },
         child: ListTile(
           leading: Container(

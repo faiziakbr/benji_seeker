@@ -16,6 +16,7 @@ class SummaryModel {
   int rating;
   String review;
   double tip;
+  double amountRefunded;
   List<dynamic> errors;
 
   SummaryModel.fromJson(Map<String, dynamic> json) {
@@ -34,6 +35,9 @@ class SummaryModel {
       review = json['summary']['review'];
       if (json['summary']['tip'] != null)
         tip = double.parse(json['summary']['tip'].toString()).toDouble();
+      if (json['summary']["amount_refunded"] != null)
+        amountRefunded =
+            double.parse(json['summary']["amount_refunded"].toString()).toDouble();
       errors = json['errors'];
     } catch (e) {
       print("ERROR IN SUMMARY MODE: ${e.toString()}");

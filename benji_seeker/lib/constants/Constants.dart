@@ -16,6 +16,7 @@ const String BRIEF_INFO = "brief_info";
 const String BADGE = "badge";
 
 const String SHOW_INTRO = "show_intro";
+const String FIRST_TIME_DASHBOARD = "first_time_dashboard";
 
 const String FCM_TOKEN = "fcm_token";
 

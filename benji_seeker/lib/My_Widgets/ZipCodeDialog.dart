@@ -43,7 +43,7 @@ class _ZipCodeDialogState extends State<ZipCodeDialog> {
               SizedBox(
                 width: mediaQueryData.size.width * 0.55,
                 child: MontserratText(
-                  "Please provide us with your the Zip Code",
+                  "What is your Zip Code",
                   18,
                   navBarColor,
                   FontWeight.normal,

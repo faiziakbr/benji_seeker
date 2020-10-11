@@ -28,10 +28,12 @@ import 'package:benji_seeker/pages/MainPages/OrderSequence/Calender/When.dart';
 import 'package:benji_seeker/pages/PaymentSequence/SummaryPage.dart';
 import 'package:benji_seeker/pages/PhotoViewPage.dart';
 import 'package:benji_seeker/pages/ServiceProviders/itemServiceProvider.dart';
+import 'package:benji_seeker/pages/bank/EditBankPage.dart';
 import 'package:benji_seeker/utils/DioHelper.dart';
 import 'package:carousel_pro/carousel_pro.dart';
 import 'package:dio/dio.dart';
 import 'package:expandable_bottom_sheet/expandable_bottom_sheet.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -39,24 +41,24 @@ import 'package:intl/intl.dart';
 
 import '../BotNav.dart';
 
-class NewJobPageDetailPage extends StatefulWidget {
+class NewJobDetailPage extends StatefulWidget {
   final String jobId;
   final String generatedRecurringTime;
   final bool fromNotification;
   final List<ItemJobModel> recurrenceJobList;
   final bool jobChanged;
 
-  NewJobPageDetailPage(this.jobId,
+  NewJobDetailPage(this.jobId,
       {this.generatedRecurringTime,
       this.fromNotification = false,
       this.recurrenceJobList,
       this.jobChanged = false});
 
   @override
-  _NewJobPageDetailPageState createState() => _NewJobPageDetailPageState();
+  _NewJobDetailPageState createState() => _NewJobDetailPageState();
 }
 
-class _NewJobPageDetailPageState extends State<NewJobPageDetailPage>
+class _NewJobDetailPageState extends State<NewJobDetailPage>
     with WidgetsBindingObserver {
   DioHelper _dioHelper;
   var platform = MethodChannel('samples.flutter.dev/battery');
@@ -320,6 +322,7 @@ class _NewJobPageDetailPageState extends State<NewJobPageDetailPage>
       var completedJobModel =
           completedJobModelResponseFromJson(json.encode(value.data));
       if (completedJobModel.status) {
+        print("DATA: $value");
         _completedJobModel = completedJobModel;
         _fetchProviderDetail(_completedJobModel.providerId);
       } else {
@@ -345,10 +348,21 @@ class _NewJobPageDetailPageState extends State<NewJobPageDetailPage>
         _completedJobError = true;
       });
     }).whenComplete(() {
-      setState(() {
-        _completedJobLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _completedJobLoading = false;
+        });
+      }
     });
+  }
+
+  void _showPics() {
+    List<NetworkImage> networkImages = [];
+    for (String image in _jobDetail.images) {
+      networkImages.add(NetworkImage("$BASE_JOB_IMAGE_URL$image"));
+    }
+    Navigator.of(context).push(TransparentRoute(
+        builder: (BuildContext context) => PhotoViewPage(networkImages, 0)));
   }
 
   @override
@@ -403,254 +417,241 @@ class _NewJobPageDetailPageState extends State<NewJobPageDetailPage>
                         ],
                       ),
                     )
-                  : SingleChildScrollView(
-                      child: Container(
-                        width: mediaQueryData.size.width,
-                        height: mediaQueryData.size.height * 0.9,
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                GestureDetector(
-                                  onTap: () {
-                                    List<NetworkImage> networkImages = [];
-                                    for (String image in _jobDetail.images) {
-                                      networkImages.add(NetworkImage(
-                                          "$BASE_JOB_IMAGE_URL$image"));
-                                    }
-                                    Navigator.of(context).push(TransparentRoute(
-                                        builder: (BuildContext context) =>
-                                            PhotoViewPage(networkImages, 0)));
-                                  },
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      ClipRRect(
-                                        borderRadius:
-                                            BorderRadius.circular(10.0),
-                                        child: Image.network(
-                                          "$BASE_JOB_IMAGE_URL${_jobDetail.images[0]}",
-                                          width:
-                                              mediaQueryData.size.width * 0.25,
-                                          height:
-                                              mediaQueryData.size.height * 0.11,
-                                          fit: BoxFit.cover,
-                                        ),
-                                      ),
-                                      MontserratText(
-                                        "${_jobDetail.images.length} photos",
-                                        10,
-                                        accentColor,
-                                        FontWeight.normal,
-                                        underline: true,
-                                        top: 4.0,
-                                      )
-                                    ],
+                  : Container(
+                      padding: const EdgeInsets.all(16.0),
+                      child: ListView(
+                        physics: BouncingScrollPhysics(),
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              GestureDetector(
+                                onTap: () => _showPics(),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                  child: Image.network(
+                                    "$BASE_JOB_IMAGE_URL${_jobDetail.images[0]}",
+                                    width: mediaQueryData.size.width * 0.2,
+                                    height: mediaQueryData.size.width * 0.18,
+                                    fit: BoxFit.cover,
                                   ),
                                 ),
-                                Flexible(
-                                  child: Container(
-                                    margin: const EdgeInsets.only(
-                                        left: 8.0, right: 8.0),
-                                    child: Column(
+                              ),
+                              Container(
+                                width: mediaQueryData.size.width * 0.7,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
-                                      mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Row(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.end,
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            MontserratText(
-                                              "${_jobDetail.category}",
-                                              20,
-                                              accentColor,
-                                              FontWeight.bold,
-                                            ),
-                                            Flexible(
-                                              child: MontserratText(
-                                                "\$${_jobDetail.estimatedIncome.toStringAsFixed(1)}",
-                                                15,
-                                                orangeColor,
-                                                FontWeight.w500,
-                                                left: 8.0,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        Container(
-                                          margin:
-                                              const EdgeInsets.only(top: 16.0),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.center,
-                                            children: [
-                                              _textWithIcon(
-                                                  "assets/task_icon.png",
-                                                  "${DateFormat.yMMMd().format(dateTimee.toLocal())}",
-                                                  iconColor: accentColor,
-                                                  fontWeight: _jobChanged
-                                                      ? FontWeight.bold
-                                                      : FontWeight.normal),
-                                              _separator(mediaQueryData),
-                                              MontserratText(
-                                                "${DateFormat.jm().format(dateTimee.toLocal())}",
-                                                14,
-                                                separatorColor,
-                                                FontWeight.normal,
-                                                left: 8.0,
-                                              )
-                                            ],
+                                        Flexible(
+                                          flex: 3,
+                                          child: MontserratText(
+                                            "${_jobDetail.category}",
+                                            20,
+                                            accentColor,
+                                            FontWeight.bold,
+                                            left: 16.0,
                                           ),
                                         ),
-                                        Stack(
-                                          alignment: Alignment.centerLeft,
-                                          children: [
-                                            Container(
-                                              margin: const EdgeInsets.only(
-                                                  top: 16.0, left: 4.0),
-                                              child: GestureDetector(
-                                                onTap: () => Get.dialog(
-                                                    LocationAndDescriptionDialog(
-                                                        _jobDetail.where,
-                                                        _jobDetail
-                                                            .description)),
-                                                child: MontserratText(
-                                                  "View location and description",
-                                                  10,
-                                                  accentColor,
-                                                  FontWeight.normal,
-                                                  underline: true,
-                                                ),
-                                              ),
-                                            ),
-                                            _jobChanged
-                                                ? Card(
-                                                    margin:
-                                                        const EdgeInsets.only(
-                                                            top: 8.0),
-                                                    child: Container(
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                              8.0),
-                                                      child: Row(
-                                                        mainAxisSize:
-                                                            MainAxisSize.min,
-                                                        children: [
-                                                          MontserratText(
-                                                              "Date has been changed.",
-                                                              12,
-                                                              separatorColor,
-                                                              FontWeight.w500),
-                                                          GestureDetector(
-                                                              onTap: () {
-                                                                setState(() {
-                                                                  _jobChanged =
-                                                                      false;
-                                                                });
-                                                              },
-                                                              child:
-                                                                  MontserratText(
-                                                                      "OK",
-                                                                      12,
-                                                                      orangeColor,
-                                                                      FontWeight
-                                                                          .bold,
-                                                                      left:
-                                                                          8.0))
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  )
-                                                : Container()
-                                          ],
+                                        Flexible(
+                                          flex: 1,
+                                          child: MontserratText(
+                                            "\$${_jobDetail.estimatedIncome.toStringAsFixed(1)}",
+                                            18,
+                                            orangeColor,
+                                            FontWeight.w500,
+                                            left: 4.0,
+                                          ),
                                         ),
-                                        _jobDetail.isRecurring
-                                            ? Container(
-                                                margin: const EdgeInsets.only(
-                                                    top: 16.0),
-                                                child: Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.center,
-                                                  mainAxisSize:
-                                                      MainAxisSize.min,
-                                                  children: [
-                                                    _textWithHintAndIcon(
-                                                        true,
-                                                        "Recurring",
-                                                        "${_jobDetail.recurringDays} days"),
-                                                    Container(
-                                                        margin: const EdgeInsets
-                                                                .only(
-                                                            left: 8.0,
-                                                            right: 8.0),
-                                                        child: _separator(
-                                                            mediaQueryData)),
-                                                    _textWithHintAndIcon(
-                                                        false,
-                                                        "End Date",
-                                                        "${DateFormat.yMMMd().format(DateTime.parse(_jobDetail.endDate).toLocal())}")
-                                                  ],
-                                                ),
-                                              )
-                                            : Container()
                                       ],
                                     ),
+                                    Container(
+                                      margin: const EdgeInsets.only(
+                                          top: 12.0, left: 16.0),
+                                      child: Row(
+                                        children: [
+                                          _textWithIcon("assets/task_icon.png",
+                                              "${DateFormat.yMMMd().format(dateTimee.toLocal())}",
+                                              iconColor: accentColor,
+                                              fontWeight: _jobChanged
+                                                  ? FontWeight.bold
+                                                  : FontWeight.normal),
+                                          _separator(mediaQueryData),
+                                          MontserratText(
+                                            "${DateFormat.jm().format(dateTimee.toLocal())}",
+                                            14,
+                                            separatorColor,
+                                            FontWeight.normal,
+                                            left: 8.0,
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          Container(
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                GestureDetector(
+                                  onTap: () => _showPics(),
+                                  child: Container(
+                                    width: mediaQueryData.size.width * 0.2,
+                                    alignment: Alignment.center,
+                                    child: MontserratText(
+                                      "${_jobDetail.images.length} Photos",
+                                      10,
+                                      accentColor,
+                                      FontWeight.normal,
+                                      underline: true,
+                                      top: 4.0,
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  width: mediaQueryData.size.width * 0.7,
+                                  child: Stack(
+                                    overflow: Overflow.visible,
+                                    children: [
+                                      GestureDetector(
+                                        onTap: () => Get.dialog(
+                                            LocationAndDescriptionDialog(
+                                                _jobDetail.where,
+                                                _jobDetail.description)),
+                                        child: MontserratText(
+                                          "View location and description",
+                                          10,
+                                          accentColor,
+                                          FontWeight.normal,
+                                          underline: true,
+                                          left: 16.0,
+                                          top: 4.0,
+                                        ),
+                                      ),
+                                      _jobChanged
+                                          ? Positioned(
+                                              top: -10,
+                                              left: 0,
+                                              child: Card(
+                                                elevation: 10,
+                                                child: Container(
+                                                  padding:
+                                                      const EdgeInsets.all(8.0),
+                                                  child: Row(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    children: [
+                                                      MontserratText(
+                                                          "Date has been changed.",
+                                                          12,
+                                                          separatorColor,
+                                                          FontWeight.w500),
+                                                      GestureDetector(
+                                                          onTap: () {
+                                                            setState(() {
+                                                              _jobChanged =
+                                                                  false;
+                                                            });
+                                                          },
+                                                          child: MontserratText(
+                                                              "OK",
+                                                              12,
+                                                              orangeColor,
+                                                              FontWeight.bold,
+                                                              left: 8.0))
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                            )
+                                          : Container()
+                                    ],
                                   ),
                                 ),
                               ],
                             ),
-                            _jobDetail.nextStep == "summary"
-                                ? Container()
-                                : Container(
-                                    margin: const EdgeInsets.symmetric(
-                                        vertical: 16.0),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        _button(
-                                            "assets/close_icon.png",
-                                            Colors.black,
-                                            borderColor,
-                                            "Cancel",
-                                            _cancelThisJob,
-                                            marginRight: 4.0),
-                                        _button(
-                                            "assets/reschedule_icon.png",
-                                            accentColor,
-                                            accentColor.withOpacity(0.5),
-                                            "Reschedule",
-                                            _rescheduleThisJob,
-                                            marginLeft: 4.0),
-                                        _jobDetail.isRecurring
-                                            ? _button(
-                                                "assets/skip_icon.png",
-                                                Colors.black,
-                                                borderColor,
-                                                "Skip this Job",
-                                                _skipThisWeek,
-                                                marginLeft: 8.0)
-                                            : Container()
-                                      ],
+                          ),
+                          _jobDetail.isRecurring
+                              ? Row(
+                                  children: [
+                                    Container(
+                                      width: mediaQueryData.size.width * 0.2,
                                     ),
+                                    Container(
+                                      margin: EdgeInsets.only(
+                                          left: 16.0, top: 16.0),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          _textWithHintAndIcon(
+                                              true,
+                                              "Recurring",
+                                              "${_jobDetail.recurringDays} days"),
+                                          Container(
+                                              margin: const EdgeInsets.only(
+                                                  left: 8.0, right: 8.0),
+                                              child:
+                                                  _separator(mediaQueryData)),
+                                          _textWithHintAndIcon(
+                                              false,
+                                              "End Date",
+                                              "${DateFormat.yMMMd().format(DateTime.parse(_jobDetail.endDate).toLocal())}")
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : Container(),
+                          _jobDetail.nextStep == "summary" ||
+                                  _jobDetail.transactionPending
+                              ? Container()
+                              : Container(
+                                  margin: const EdgeInsets.symmetric(
+                                      vertical: 16.0),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      _button(
+                                          "assets/close_icon.png",
+                                          Colors.black,
+                                          borderColor,
+                                          "Cancel",
+                                          _cancelThisJob,
+                                          marginRight: 4.0),
+                                      _button(
+                                          "assets/reschedule_icon.png",
+                                          accentColor,
+                                          accentColor.withOpacity(0.5),
+                                          "Reschedule",
+                                          _rescheduleThisJob,
+                                          marginLeft: 4.0),
+                                      _jobDetail.isRecurring
+                                          ? _button(
+                                              "assets/skip_icon.png",
+                                              Colors.black,
+                                              borderColor,
+                                              "Skip this Job",
+                                              _skipThisWeek,
+                                              marginLeft: 8.0)
+                                          : Container()
+                                    ],
                                   ),
-                            Expanded(
-                                child: _providerInfo(
-                                    mediaQueryData, _jobDetail.nextStep))
-                          ],
-                        ),
+                                ),
+                          Expanded(
+                              child: _providerInfo(
+                                  mediaQueryData, _jobDetail.nextStep))
+                        ],
                       ),
                     ),
         ),
@@ -799,9 +800,12 @@ class _NewJobPageDetailPageState extends State<NewJobPageDetailPage>
               ),
             )
           : _biddersError
-              ? Center(
-                  child: MontserratText("Error loading bidders!", 18,
-                      Colors.black.withOpacity(0.4), FontWeight.normal),
+              ? Container(
+                  margin: const EdgeInsets.only(top: 32.0),
+                  child: Center(
+                    child: MontserratText("Error loading bidders!", 18,
+                        Colors.black.withOpacity(0.4), FontWeight.normal),
+                  ),
                 )
               : _biddersList.length > 0
                   ? Column(
@@ -909,18 +913,63 @@ class _NewJobPageDetailPageState extends State<NewJobPageDetailPage>
     return Container(
       width: mediaQueryData.size.width,
       child: _providerLoading
-          ? Center(
-              child: CircularProgressIndicator(),
+          ? Container(
+              margin: const EdgeInsets.only(top: 32.0),
+              child: Center(
+                child: CircularProgressIndicator(),
+              ),
             )
           : _providerError
-              ? Center(
-                  child: MontserratText("Error loading provider.", 18,
-                      Colors.black.withOpacity(0.4), FontWeight.normal),
+              ? Container(
+                  margin: const EdgeInsets.only(top: 32.0),
+                  child: Center(
+                    child: MontserratText("Error loading provider.", 18,
+                        Colors.black.withOpacity(0.4), FontWeight.normal),
+                  ),
                 )
               : Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
+                    _jobDetail.transactionPending
+                        ? Container(
+                            margin:
+                                const EdgeInsets.only(top: 16.0, bottom: 16.0),
+                            child: RichText(
+                              textAlign: TextAlign.center,
+                              text: TextSpan(
+                                  text:
+                                      "We received some issues while charging your card for this transaction. Please ",
+                                  style: TextStyle(
+                                      color: Colors.red,
+                                      fontWeight: FontWeight.w600,
+                                      fontFamily: "Montserrat"),
+                                  children: [
+                                    TextSpan(
+                                        text: "update",
+                                        style: TextStyle(color: Colors.blue),
+                                        recognizer: TapGestureRecognizer()
+                                          ..onTap = () {
+                                            Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        EditBankDetails()));
+                                          }),
+                                    TextSpan(
+                                        text:
+                                            " your credit card info or contact your bank.")
+                                  ]),
+                            ),
+                            // child: MontserratText(
+                            //     "We received some issues while charging your card for this transaction. Please update your credit card info or contact your bank.",
+                            //     14,
+                            //     Colors.red,
+                            //     FontWeight.w600,
+                            //     textAlign: TextAlign.center,
+                            //     top: 8.0, bottom: 16.0,)
+                          )
+                        : Container(),
                     MontserratText(
                       "Provider Available",
                       18,
@@ -1028,14 +1077,21 @@ class _NewJobPageDetailPageState extends State<NewJobPageDetailPage>
   Widget _providerSummary(MediaQueryData mediaQueryData) {
     return Container(
       width: mediaQueryData.size.width,
+      margin: const EdgeInsets.only(top: 8.0),
       child: (_completedJobLoading || _providerLoading)
-          ? Center(
-              child: CircularProgressIndicator(),
+          ? Container(
+              margin: const EdgeInsets.only(top: 32.0),
+              child: Center(
+                child: CircularProgressIndicator(),
+              ),
             )
           : (_completedJobError || _providerError)
-              ? Center(
-                  child: MontserratText("Error loading provider.", 18,
-                      Colors.black.withOpacity(0.4), FontWeight.normal),
+              ? Container(
+                  margin: const EdgeInsets.only(top: 32.0),
+                  child: Center(
+                    child: MontserratText("Error loading provider.", 18,
+                        Colors.black.withOpacity(0.4), FontWeight.normal),
+                  ),
                 )
               : Column(
                   mainAxisSize: MainAxisSize.min,
@@ -1412,7 +1468,7 @@ class _NewJobPageDetailPageState extends State<NewJobPageDetailPage>
           Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                  builder: (context) => NewJobPageDetailPage(
+                  builder: (context) => NewJobDetailPage(
                         widget.jobId,
                         generatedRecurringTime:
                             widget.recurrenceJobList[0].when,

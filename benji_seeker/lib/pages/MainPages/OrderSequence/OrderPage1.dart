@@ -21,8 +21,9 @@ import 'package:get/get.dart';
 
 class OrderPage1 extends StatefulWidget {
   final CreateJobModel createJobModel;
+  final bool showCloseIcon;
 
-  OrderPage1(this.createJobModel);
+  OrderPage1(this.createJobModel, {this.showCloseIcon = true});
 
   @override
   _OrderPage1State createState() => _OrderPage1State();
@@ -64,7 +65,7 @@ class _OrderPage1State extends State<OrderPage1> {
                 width: mediaQueryData.size.width * 0.33,
                 color: accentColor,
               ),
-              Align(
+              widget.showCloseIcon ? Align(
                 alignment: Alignment.topRight,
                 child: IconButton(
                   onPressed: () {
@@ -72,11 +73,11 @@ class _OrderPage1State extends State<OrderPage1> {
                       Navigator.pop(context);
                     }
                     Navigator.pushReplacement(context,
-                        MaterialPageRoute(builder: (context) => BotNavPage()));
+                        MaterialPageRoute(builder: (context) => BotNavPage(pageIndex: 1,)));
                   },
                   icon: Icon(Icons.close),
                 ),
-              ),
+              ) : Container(),
               _isLoading
                   ? Container(
                       height: mediaQueryData.size.height * 0.75,
@@ -97,6 +98,7 @@ class _OrderPage1State extends State<OrderPage1> {
 //                          padding: EdgeInsets.symmetric(
 //                              horizontal: mediaQueryData.size.width * 0.04),
                           child: Container(
+                            margin: EdgeInsets.only(top: widget.showCloseIcon ? 0.0 : 16.0),
                             padding: EdgeInsets.symmetric(
                                 horizontal: mediaQueryData.size.width * 0.04),
                             child: Column(
@@ -185,8 +187,12 @@ class _OrderPage1State extends State<OrderPage1> {
         if (err.type == DioErrorType.RESPONSE) {
           JustStatusModel response =
           justStatusResponseFromJson(json.encode(err.response.data));
-          MyToast("${response.errors[0]}", context);
-          _notifyOfUnServeZipCode(zipCode);
+
+          if(response.errors[0].toString().contains("Sorry we do not")) {
+            _notifyOfUnServeZipCode(zipCode);
+          }else{
+            MyToast("${response.errors[0]}", context);
+          }
         } else {
           MyToast("${err.message}", context);
         }
@@ -195,7 +201,7 @@ class _OrderPage1State extends State<OrderPage1> {
   }
 
   void _notifyOfUnServeZipCode(String zipCode){
-    MyLoadingDialog(context, "Notifying Admin...");
+    MyLoadingDialog(context, "Checking...");
 
     _dioHelper.postRequest(BASE_URL + URL_NOTIFY_OF_ZIP_CODE, {"token":""}, {"zip": zipCode}).then((value){
       Navigator.pop(context);//pop dialog

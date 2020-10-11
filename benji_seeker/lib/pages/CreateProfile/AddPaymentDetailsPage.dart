@@ -46,6 +46,12 @@ class _AddPaymentDetailsPageState extends State<AddPaymentDetailsPage> {
 
   @override
   void initState() {
+    SavedData savedData = SavedData();
+    savedData.getBoolValue(FIRST_TIME_DASHBOARD).then((value) {
+      if(value == null){
+        savedData.setBoolValue(FIRST_TIME_DASHBOARD, true);
+      }
+    });
     KeyboardVisibilityNotification().addNewListener(
       onChange: (bool visible) {
         setState(() {

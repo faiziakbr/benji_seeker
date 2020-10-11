@@ -12,9 +12,11 @@ import 'package:benji_seeker/models/CreateJobModel.dart';
 import 'package:benji_seeker/models/JustStatusModel.dart';
 import 'package:benji_seeker/models/NotificationsModel.dart';
 import 'package:benji_seeker/models/UnreadCountModel.dart';
+import 'package:benji_seeker/pages/JobDetailPage/NewJobDetailPage.dart';
 import 'package:benji_seeker/pages/MainPages/Chat/IndividualChatPage.dart';
 import 'package:benji_seeker/pages/MainPages/MoreOptions/MoreOptionsPage.dart';
 import 'package:benji_seeker/pages/MainPages/NewDashboadPage.dart';
+import 'package:benji_seeker/pages/PaymentSequence/SummaryPage.dart';
 import 'package:benji_seeker/utils/DioHelper.dart';
 import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -25,7 +27,6 @@ import 'package:overlay_support/overlay_support.dart';
 import 'package:uni_links/uni_links.dart';
 
 import 'Chat/ChatPage.dart';
-import 'JobDetailPage/JobDetailPage.dart';
 import 'MainPages/Notifications/NotificationsPage.dart';
 import 'MainPages/OrderSequence/OrderPage1.dart';
 
@@ -112,7 +113,7 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
         Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => JobDetailPage(uri.pathSegments.last)));
+                builder: (context) => NewJobDetailPage(uri.pathSegments.last)));
       }
     }
   }
@@ -139,7 +140,7 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
         Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => JobDetailPage(uri.pathSegments.last)));
+                builder: (context) => NewJobDetailPage(uri.pathSegments.last)));
       }
     }
   }
@@ -182,11 +183,12 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
               type.contains("start_job") ||
               type.contains("transaction_issue") ||
               type.contains("complete_job") ||
-              type.contains("expired_job")) {
+              type.contains("expired_job") ) {
             try {
               _getUnReadCount();
               _notificationChildKey.currentState.getNotifications();
-              _newDashboardKey.currentState.fetchUpcomingJobs();
+              _newDashboardKey.currentState
+                  .fetchUpcomingJobs(DateTime.now().year.toString());
             } catch (e) {
               print("Error FCM $e");
             }
@@ -230,7 +232,8 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
             try {
               _getUnReadCount();
               _notificationChildKey.currentState.getNotifications();
-              _newDashboardKey.currentState.fetchUpcomingJobs();
+              _newDashboardKey.currentState
+                  .fetchUpcomingJobs(DateTime.now().year.toString());
             } catch (e) {
               print("Error FCM $e");
             }
@@ -294,8 +297,21 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
           Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => JobDetailPage(iosNotification.jobId)));
+                  builder: (context) =>
+                      NewJobDetailPage(iosNotification.jobId)));
         }
+
+        if(type.contains("amount_refunded")){
+          while (Navigator.canPop(context)) {
+            Navigator.pop(context);
+          }
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) =>
+                      SummaryPage(iosNotification.jobId)));
+        }
+
         if (iosNotification.type == "new_message") {
           while (Navigator.canPop(context)) {
             Navigator.pop(context);
@@ -315,7 +331,8 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
           Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => JobDetailPage(iosNotification.jobId)));
+                  builder: (context) =>
+                      NewJobDetailPage(iosNotification.jobId)));
         }
       } else {
         MyNotification myNotification = MyNotification.fromJson(message);
@@ -338,7 +355,18 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
                 context,
                 MaterialPageRoute(
                     builder: (context) =>
-                        JobDetailPage(myNotification.payload.jobId)));
+                        NewJobDetailPage(myNotification.payload.jobId)));
+          }
+
+          if(type.contains("amount_refunded")){
+            while (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            }
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) =>
+                        SummaryPage(myNotification.payload.jobId)));
           }
 
           if (data.type == "accept_bid") {
@@ -349,7 +377,7 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
               Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => JobDetailPage(data.jobId)));
+                      builder: (context) => NewJobDetailPage(data.jobId)));
             }
           } else if (data.type == "new_message") {
             while (Navigator.canPop(context)) {
@@ -370,7 +398,7 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => JobDetailPage(data.jobId)));
+                    builder: (context) => NewJobDetailPage(data.jobId)));
           }
         }
       }
@@ -562,7 +590,7 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
   Widget _showInBody() {
     if (_currentPage == 0) {
       _createJobModel = CreateJobModel();
-      return OrderPage1(_createJobModel);
+      return OrderPage1(_createJobModel, showCloseIcon: false,);
     } else if (_currentPage == 1) {
       return NewDashboardPage(_newDashboardKey);
     } else if (_currentPage == 2) {

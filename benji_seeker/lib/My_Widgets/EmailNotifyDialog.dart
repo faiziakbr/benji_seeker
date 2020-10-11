@@ -36,7 +36,7 @@ class EmailNotifyDialog extends StatelessWidget {
               Container(
                 width: mediaQueryData.size.width * 0.55,
                   child: MontserratText(
-                "We will notify you once we launch there.",
+                "Unfortunately, we don't serve in your area. We will alert you when we do.",
                 14,
                 separatorColor,
                 FontWeight.normal,
@@ -45,7 +45,7 @@ class EmailNotifyDialog extends StatelessWidget {
               )),
               Container(
                   width: mediaQueryData.size.width * 0.55,
-                  height: 45,
+                  height: 40,
                   margin: EdgeInsets.only(top: 16.0),
                   child: MyDarkButton("I UNDERSTAND", () {
                     Get.back();

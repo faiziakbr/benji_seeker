@@ -36,6 +36,7 @@ class Bidder {
   Address address;
   double rating = 0;
   int totalJobs = 0;
+  double distance;
 
   Bidder.fromJson(Map<String, dynamic> json) {
     id = json["_id"];
@@ -48,6 +49,9 @@ class Bidder {
     rating = double.parse(json['rating'].toString()).toDouble();
     totalJobs = json["total_jobs"];
     profilePicture = json['profile_picture'];
+    if(json["distance"] != null){
+      distance = double.parse(json['distance'].toString()).toDouble();
+    }
   }
 }
 

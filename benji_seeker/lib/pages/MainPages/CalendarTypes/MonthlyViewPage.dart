@@ -5,6 +5,7 @@ import 'package:benji_seeker/custom_texts/MontserratText.dart';
 import 'package:benji_seeker/models/CreateJobModel.dart';
 import 'package:benji_seeker/models/UpcomingJobModel.dart';
 import 'package:benji_seeker/pages/JobDetailPage/JobDetailPage.dart';
+import 'package:benji_seeker/pages/JobDetailPage/NewJobDetailPage.dart';
 import 'package:benji_seeker/pages/MainPages/OrderSequence/OrderPage1.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -90,10 +91,10 @@ class _MonthlyViewPageState extends State<MonthlyViewPage> {
                             Navigator.push(context,
                                 MaterialPageRoute(builder: (context) {
                                   if (element.isWhenDeterminedLocally)
-                                    return JobDetailPage(element.jobId,
+                                    return NewJobDetailPage(element.jobId,
                                         generatedRecurringTime: element.when);
                                   else {
-                                    return JobDetailPage(element.jobId);
+                                    return NewJobDetailPage(element.jobId);
                                   }
                                 }));
                           }
