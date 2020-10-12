@@ -1,14 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:benji_seeker/My_Widgets/DescriptionTextWidget.dart';
 import 'package:benji_seeker/My_Widgets/DialogYesNo.dart';
 import 'package:benji_seeker/My_Widgets/LocationAndDescriptionDialog.dart';
 import 'package:benji_seeker/My_Widgets/MyDarkButton.dart';
-import 'package:benji_seeker/My_Widgets/MyLightButton.dart';
 import 'package:benji_seeker/My_Widgets/MyLoadingDialog.dart';
 import 'package:benji_seeker/My_Widgets/MyToast.dart';
-import 'package:benji_seeker/My_Widgets/Separator.dart';
 import 'package:benji_seeker/My_Widgets/SortingDialog.dart';
 import 'package:benji_seeker/My_Widgets/TransparentRoute.dart';
 import 'package:benji_seeker/SharedPref/SavedData.dart';
@@ -16,7 +13,6 @@ import 'package:benji_seeker/constants/Constants.dart';
 import 'package:benji_seeker/constants/MyColors.dart';
 import 'package:benji_seeker/constants/Urls.dart';
 import 'package:benji_seeker/custom_texts/MontserratText.dart';
-import 'package:benji_seeker/custom_texts/QuicksandText.dart';
 import 'package:benji_seeker/models/BiddersModel.dart';
 import 'package:benji_seeker/models/CompletedJobModel.dart';
 import 'package:benji_seeker/models/JobDetailModel.dart';
@@ -30,9 +26,7 @@ import 'package:benji_seeker/pages/PhotoViewPage.dart';
 import 'package:benji_seeker/pages/ServiceProviders/itemServiceProvider.dart';
 import 'package:benji_seeker/pages/bank/EditBankPage.dart';
 import 'package:benji_seeker/utils/DioHelper.dart';
-import 'package:carousel_pro/carousel_pro.dart';
 import 'package:dio/dio.dart';
-import 'package:expandable_bottom_sheet/expandable_bottom_sheet.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -648,9 +642,8 @@ class _NewJobDetailPageState extends State<NewJobDetailPage>
                                     ],
                                   ),
                                 ),
-                          Expanded(
-                              child: _providerInfo(
-                                  mediaQueryData, _jobDetail.nextStep))
+                           _providerInfo(
+                                  mediaQueryData, _jobDetail.nextStep)
                         ],
                       ),
                     ),
@@ -811,64 +804,66 @@ class _NewJobDetailPageState extends State<NewJobDetailPage>
                   ? Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            MontserratText(
-                              "${_biddersList.length} Providers Available",
-                              18,
-                              Colors.black,
-                              FontWeight.bold,
-                              bottom: 8.0,
-                            ),
-                            GestureDetector(
-                              onTap: () async {
-                                var result = await Get.dialog(SortingDialog());
-                                if (result != null) {
-                                  if (result == 0) {
-                                    setState(() {
-                                      _biddersList.sort((a, b) {
-                                        return a.rating.compareTo(b.rating);
-                                      });
-                                    });
-                                  } else if (result == 1) {
-                                    setState(() {
-                                      _biddersList.sort((a, b) {
-                                        return b.rating.compareTo(a.rating);
-                                      });
-                                    });
-                                  }
-                                }
-                              },
-                              child: Container(
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(color: borderColor)),
-                                padding: const EdgeInsets.all(4.0),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    MontserratText("Sort by", 14, navBarColor,
-                                        FontWeight.normal),
-                                    Icon(
-                                      Icons.keyboard_arrow_down,
-                                      size: 20,
-                                    )
-                                  ],
-                                ),
+                         Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              MontserratText(
+                                "${_biddersList.length} Providers Available",
+                                18,
+                                Colors.black,
+                                FontWeight.bold,
+                                bottom: 8.0,
                               ),
-                            )
-                          ],
-                        ),
-                        Expanded(
-                          child: ListView.builder(
+                              GestureDetector(
+                                onTap: () async {
+                                  var result = await Get.dialog(SortingDialog());
+                                  if (result != null) {
+                                    if (result == 0) {
+                                      setState(() {
+                                        _biddersList.sort((a, b) {
+                                          return a.rating.compareTo(b.rating);
+                                        });
+                                      });
+                                    } else if (result == 1) {
+                                      setState(() {
+                                        _biddersList.sort((a, b) {
+                                          return b.rating.compareTo(a.rating);
+                                        });
+                                      });
+                                    }
+                                  }
+                                },
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(color: borderColor)),
+                                  padding: const EdgeInsets.all(4.0),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      MontserratText("Sort by", 14, navBarColor,
+                                          FontWeight.normal),
+                                      Icon(
+                                        Icons.keyboard_arrow_down,
+                                        size: 20,
+                                      )
+                                    ],
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+
+                         ListView.builder(
+                            shrinkWrap: true,
+                              physics: NeverScrollableScrollPhysics(),
                               itemCount: _biddersList.length,
                               itemBuilder: (context, index) {
                                 return ItemServiceProvider(
                                     _biddersList[index], widget.jobId);
                               }),
-                        ),
+
                       ],
                     )
                   : Container(
