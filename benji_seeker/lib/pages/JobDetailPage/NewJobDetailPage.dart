@@ -18,6 +18,7 @@ import 'package:benji_seeker/models/CompletedJobModel.dart';
 import 'package:benji_seeker/models/JobDetailModel.dart';
 import 'package:benji_seeker/models/JustStatusModel.dart';
 import 'package:benji_seeker/models/ProviderDetail.dart';
+import 'package:benji_seeker/models/SkipModel.dart';
 import 'package:benji_seeker/models/UpcomingJobModel.dart';
 import 'package:benji_seeker/pages/Chat/ChatPage.dart';
 import 'package:benji_seeker/pages/MainPages/OrderSequence/Calender/When.dart';
@@ -39,13 +40,13 @@ class NewJobDetailPage extends StatefulWidget {
   final String jobId;
   final String generatedRecurringTime;
   final bool fromNotification;
-  final List<ItemJobModel> recurrenceJobList;
+  // final List<ItemJobModel> recurrenceJobList;
   final bool jobChanged;
 
   NewJobDetailPage(this.jobId,
       {this.generatedRecurringTime,
       this.fromNotification = false,
-      this.recurrenceJobList,
+      // this.recurrenceJobList,
       this.jobChanged = false});
 
   @override
@@ -453,7 +454,7 @@ class _NewJobDetailPageState extends State<NewJobDetailPage>
                                         Flexible(
                                           flex: 1,
                                           child: MontserratText(
-                                            "\$${_jobDetail.estimatedIncome.toStringAsFixed(1)}",
+                                            "\$${_jobDetail.estimatedIncome.toStringAsFixed(2)}",
                                             18,
                                             orangeColor,
                                             FontWeight.w500,
@@ -659,8 +660,9 @@ class _NewJobDetailPageState extends State<NewJobDetailPage>
       () {
         DateTime dateTime =
             DateTime.parse(widget.generatedRecurringTime ?? _jobDetail.when);
-        widget.recurrenceJobList
-            .removeWhere((element) => DateTime.parse(element.when) == dateTime);
+        // print("SKIP TIME: ${dateTime.toLocal()}");
+        // widget.recurrenceJobList
+        //     .removeWhere((element) => DateTime.parse(element.when) == dateTime);
         _skipJob(_jobDetailModel.detail.processId, dateTime);
       },
       () {
@@ -692,7 +694,7 @@ class _NewJobDetailPageState extends State<NewJobDetailPage>
             TextSpan(text: " for "),
             TextSpan(
                 text:
-                    "${DateFormat.yMMMd().format(DateTime.parse(widget.generatedRecurringTime ?? _jobDetail.when))}",
+                    "${DateFormat.yMMMd().format(DateTime.parse(widget.generatedRecurringTime ?? _jobDetail.when).toLocal())}",
                 style: TextStyle(
                     color: Colors.black,
                     fontWeight: FontWeight.bold,
@@ -1455,10 +1457,11 @@ class _NewJobDetailPageState extends State<NewJobDetailPage>
     dioHelper
         .postRequest(BASE_URL + URL_SKIP_JOB, {"token": ""}, map)
         .then((value) {
-      JustStatusModel justStatusModel =
-          justStatusResponseFromJson(json.encode(value.data));
-      if (justStatusModel.status) {
-        if (widget.recurrenceJobList.length > 0) {
+          print("SKIP RESPONSE: $value");
+      SkipModel skipModel =
+          skipResponseFromJson(json.encode(value.data));
+      if (skipModel.status) {
+        if (skipModel.nextdate != null) {
           Navigator.pop(context);
           Navigator.pushReplacement(
               context,
@@ -1466,8 +1469,7 @@ class _NewJobDetailPageState extends State<NewJobDetailPage>
                   builder: (context) => NewJobDetailPage(
                         widget.jobId,
                         generatedRecurringTime:
-                            widget.recurrenceJobList[0].when,
-                        recurrenceJobList: widget.recurrenceJobList,
+                            skipModel.nextdate,
                         jobChanged: true,
                       )));
         } else {
@@ -1479,15 +1481,15 @@ class _NewJobDetailPageState extends State<NewJobDetailPage>
         }
       } else {
         Navigator.pop(context);
-        MyToast("${justStatusModel.errors[0]}", context);
+        MyToast("${skipModel.errors[0]}", context);
       }
     }).catchError((error) {
       try {
         Navigator.pop(context);
         var err = error as DioError;
         if (err.type == DioErrorType.RESPONSE) {
-          JustStatusModel justModel =
-              justStatusResponseFromJson(json.encode(err.response.data));
+          SkipModel justModel =
+          skipResponseFromJson(json.encode(err.response.data));
           MyToast("${justModel.errors[0]}", context, position: 1);
         } else {
           MyToast("${err.message}", context, position: 1);

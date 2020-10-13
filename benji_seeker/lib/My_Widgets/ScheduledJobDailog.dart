@@ -25,7 +25,7 @@ class ScheduledJobDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    MediaQueryData mediaQueryData = MediaQuery.of(context);
+    // MediaQueryData mediaQueryData = MediaQuery.of(context);
     return Wrap(
       alignment: WrapAlignment.center,
       runAlignment: WrapAlignment.center,
@@ -83,19 +83,19 @@ class ScheduledJobDialog extends StatelessWidget {
                             child: InkWell(
                                 onTap: () {
                                   Get.back();
-                                  List<ItemJobModel> _recurrenceJobList =
-                                      List();
+                                  // List<ItemJobModel> _recurrenceJobList =
+                                  //     List();
                                   // Navigator.push(context, MaterialPageRoute(builder: (context) => JobDetailPage(itemCompletedModel.processId)));
-                                  if (_scheduledJobs[index].recurrence !=
-                                          null &&
-                                      _scheduledJobs[index].recurrence != 0) {
-                                    itemJobList.forEach((element) {
-                                      if (element.jobId ==
-                                          _scheduledJobs[index].jobId) {
-                                        _recurrenceJobList.add(element);
-                                      }
-                                    });
-                                  }
+                                  // if (_scheduledJobs[index].recurrence !=
+                                  //         null &&
+                                  //     _scheduledJobs[index].recurrence != 0) {
+                                  //   itemJobList.forEach((element) {
+                                  //     if (element.jobId ==
+                                  //         _scheduledJobs[index].jobId) {
+                                  //       _recurrenceJobList.add(element);
+                                  //     }
+                                  //   });
+                                  // }
                                   Navigator.push(context,
                                       MaterialPageRoute(builder: (context) {
                                     if (_scheduledJobs[index]
@@ -104,13 +104,14 @@ class ScheduledJobDialog extends StatelessWidget {
                                         _scheduledJobs[index].jobId,
                                         generatedRecurringTime:
                                             _scheduledJobs[index].when,
-                                        recurrenceJobList: _recurrenceJobList,
+                                        // recurrenceJobList: _recurrenceJobList,
                                       );
                                     else {
                                       return NewJobDetailPage(
                                           _scheduledJobs[index].jobId,
-                                          recurrenceJobList:
-                                              _recurrenceJobList);
+                                          // recurrenceJobList:
+                                          //     _recurrenceJobList
+                                      );
                                     }
                                   }));
                                 },

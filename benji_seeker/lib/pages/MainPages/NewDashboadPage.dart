@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:convert';
 
 import 'package:benji_seeker/My_Widgets/InfoDialog.dart';
@@ -101,7 +102,7 @@ class NewDashboardPageState extends State<NewDashboardPage>
         var localDateTime = DateTime.parse(e.when).toLocal();
         var dateTime = DateTime(
             localDateTime.year, localDateTime.month, localDateTime.day);
-//        print("EVENTS: $dateTime");
+        // print("EVENTS: $dateTime");
         events.add(dateTime);
       }).toList();
     }
@@ -335,33 +336,18 @@ class NewDashboardPageState extends State<NewDashboardPage>
   }
 
   void _itemClick(List<ItemJobModel> data, DateTime date) {
-    // print("${data.length}");
-    // List<ItemJobModel> _recurrenceJobList = List();
-    // if (data.length > 1) {
-    Get.dialog(ScheduledJobDialog(data, date, _itemJobModelList));
-    // } else if (data.length == 1) {
-    //   Navigator.push(context, MaterialPageRoute(builder: (context) {
-    //     if (data[0].recurrence != null && data[0].recurrence != 0) {
-    //       _itemJobModelList.forEach((element) {
-    //         if (element.jobId == data[0].jobId) {
-    //           _recurrenceJobList.add(element);
-    //         }
-    //       });
-    //     }
-    //     if (data[0].isWhenDeterminedLocally)
-    //       return NewJobPageDetailPage(
-    //         data[0].jobId,
-    //         generatedRecurringTime: data[0].when,
-    //         recurrenceJobList: _recurrenceJobList,
-    //       );
-    //     else {
-    //       return NewJobPageDetailPage(
-    //         data[0].jobId,
-    //         recurrenceJobList: _recurrenceJobList,
-    //       );
-    //     }
-    //   }));
-    // }
+
+    List<ItemJobModel> uniqueData = List();
+    Map<String, ItemJobModel> map = Map();
+    for (ItemJobModel value in data) {
+      map["${value.jobId}"] = value;
+    }
+
+    map.forEach((key, value) {
+      uniqueData.add(value);
+    });
+
+    Get.dialog(ScheduledJobDialog(uniqueData, date, _itemJobModelList));
   }
 
   void _itemPositionListener(DateTime dateTime) {

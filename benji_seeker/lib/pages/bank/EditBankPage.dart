@@ -7,6 +7,7 @@ import 'package:benji_seeker/My_Widgets/MyToast.dart';
 import 'package:benji_seeker/constants/MyColors.dart';
 import 'package:benji_seeker/constants/Urls.dart';
 import 'package:benji_seeker/custom_texts/MontserratText.dart';
+import 'package:benji_seeker/models/JustStatusModel.dart';
 import 'package:benji_seeker/utils/DioHelper.dart';
 import 'package:dio/dio.dart';
 import "package:flutter/material.dart";
@@ -217,6 +218,7 @@ class _EditBankDetailsState extends State<EditBankDetails> {
           }
           if(key == "cvv"){
             if (value.length != 3) return "CVV is 3 digits";
+            if(value.contains("*")) return "Re-enter CVV";
           }
           if(key == "expiry_date"){
             List<String> dateSplit = value.split("/");
@@ -309,12 +311,15 @@ class _EditBankDetailsState extends State<EditBankDetails> {
         .postRequest(BASE_URL + URL_UPDATE_BANK_DETAILS, {"token": {}}, map)
         .then((value) {
       print("GOT DAta: $value");
-      //TODO HAS DANISH TO SEND PROPER RESPONSE
-      if (int.parse(value.toString()) == 200) {
+
+      JustStatusModel justStatusModel =
+      justStatusResponseFromJson(json.encode(value.data));
+
+      if (justStatusModel.status) {
         MyToast("Successfully Updated!", context, position: 1);
         Navigator.pop(context);
       } else {
-        MyToast("Error updating your account details.", context, position: 1);
+        MyToast("${justStatusModel.errors[0]}", context, position: 1);
       }
 //      UpdatingBankDetailModel updatingBankDetailModel =
 //          _updatingbankDetailModelResponseFromJson(json.encode(value.data));
@@ -327,15 +332,14 @@ class _EditBankDetailsState extends State<EditBankDetails> {
 //      }
     }).catchError((error) {
       try {
-        print("GOT DAta: $error");
-        MyToast("Error updating your account details.", context, position: 1);
-//        var err = error as DioError;
-//        if (err.type == DioErrorType.RESPONSE) {
-//          var errorResponse = _updatingbankDetailModelResponseFromJson(
-//              json.encode(err.response.data));
-//          MyToast("${errorResponse.errors[0]}", context, position: 1);
-//        } else
-//          MyToast("${err.message}", context, position: 1);
+        // MyToast("Error updating your account details.", context, position: 1);
+       var err = error as DioError;
+       if (err.type == DioErrorType.RESPONSE) {
+         JustStatusModel errorResponse = justStatusResponseFromJson(
+             json.encode(err.response.data));
+         MyToast("${errorResponse.errors[0]}", context, position: 1);
+       } else
+         MyToast("${err.message}", context, position: 1);
       } catch (e) {
         MyToast("Error updating your account details.", context, position: 1);
       }

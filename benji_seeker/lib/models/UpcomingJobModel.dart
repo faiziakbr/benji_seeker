@@ -78,8 +78,10 @@ class ItemJobModel {
     }
   }
 
+
   @override
   String toString() {
     return "JOB ID: $jobId, title: $title, when: $when, endDate: $endDate Image: $imageUrl";
   }
+
 }
