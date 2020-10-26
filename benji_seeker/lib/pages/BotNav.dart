@@ -93,7 +93,7 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
   }
 
   void _openURLfromColdStart(String url) {
-    if (url.contains("https://development.benjilawn.com")) {
+    if (url.contains("https://getbenji.com")) {
       if (url.contains("dashboard")) {
         try {
           while (Navigator.canPop(context)) {
@@ -119,7 +119,7 @@ class _BotNavPageState extends State<BotNavPage> with WidgetsBindingObserver {
   }
 
   void _openURLNormally(String url) {
-    if (url.contains("https://development.benjilawn.com")) {
+    if (url.contains("https://getbenji.com")) {
       if (url.contains("dashboard")) {
         try {
           _getUnReadCount();

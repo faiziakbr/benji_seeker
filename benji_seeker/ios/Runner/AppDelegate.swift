@@ -6,7 +6,7 @@ import SocketIO
 @objc class AppDelegate: FlutterAppDelegate {
     
     var socket: SocketIOClient?
-    let manager = SocketManager(socketURL: URL(string: "https://development.benjilawn.com/")!, config: [.log(false), .compress])
+    let manager = SocketManager(socketURL: URL(string: "https://getbenji.com/")!, config: [.log(false), .compress])
     var channel: FlutterMethodChannel?
     
     override func application(

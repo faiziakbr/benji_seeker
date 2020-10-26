@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$">
+      <excludeFolder url="file://$MODULE_DIR$/benji_seeker/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/benji_seeker/build" />
+      <excludeFolder url="file://$MODULE_DIR$/benji_seeker/ios/.symlinks/plugins/camera/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/benji_seeker/ios/.symlinks/plugins/camera/build" />
+      <excludeFolder url="file://$MODULE_DIR$/benji_seeker/ios/.symlinks/plugins/camera/example/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/benji_seeker/ios/.symlinks/plugins/camera/example/build" />
+      <excludeFolder url="file://$MODULE_DIR$/benji_seeker/ios/.symlinks/plugins/file_picker/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/benji_seeker/ios/.symlinks/plugins/file_picker/build" />
+      <excludeFolder url="file://$MODULE_DIR$/benji_seeker/ios/.symlinks/plugins/file_picker/example/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/benji_seeker/ios/.symlinks/plugins/file_picker/example/build" />
+      <excludeFolder url="file://$MODULE_DIR$/benji_seeker/ios/.symlinks/plugins/firebase_messaging/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/benji_seeker/ios/.symlinks/plugins/firebase_messaging/build" />
+      <excludeFolder url="file://$MODULE_DIR$/benji_seeker/ios/.symlinks/plugins/firebase_messaging/example/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/benji_seeker/ios/.symlinks/plugins/firebase_messaging/example/build" />
+      <excludeFolder url="file://$MODULE_DIR$/benji_seeker/ios/.symlinks/plugins/flutter_app_badger/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/benji_seeker/ios/.symlinks/plugins/flutter_app_badger/build" />
+      <excludeFolder url="file://$MODULE_DIR$/benji_seeker/ios/.symlinks/plugins/flutter_app_badger/example/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/benji_seeker/ios/.symlinks/plugins/flutter_app_badger/example/build" />
+      <excludeFolder url="file://$MODULE_DIR$/benji_seeker/ios/.symlinks/plugins/fluttertoast/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/benji_seeker/ios/.symlinks/plugins/fluttertoast/build" />
+      <excludeFolder url="file://$MODULE_DIR$/benji_seeker/ios/.symlinks/plugins/fluttertoast/example/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/benji_seeker/ios/.symlinks/plugins/fluttertoast/example/build" />
+      <excludeFolder url="file://$MODULE_DIR$/benji_seeker/ios/.symlinks/plugins/keyboard_visibility/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/benji_seeker/ios/.symlinks/plugins/keyboard_visibility/build" />
+      <excludeFolder url="file://$MODULE_DIR$/benji_seeker/ios/.symlinks/plugins/keyboard_visibility/example/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/benji_seeker/ios/.symlinks/plugins/keyboard_visibility/example/build" />
+      <excludeFolder url="file://$MODULE_DIR$/benji_seeker/ios/.symlinks/plugins/multi_image_picker/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/benji_seeker/ios/.symlinks/plugins/multi_image_picker/build" />
+      <excludeFolder url="file://$MODULE_DIR$/benji_seeker/ios/.symlinks/plugins/multi_image_picker/example/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/benji_seeker/ios/.symlinks/plugins/multi_image_picker/example/build" />
+      <excludeFolder url="file://$MODULE_DIR$/benji_seeker/ios/.symlinks/plugins/shared_preferences/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/benji_seeker/ios/.symlinks/plugins/shared_preferences/build" />
+      <excludeFolder url="file://$MODULE_DIR$/benji_seeker/ios/.symlinks/plugins/shared_preferences/example/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/benji_seeker/ios/.symlinks/plugins/shared_preferences/example/build" />
+      <excludeFolder url="file://$MODULE_DIR$/benji_seeker/ios/.symlinks/plugins/uni_links/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/benji_seeker/ios/.symlinks/plugins/uni_links/build" />
+      <excludeFolder url="file://$MODULE_DIR$/benji_seeker/ios/.symlinks/plugins/uni_links/example/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/benji_seeker/ios/.symlinks/plugins/uni_links/example/build" />
+      <excludeFolder url="file://$MODULE_DIR$/benji_seeker/ios/.symlinks/plugins/url_launcher/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/benji_seeker/ios/.symlinks/plugins/url_launcher/build" />
+      <excludeFolder url="file://$MODULE_DIR$/benji_seeker/ios/.symlinks/plugins/url_launcher/example/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/benji_seeker/ios/.symlinks/plugins/url_launcher/example/build" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+</module>
