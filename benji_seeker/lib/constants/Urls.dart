@@ -1,11 +1,11 @@
-const String BASE_URL = "https://getbenji.com/api/";
-// const String BASE_URL = "https://dev.getbenji.com/api/";
-const String BASE_URL_CATEGORY = "https://getbenji.com/uploads/sub_categories/";
-const String BASE_PROFILE_URL = "https://getbenji.com/api/uploads/profile_pictures/";
-// const String BASE_URL_CATEGORY = "https://dev.getbenji.com/uploads/sub_categories/";
-// const String BASE_PROFILE_URL = "https://dev.getbenji.com/uploads/profile_pictures/";
-// const String BASE_JOB_IMAGE_URL = "https://dev.getbenji.com/uploads/jobs/";
-const String BASE_JOB_IMAGE_URL = "https://getbenji.com/uploads/jobs/";
+// const String BASE_URL = "https://getbenji.com/api/";
+const String BASE_URL = "https://dev.getbenji.com/api/";
+// const String BASE_URL_CATEGORY = "https://getbenji.com/uploads/sub_categories/";
+// const String BASE_PROFILE_URL = "https://getbenji.com/api/uploads/profile_pictures/";
+const String BASE_URL_CATEGORY = "https://dev.getbenji.com/uploads/sub_categories/";
+const String BASE_PROFILE_URL = "https://dev.getbenji.com/uploads/profile_pictures/";
+const String BASE_JOB_IMAGE_URL = "https://dev.getbenji.com/uploads/jobs/";
+// const String BASE_JOB_IMAGE_URL = "https://getbenji.com/uploads/jobs/";
 
 const String BASE_GOOGLE_AUTOCOMPLETE_URL = "https://maps.googleapis.com/maps/api/place/autocomplete/json";
 const String BASE_GOOGLE_PLACE_DETAIL_URL = "https://maps.googleapis.com/maps/api/place/details/json";

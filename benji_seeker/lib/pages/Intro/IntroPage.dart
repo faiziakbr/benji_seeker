@@ -22,11 +22,7 @@ class _IntroPageState extends State<IntroPage> {
       body: SafeArea(
         child: Container(
           width: mediaQueryData.size.width,
-          margin: EdgeInsets.only(
-              top: 16.0,
-              left: mediaQueryData.size.width * 0.05,
-              right: mediaQueryData.size.width * 0.05,
-              bottom: 16.0),
+          margin: EdgeInsets.only(top: 16.0, bottom: 16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -58,24 +54,93 @@ class _IntroPageState extends State<IntroPage> {
                     Container(
                       width: mediaQueryData.size.width,
                       height: mediaQueryData.size.height * 0.7,
+                      margin: EdgeInsets.only(
+                          left: mediaQueryData.size.width * 0.05,
+                          right: mediaQueryData.size.width * 0.05),
                       child: PageView(
                         children: <Widget>[
-                          _scrollableItem(
-                              mediaQueryData,
-                              "assets/info_1.png",
-                              "The Sustainable Mowing App",
-                              "is helping the world by bringing together home-owners and lawn technicians for ALL ELECTRIC mowing!",
-                              showBenjiLogo: true),
-                          _scrollableItem(
-                              mediaQueryData,
-                              "assets/info_2.png",
-                              "Why Electric?",
-                              "Battery technology has changed the world. Electric mowers are stronger, quieter, require less maintenance AND…zero emission!"),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Image.asset(
+                                "assets/info_1.png",
+                                width: mediaQueryData.size.width,
+                                height: mediaQueryData.size.height * 0.3,
+                                fit: BoxFit.cover,
+                              ),
+                              QuicksandText(
+                                "The \"Get Things Done\" App",
+                                28,
+                                Colors.black,
+                                FontWeight.bold,
+                                top: 16.0,
+                              ),
+                              QuicksandText(
+                                "(sustainably)",
+                                16,
+                                Colors.black,
+                                FontWeight.bold,
+                                bottom: 16.0,
+                              ),
+                              RichText(
+                                textAlign: TextAlign.center,
+                                text: TextSpan(
+                                    text: "benji\u2122 ",
+                                    style: _customText(showAccentColor: true),
+                                    children: <TextSpan>[
+                                      TextSpan(
+                                        text:
+                                            "makes it easy to get all your tasks done while taking care of the planet.",
+                                        style: _customText(),
+                                      )
+                                    ]),
+                              ),
+                            ],
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Image.asset(
+                                "assets/info_2.png",
+                                width: mediaQueryData.size.width,
+                                height: mediaQueryData.size.height * 0.3,
+                                fit: BoxFit.cover,
+                              ),
+                              QuicksandText(
+                                "Schedule Your Entire Year Of Tasks",
+                                28,
+                                Colors.black,
+                                FontWeight.bold,
+                                top: 16.0,
+                                bottom: 16.0,
+                              ),
+                              RichText(
+                                textAlign: TextAlign.center,
+                                text: TextSpan(children: <TextSpan>[
+                                  TextSpan(
+                                    text: "With ",
+                                    style: _customText(),
+                                  ),
+                                  TextSpan(
+                                    text: "benji™ ",
+                                    style: _customText(showAccentColor: true),
+                                  ),
+                                  TextSpan(
+                                    text:
+                                        "you never have to chase down another handyman. benji™ lets you schedule all your tasks at once - with Certified Home Techs!",
+                                    style: _customText(),
+                                  ),
+                                ]),
+                              ),
+                            ],
+                          ),
                           _scrollableItem(
                               mediaQueryData,
                               "assets/intro_page.png",
-                              "Plan All Your Tasks For The Year",
-                              "benji™ makes it easy to manage your lawn mowing...and many other tasks.",
+                              "Sustainably?",
+                              "Certified Home Technicians™ are trained to use products, equipment and techniques that reduce energy and help us all breathe easier.",
                               showBenjiLogo: true),
                         ],
                         onPageChanged: (index) {
@@ -96,6 +161,9 @@ class _IntroPageState extends State<IntroPage> {
               ),
               Container(
                   width: mediaQueryData.size.width,
+                  margin: EdgeInsets.only(
+                      left: mediaQueryData.size.width * 0.05,
+                      right: mediaQueryData.size.width * 0.05),
                   height: 50,
                   child: MyDarkButton("GET STARTED", () {
                     SavedData savedData = SavedData();
@@ -131,6 +199,7 @@ class _IntroPageState extends State<IntroPage> {
           "$image",
           width: mediaQueryData.size.width,
           height: mediaQueryData.size.height * 0.3,
+          fit: BoxFit.cover,
         ),
         QuicksandText(
           "$title",

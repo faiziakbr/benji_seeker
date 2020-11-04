@@ -23,7 +23,8 @@ class MainActivity: FlutterActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        socket = IO.socket("https://getbenji.com/")
+//        socket = IO.socket("https://getbenji.com/")
+        socket = IO.socket("https://dev.getbenji.com/")
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
