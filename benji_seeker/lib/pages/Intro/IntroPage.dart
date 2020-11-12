@@ -139,7 +139,7 @@ class _IntroPageState extends State<IntroPage> {
                           _scrollableItem(
                               mediaQueryData,
                               "assets/intro_page.png",
-                              "Sustainably?",
+                              "Sustainably",
                               "Certified Home Technicians™ are trained to use products, equipment and techniques that reduce energy and help us all breathe easier.",
                               showBenjiLogo: true),
                         ],
